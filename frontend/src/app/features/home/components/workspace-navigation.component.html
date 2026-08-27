@@ -1,0 +1,75 @@
+<aside class="main-navigation" aria-label="Navegación principal">
+  <a routerLink="/home" class="brand" aria-label="Nexo, inicio" (click)="navigate.emit('overview')">
+    <span class="nexo-mark" aria-hidden="true"><i></i><i></i><i></i></span>Nexo
+  </a>
+  <span class="navigation-caption">TU COMUNIDAD UNIVERSITARIA</span>
+  <nav class="primary-navigation" aria-label="Secciones">
+    <button
+      class="nav-item"
+      [class.selected]="view() === 'overview'"
+      [attr.aria-current]="view() === 'overview' ? 'page' : null"
+      (click)="navigate.emit('overview')"
+    >
+      <nexo-icon name="home" /><span>Inicio</span>
+    </button>
+    <button
+      class="nav-item"
+      [class.selected]="view() === 'discover'"
+      [attr.aria-current]="view() === 'discover' ? 'page' : null"
+      (click)="navigate.emit('discover')"
+    >
+      <nexo-icon name="compass" /><span>Comunidades</span>
+    </button>
+    <button
+      class="nav-item"
+      [class.selected]="view() === 'chat'"
+      [attr.aria-current]="view() === 'chat' ? 'page' : null"
+      (click)="navigate.emit('chat')"
+    >
+      <nexo-icon name="chat" /><span>Mensajes</span>
+    </button>
+    <button
+      class="nav-item"
+      [class.selected]="view() === 'people'"
+      [attr.aria-current]="view() === 'people' ? 'page' : null"
+      (click)="navigate.emit('people')"
+    >
+      <nexo-icon name="users" /><span>Personas</span>
+    </button>
+    <a routerLink="/profile" class="nav-item"><nexo-icon name="profile" /><span>Perfil</span></a>
+  </nav>
+  <div class="navigation-bottom">
+    <div class="campus-note">
+      <nexo-icon name="sparkle" /><strong>Tu gente.<br />Tu próximo gran proyecto.</strong>
+      <p>Un lugar para encontrarse, compartir y crear juntos.</p>
+      <button (click)="navigate.emit('discover')">
+        Encuentra tu comunidad <nexo-icon name="arrow" />
+      </button>
+    </div>
+    <a class="account-card" routerLink="/profile">
+      <nexo-avatar
+        [src]="user()?.avatarUrl"
+        [name]="user()?.displayName || ''"
+        [color]="user()?.color || '#8b5cf6'"
+      />
+      <span
+        ><strong>{{ user()?.displayName }}</strong
+        ><small>&#64;{{ user()?.username }}</small></span
+      >
+      <nexo-icon name="chevron" />
+    </a>
+    <div class="session-footer">
+      <span class="demo-pill">DEMO LOCAL</span
+      ><button
+        class="icon-button"
+        aria-label="Cerrar sesión"
+        title="Cerrar sesión"
+        [disabled]="busy()"
+        (click)="signOut.emit()"
+      >
+        <nexo-icon name="logout" />
+      </button>
+    </div>
+    <p class="brand-footer">Hecho por y para estudiantes.</p>
+  </div>
+</aside>

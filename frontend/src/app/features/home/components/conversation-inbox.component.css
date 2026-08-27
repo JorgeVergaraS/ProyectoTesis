@@ -1,0 +1,271 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.inbox {
+  flex: 1;
+}
+.inbox {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid #1c2230;
+  padding: 28px 12px 18px;
+}
+.inbox-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 3px 6px 23px;
+}
+.inbox-heading h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  margin: 0;
+}
+.inbox-heading p {
+  font-size: 10px;
+  color: #7f889a;
+  margin: 7px 0 0;
+}
+.compose-button {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 37px;
+  background: linear-gradient(135deg, #2c2045, #151021);
+  border: 1px solid #4a326e;
+  border-radius: 10px;
+  color: #d1bbf3;
+}
+.inbox-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #232938;
+  border-radius: 10px;
+  padding: 12px 11px;
+  margin: 0 5px;
+  background: #0b101c;
+  color: #a4aabd;
+}
+.inbox-search:focus-within {
+  outline: 2px solid #9b7bdf;
+  outline-offset: 2px;
+}
+.inbox-search nexo-icon {
+  width: 17px;
+  height: 17px;
+}
+.inbox-search input {
+  background: transparent;
+  border: 0;
+  outline: none;
+  min-width: 0;
+  width: 100%;
+  font-size: 11px;
+  color: #e3e7f0;
+}
+.inbox-search input::placeholder {
+  color: #8991a3;
+}
+.inbox-filters {
+  display: flex;
+  gap: 8px;
+  margin: 22px 5px 23px;
+}
+.inbox-filters button {
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background: none;
+  color: #9a9fb0;
+  font-size: 11px;
+}
+.inbox-filters button.active {
+  background: #191029;
+  border-color: #453067;
+  color: #c7abff;
+}
+.inbox-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.list-label {
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  font-weight: 500;
+  color: #7f889b;
+  margin: 0 11px 12px;
+}
+.group-label {
+  margin-top: 28px;
+}
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  width: 100%;
+  border: 1px solid transparent;
+  border-bottom-color: #1a202d;
+  border-radius: 0;
+  padding: 16px 9px;
+  background: transparent;
+  color: #d6dbe6;
+  min-height: 82px;
+}
+.conversation-item:hover {
+  background: #0e1320;
+  border-radius: 12px;
+}
+.conversation-item.active {
+  background: linear-gradient(110deg, #131926, #0c101b);
+  border-color: #2e3147;
+  border-radius: 12px;
+  box-shadow: inset 3px 0 0 #9a71e7;
+}
+.conversation-item-copy {
+  min-width: 0;
+  flex: 1;
+}
+.conversation-item-copy strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conversation-item-copy small {
+  display: block;
+  font-size: 10px;
+  color: #8e97ab;
+  margin-top: 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conversation-item > nexo-icon {
+  width: 12px;
+  height: 12px;
+  color: #747c91;
+  transform: rotate(-90deg);
+}
+.group-avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: #b8adcf;
+  background: linear-gradient(130deg, #26213a, #121927);
+  border: 1px solid #363349;
+}
+.list-empty {
+  color: #969fb4;
+  font-size: 11px;
+  line-height: 1.8;
+  margin: 10px;
+}
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #b79ae9;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+.text-link nexo-icon {
+  width: 14px;
+  height: 14px;
+}
+.explore-link {
+  margin: 24px 10px;
+}
+.inbox-footer {
+  padding: 20px 9px 0;
+  color: #969fb1;
+  font-size: 9px;
+  border-top: 1px solid #1a202d;
+}
+.inbox-footer small {
+  display: block;
+  font-size: 9px;
+  color: #737e93;
+  margin: 7px 0 0 13px;
+}
+.connection-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: #4cbd80;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+.connection-dot.offline {
+  background: #fbbf24;
+}
+
+@media (max-width: 1000px) and (min-width: 761px) {
+  .inbox {
+    padding-inline: 8px;
+  }
+  .inbox-heading p {
+    display: none;
+  }
+  .inbox-filters {
+    gap: 4px;
+  }
+  .inbox-filters button {
+    font-size: 10px;
+    padding-inline: 8px;
+  }
+  .conversation-item {
+    gap: 8px;
+  }
+  .conversation-item-copy strong {
+    font-size: 12px;
+  }
+  .conversation-item-copy small {
+    font-size: 9px;
+  }
+}
+@media (max-width: 760px) {
+  .inbox {
+    border: 0;
+    width: 100%;
+    padding: 22px 17px 18px;
+  }
+  .inbox-heading {
+    margin-top: 0;
+  }
+  .inbox-heading h1 {
+    font-size: 23px;
+  }
+  .inbox-heading p {
+    font-size: 11px;
+  }
+  .inbox-search input {
+    font-size: 12px;
+  }
+  .inbox-search {
+    padding: 13px;
+  }
+  .conversation-item {
+    min-height: 82px;
+    padding-inline: 12px;
+  }
+  .conversation-item-copy strong {
+    font-size: 14px;
+  }
+  .conversation-item-copy small {
+    font-size: 11px;
+  }
+}

@@ -1,0 +1,103 @@
+<aside class="inbox" aria-label="Bandeja de conversaciones">
+  <header class="inbox-heading">
+    <div>
+      <h1>Mensajes</h1>
+      <p>Las buenas ideas empiezan aquí.</p>
+    </div>
+    <button
+      class="compose-button"
+      aria-label="Nueva conversación"
+      title="Nueva conversación"
+      (click)="navigate.emit('people')"
+    >
+      <nexo-icon name="edit" />
+    </button>
+  </header>
+  <label class="inbox-search"
+    ><nexo-icon name="search" /><input
+      [formControl]="searchControl()"
+      placeholder="Buscar personas o grupos…"
+      aria-label="Buscar personas o grupos"
+  /></label>
+  <div class="inbox-filters" role="group" aria-label="Filtrar conversaciones">
+    <button
+      [class.active]="filterKind() === 'all'"
+      [attr.aria-pressed]="filterKind() === 'all'"
+      (click)="filterChange.emit('all')"
+    >
+      Todos
+    </button>
+    <button
+      [class.active]="filterKind() === 'people'"
+      [attr.aria-pressed]="filterKind() === 'people'"
+      (click)="filterChange.emit('people')"
+    >
+      Personas
+    </button>
+    <button
+      [class.active]="filterKind() === 'groups'"
+      [attr.aria-pressed]="filterKind() === 'groups'"
+      (click)="filterChange.emit('groups')"
+    >
+      Grupos
+    </button>
+  </div>
+  <div class="inbox-list">
+    @if (filterKind() !== 'groups') {
+      <h2 class="list-label">CONVERSACIONES DIRECTAS</h2>
+      @for (person of people(); track person.id) {
+        <button
+          class="conversation-item"
+          [class.active]="active()?.peerId === person.id"
+          [attr.aria-current]="active()?.peerId === person.id ? 'true' : null"
+          [disabled]="busy()"
+          (click)="personSelected.emit(person)"
+        >
+          <nexo-avatar
+            [src]="person.avatarUrl"
+            [name]="person.displayName"
+            [color]="person.color"
+            [online]="person.online"
+          />
+          <span class="conversation-item-copy"
+            ><strong>{{ person.displayName }}</strong
+            ><small>{{
+              hasDirect(person) ? 'Continuar la conversación' : 'Saluda y empieza a conectar'
+            }}</small></span
+          >
+          <nexo-icon name="chevron" />
+        </button>
+      } @empty {
+        <p class="list-empty">No encontramos personas.</p>
+      }
+    }
+    @if (filterKind() !== 'people') {
+      <h2 class="list-label group-label">TUS GRUPOS</h2>
+      @for (channel of channels(); track channel.id) {
+        <button
+          class="conversation-item"
+          [class.active]="activeId() === channel.id"
+          [attr.aria-current]="activeId() === channel.id ? 'true' : null"
+          (click)="channelSelected.emit(channel)"
+        >
+          <span class="group-avatar"><nexo-icon name="users" /></span>
+          <span class="conversation-item-copy"
+            ><strong>{{ channel.title }}</strong
+            ><small>{{ channel.memberCount }} miembros · Canal de comunidad</small></span
+          >
+          <nexo-icon name="chevron" />
+        </button>
+      } @empty {
+        <p class="list-empty">No hay grupos que mostrar. Explora las comunidades para unirte.</p>
+      }
+      <button class="text-link explore-link" (click)="navigate.emit('discover')">
+        Descubrir más comunidades <nexo-icon name="arrow" />
+      </button>
+    }
+  </div>
+  <div class="inbox-footer">
+    <span class="connection-dot" [class.offline]="!connected()"></span
+    >{{ connected() ? 'Conectado a tu espacio local' : 'Esperando conexión local'
+    }}<small>Actualización de mensajes cada 2 s</small>
+  </div>
+</aside>

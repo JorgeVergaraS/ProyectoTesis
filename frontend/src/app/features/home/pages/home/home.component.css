@@ -1,0 +1,1000 @@
+:host {
+  display: block;
+}
+.call-person-button {
+  margin-top: 12px;
+}
+.inbox-back {
+  display: none;
+}
+.workspace-shell {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 218px minmax(0, 1fr);
+  overflow: hidden;
+  background: #040811;
+  color: #eef0f7;
+}
+.workspace-content {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}
+.workspace-content.messaging {
+  grid-template-columns: 270px minmax(0, 1fr);
+}
+.workspace-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.conversation-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 24px;
+  min-height: 91px;
+  border-bottom: 1px solid #191f2b;
+}
+.conversation-title {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.conversation-title > div {
+  min-width: 0;
+}
+.conversation-title h2 {
+  font-size: 15px;
+  font-weight: 550;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.conversation-title p {
+  font-size: 10px;
+  color: #929bad;
+  margin: 6px 0 0;
+}
+.subtitle-dot {
+  padding: 0 5px;
+  color: #5c6578;
+}
+.info-button {
+  color: #bfc2cd;
+}
+.conversation-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 285px;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.conversation-body.hide-details {
+  grid-template-columns: minmax(0, 1fr);
+}
+.chat-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: radial-gradient(ellipse at 50% 100%, #111d321c, transparent 60%);
+}
+.message-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px 16px;
+  scrollbar-gutter: stable;
+}
+.conversation-notice {
+  display: flex;
+  gap: 9px;
+  align-items: start;
+  color: #9099ab;
+  padding: 13px;
+  border: 1px solid #1c2331;
+  border-radius: 11px;
+  background: linear-gradient(110deg, #0b101a, #080c15);
+  margin-bottom: 26px;
+}
+.conversation-notice nexo-icon {
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+}
+.conversation-notice p {
+  font-size: 10px;
+  line-height: 1.8;
+  margin: 0;
+}
+.conversation-notice span {
+  display: block;
+  color: #b39ad8;
+}
+.day-separator {
+  text-align: center;
+  font-size: 10px;
+  color: #8791a4;
+  margin: 24px 0 22px;
+}
+.message-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 23px;
+}
+.message-row nexo-avatar {
+  margin-top: 3px;
+}
+.message-bubble {
+  max-width: min(84%, 540px);
+  min-width: 72px;
+  padding: 12px 13px 8px;
+  border: 1px solid #1b2332;
+  border-radius: 3px 13px 13px;
+  background: linear-gradient(120deg, #0e1521, #0b111c);
+}
+.sender-name {
+  display: block;
+  font-size: 10px;
+  font-weight: 550;
+  margin-bottom: 6px;
+}
+.message-bubble p {
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 0;
+  color: #cbd1e0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.message-meta {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 9px;
+  color: #8892a8;
+  padding-top: 5px;
+}
+.own-message {
+  justify-content: flex-end;
+  padding-left: 20px;
+}
+.own-message .message-bubble {
+  background: linear-gradient(120deg, #19122d, #1d1434);
+  border-color: #3b295c;
+  border-radius: 13px 3px 13px 13px;
+}
+.own-message .message-meta {
+  color: #b39ad9;
+}
+.composer-area {
+  padding: 10px 20px 15px;
+}
+.composer-box {
+  border: 1px solid #252d3d;
+  border-radius: 17px;
+  background: linear-gradient(120deg, #0b1420, #0d1320);
+  padding: 13px 14px 10px;
+}
+.composer-box:focus-within {
+  border-color: #8d63c5;
+  box-shadow: 0 0 0 2px #8b5cf618;
+}
+.composer-box textarea {
+  width: 100%;
+  display: block;
+  resize: vertical;
+  min-height: 44px;
+  max-height: 130px;
+  background: none;
+  border: 0;
+  outline: none;
+  color: #e1e6f0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.composer-box textarea::placeholder {
+  color: #929aab;
+}
+.composer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.composer-actions > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  color: #8793a9;
+}
+.composer-actions > span nexo-icon {
+  width: 16px;
+  height: 16px;
+}
+.send-button {
+  width: 33px;
+  height: 33px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #966dcf;
+  border-radius: 10px;
+  color: #f2eaff;
+  background: linear-gradient(135deg, #8652c6, #513183);
+}
+.send-button nexo-icon {
+  width: 16px;
+  height: 16px;
+}
+.send-button:hover:not(:disabled) {
+  background: #8352d3;
+}
+.composer-hint {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin: 9px 3px 0;
+  font-size: 8px;
+  color: #828ca1;
+}
+.conversation-details {
+  border-left: 1px solid #1c2230;
+  padding: 13px 13px 20px;
+  overflow-y: auto;
+  background: #060a13;
+}
+.details-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.details-heading h2 {
+  font-size: 11px;
+  color: #aeb6c8;
+  font-weight: 500;
+}
+.context-card {
+  border: 1px solid #252b3b;
+  border-radius: 13px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #0c1220, #090d16);
+}
+.context-cover {
+  height: 112px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 100%, #50328666, transparent 75%),
+    linear-gradient(135deg, #141425, #111c2a);
+}
+.cover-orbit {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 1px solid #9c75dd26;
+  box-shadow:
+    0 0 0 22px #a580e408,
+    0 0 0 44px #a580e405;
+}
+.context-cover nexo-avatar {
+  z-index: 1;
+}
+.context-emblem {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  background: #19162d;
+  border: 1px solid #725098;
+  color: #c2a2f1;
+  border-radius: 21px;
+  z-index: 1;
+  transform: rotate(-8deg);
+}
+.context-emblem nexo-icon {
+  transform: rotate(8deg);
+  width: 27px;
+  height: 27px;
+}
+.context-description {
+  padding: 20px 17px 17px;
+}
+.context-description .eyebrow {
+  font-size: 8px;
+  letter-spacing: 1.2px;
+}
+.context-description h3 {
+  font-size: 19px;
+  margin: 9px 0;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.context-description p {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #919cb1;
+  margin: 0;
+}
+.members-section {
+  border-top: 1px solid #242a39;
+  padding: 17px;
+}
+.members-section > h3 {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 500;
+  color: #c0c7d8;
+  margin: 0 0 19px;
+}
+.members-section > h3 span {
+  color: #9689b7;
+}
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 17px;
+}
+.member-row > div {
+  min-width: 0;
+}
+.member-row strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.member-row small {
+  font-size: 10px;
+  color: #969bb0;
+}
+.member-row span {
+  display: block;
+  font-size: 9px;
+  color: #8c99ad;
+  margin-top: 5px;
+}
+.leave-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  border-top: 1px solid #242a39;
+  width: 100%;
+  text-align: left;
+  color: #c29fac;
+  font-size: 10px;
+  padding: 14px 17px;
+}
+.leave-button:hover {
+  background: #251421;
+}
+.leave-button nexo-icon {
+  width: 14px;
+  height: 14px;
+}
+.future-card {
+  border: 1px solid #342747;
+  border-radius: 13px;
+  background: radial-gradient(ellipse at 100% 0, #522c8133, transparent 70%), #0f0d1b;
+  padding: 18px;
+  margin-top: 14px;
+}
+.future-icon {
+  color: #b699e3;
+  display: inline-flex;
+  margin-right: 9px;
+  vertical-align: middle;
+}
+.future-tag {
+  color: #9a86b8;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.future-card h3 {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.65;
+  margin: 15px 0 8px;
+  color: #d1c3e5;
+}
+.future-card p,
+.local-note p {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #9a94ae;
+  margin: 0;
+}
+.local-note {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  padding: 19px 5px 0;
+  color: #909caf;
+}
+.local-note nexo-icon {
+  width: 15px;
+  height: 15px;
+  margin-top: 3px;
+}
+.center-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  padding: 30px;
+}
+.center-state h1,
+.center-state h2 {
+  font-size: 25px;
+  line-height: 1.45;
+  font-weight: 550;
+  margin: 0;
+}
+.center-state p {
+  color: #a0abc0;
+  font-size: 12px;
+  line-height: 1.9;
+  max-width: 420px;
+}
+.center-state small,
+.details-help {
+  font-size: 10px;
+  color: #9aa4b9;
+}
+.preview-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 1px solid #433055;
+  background: #1a122c;
+  color: #b998e7;
+  border-radius: 19px;
+}
+.empty-conversation {
+  padding: 45px 15px;
+  text-align: center;
+}
+.empty-conversation h3 {
+  font-size: 23px;
+  line-height: 1.5;
+  letter-spacing: -0.5px;
+  font-weight: 500;
+  margin: 20px 0 12px;
+}
+.empty-conversation p,
+.messages-loading {
+  color: #919db2;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.connection-banner,
+.action-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #2a2315;
+  color: #ebce9b;
+  padding: 10px 20px;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.action-banner {
+  background: #2a1724;
+  color: #eab1cc;
+}
+.connection-banner button {
+  background: none;
+  border: 0;
+  color: inherit;
+  text-decoration: underline;
+}
+.explore-page {
+  flex: 1;
+  overflow-y: auto;
+  padding: 48px;
+  background: radial-gradient(ellipse at 90% 0, #4c24621f, transparent 55%);
+}
+.explore-page > h1 {
+  font-size: clamp(30px, 3vw, 46px);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -1.6px;
+  margin: 20px 0;
+}
+.explore-page > h1 span {
+  color: #b89be9;
+}
+.page-intro {
+  color: #929fb5;
+  line-height: 1.9;
+  font-size: 13px;
+  max-width: 630px;
+}
+.community-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 25px 0 40px;
+}
+.community-stats > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #a4abc0;
+}
+.community-stats nexo-icon {
+  width: 16px;
+  height: 16px;
+  color: #a88bcf;
+}
+.online-stat i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4cbd80;
+}
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 30px 0 18px;
+}
+.section-title h2 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+.section-title > span {
+  font-size: 10px;
+  color: #939db0;
+}
+.channel-grid,
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.channel-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border: 1px solid #27293b;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #101522, #0b101c);
+}
+.channel-card:hover {
+  border-color: #5a4379;
+}
+.channel-card-top,
+.channel-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.channel-card-icon {
+  width: 41px;
+  height: 41px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #21192f;
+  border: 1px solid #463454;
+  color: #b69bdf;
+  flex-shrink: 0;
+}
+.channel-state {
+  padding: 4px 8px;
+  font-size: 9px;
+  color: #a0aabd;
+  border: 1px solid #33374a;
+  border-radius: 20px;
+}
+.channel-state.joined {
+  border-color: #4d3663;
+  color: #c0a2e7;
+  background: #20162f;
+}
+.channel-card h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 22px 0 10px;
+  overflow-wrap: anywhere;
+}
+.channel-card > p {
+  flex: 1;
+  color: #939fb7;
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 0 0 25px;
+}
+.channel-card-bottom > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #8f9bb1;
+}
+.channel-card-bottom nexo-icon {
+  width: 14px;
+  height: 14px;
+}
+.channel-card-bottom button {
+  font-size: 11px;
+}
+.demo-guidance {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #353047;
+  border-radius: 14px;
+  background: #131121;
+  padding: 22px;
+  margin-top: 30px;
+}
+.demo-guidance > nexo-icon {
+  color: #b295db;
+}
+.demo-guidance > div {
+  flex: 1;
+}
+.demo-guidance strong {
+  color: #c5b5db;
+  font-size: 12px;
+  font-weight: 500;
+}
+.demo-guidance p {
+  font-size: 11px;
+  color: #9793ad;
+  line-height: 1.8;
+  margin: 7px 0 0;
+}
+.demo-guidance a {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.people-grid {
+  margin-top: 35px;
+}
+.person-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #2d2d40;
+  background: linear-gradient(145deg, #141423, #0a111d);
+  padding: 35px 25px;
+  border-radius: 18px;
+  text-align: center;
+}
+.person-card h2 {
+  font-size: 23px;
+  font-weight: 500;
+  margin: 19px 0 8px;
+}
+.person-status {
+  font-size: 10px;
+  color: #b09ac7;
+}
+.person-card p {
+  font-size: 12px;
+  color: #9ba6bc;
+  line-height: 1.9;
+  margin: 22px 0;
+  flex: 1;
+}
+.overview-stats {
+  display: flex;
+  margin: 35px 0 45px;
+  border-block: 1px solid #252637;
+  padding: 25px 0;
+}
+.overview-stats > div {
+  flex: 1;
+  padding-left: 25px;
+  border-left: 1px solid #252637;
+}
+.overview-stats > div:first-child {
+  border: 0;
+  padding-left: 0;
+}
+.overview-stats strong {
+  font-size: 29px;
+  font-weight: 500;
+  display: block;
+  color: #d4bdf9;
+}
+.overview-stats span {
+  display: block;
+  font-size: 11px;
+  color: #909bb1;
+  margin-top: 6px;
+}
+.overview-channel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #292638;
+  border-radius: 14px;
+  background: linear-gradient(120deg, #141323, #0d121e);
+  padding: 22px;
+  text-align: left;
+}
+.overview-channel:hover {
+  border-color: #795894;
+}
+.overview-channel > span:nth-child(2) {
+  flex: 1;
+}
+.overview-channel strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+.overview-channel small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.8;
+  color: #949cb2;
+  margin-top: 8px;
+}
+.overview-channel > nexo-icon {
+  color: #a389c4;
+  width: 16px;
+}
+.empty-results {
+  font-size: 12px;
+  color: #9a9eb3;
+}
+@media (min-width: 1700px) {
+  .workspace-shell {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .workspace-content.messaging {
+    grid-template-columns: 305px minmax(0, 1fr);
+  }
+  .conversation-body {
+    grid-template-columns: minmax(0, 1fr) 325px;
+  }
+  .message-scroll {
+    padding-inline: 30px;
+  }
+}
+@media (max-width: 1299px) {
+  .workspace-shell {
+    grid-template-columns: 195px minmax(0, 1fr);
+  }
+  .workspace-content.messaging {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .explore-page {
+    padding: 35px;
+  }
+}
+@media (max-width: 1199px) {
+  .conversation-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .conversation-body:not(.hide-details) .chat-pane {
+    display: none;
+  }
+  .conversation-details {
+    border-left: 0;
+    padding: 20px;
+  }
+  .context-cover {
+    height: 140px;
+  }
+  .context-card,
+  .future-card,
+  .local-note,
+  .details-heading {
+    max-width: 600px;
+    margin-inline: auto;
+  }
+}
+@media (max-width: 1000px) and (min-width: 761px) {
+  .workspace-shell {
+    grid-template-columns: 170px minmax(0, 1fr);
+  }
+  .workspace-content.messaging {
+    grid-template-columns: 215px minmax(0, 1fr);
+  }
+  .conversation-heading {
+    padding-inline: 16px;
+  }
+  .conversation-title p {
+    font-size: 9px;
+  }
+  .message-scroll {
+    padding-inline: 12px;
+  }
+  .composer-area {
+    padding-inline: 12px;
+  }
+  .composer-actions > span {
+    font-size: 8px;
+  }
+  .message-bubble p {
+    font-size: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .inbox-back {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .workspace-shell {
+    display: flex;
+    flex-direction: column;
+  }
+  .workspace-content,
+  .workspace-content.messaging {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+  .workspace-main {
+    flex: 1;
+  }
+  .messaging.inbox-visible nexo-conversation-inbox {
+    display: flex;
+  }
+  .messaging.inbox-visible .workspace-main {
+    display: none;
+  }
+  .conversation-heading {
+    min-height: 77px;
+    padding: 14px 10px;
+    gap: 7px;
+  }
+  .conversation-title {
+    gap: 9px;
+  }
+  .conversation-title h2 {
+    font-size: 14px;
+  }
+  .conversation-title p {
+    font-size: 9px;
+  }
+  .message-scroll {
+    padding: 14px 12px;
+  }
+  .message-bubble {
+    max-width: 86%;
+  }
+  .message-bubble p {
+    font-size: 12px;
+  }
+  .message-row {
+    gap: 8px;
+  }
+  .message-row nexo-avatar {
+    transform: scale(0.85);
+    transform-origin: top left;
+    width: 32px;
+  }
+  .composer-area {
+    padding: 8px 12px 12px;
+  }
+  .composer-actions > span {
+    font-size: 8px;
+  }
+  .composer-hint {
+    font-size: 7px;
+    gap: 6px;
+  }
+  .conversation-details {
+    padding: 16px;
+  }
+  .context-cover {
+    height: 110px;
+  }
+  .explore-page {
+    padding: 30px 21px;
+  }
+  .explore-page > h1 {
+    font-size: 30px;
+    letter-spacing: -0.9px;
+  }
+  .page-intro {
+    font-size: 12px;
+  }
+  .channel-grid,
+  .people-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .community-stats {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .community-stats > span {
+    font-size: 10px;
+  }
+  .demo-guidance {
+    align-items: start;
+    flex-wrap: wrap;
+    padding: 18px;
+  }
+  .demo-guidance a {
+    width: 100%;
+  }
+  .overview-stats {
+    margin: 27px 0;
+    padding: 20px 0;
+  }
+  .overview-stats > div {
+    padding-left: 12px;
+  }
+  .overview-stats strong {
+    font-size: 25px;
+  }
+  .overview-stats span {
+    font-size: 9px;
+    line-height: 1.8;
+    max-width: 90px;
+  }
+  .section-title h2 {
+    font-size: 13px;
+  }
+  .section-title .text-link {
+    font-size: 9px;
+    gap: 3px;
+  }
+  .center-state {
+    padding: 20px;
+  }
+}
+
+.group-avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: #b8adcf;
+  background: linear-gradient(130deg, #26213a, #121927);
+  border: 1px solid #363349;
+}
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #b79ae9;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+.text-link nexo-icon {
+  width: 14px;
+  height: 14px;
+}
+@media (max-width: 760px) {
+  nexo-conversation-inbox {
+    display: none;
+  }
+  .messaging.inbox-visible nexo-conversation-inbox {
+    display: flex;
+    flex: 1;
+  }
+}

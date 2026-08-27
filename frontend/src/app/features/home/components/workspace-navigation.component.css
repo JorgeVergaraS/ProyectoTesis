@@ -1,0 +1,213 @@
+:host {
+  display: contents;
+}
+.main-navigation {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #1c2230;
+  padding: 30px 16px 16px;
+  min-height: 0;
+  background: linear-gradient(165deg, #070a12, #040810 65%);
+  overflow-y: auto;
+}
+.brand {
+  padding: 0 10px;
+  font-size: 31px;
+  gap: 12px;
+}
+.navigation-caption {
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  color: #7e879c;
+  margin: 27px 10px 14px;
+}
+.primary-navigation {
+  display: grid;
+  gap: 9px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-height: 47px;
+  padding: 11px 14px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #bcc2d1;
+  text-decoration: none;
+  font-size: 13px;
+  text-align: left;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.nav-item:hover {
+  background: #111522;
+  color: #fff;
+}
+.nav-item.selected {
+  border-color: #61459a;
+  color: #eee7ff;
+  background: linear-gradient(100deg, #35255b, #19122e);
+  box-shadow: inset 0 1px 0 #b89aff12;
+}
+.nav-item.selected nexo-icon {
+  color: #d2baff;
+}
+.navigation-bottom {
+  margin-top: auto;
+  padding-top: 36px;
+}
+.campus-note {
+  position: relative;
+  border: 1px solid #41315f;
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 100% 0, #43247b66, transparent 65%), #110e22;
+  padding: 19px 15px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.campus-note > nexo-icon {
+  color: #b692ff;
+  margin-bottom: 12px;
+  width: 25px;
+  height: 25px;
+}
+.campus-note strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.65;
+  font-weight: 550;
+}
+.campus-note p {
+  color: #9b95b4;
+  font-size: 11px;
+  line-height: 1.8;
+  margin: 8px 0 16px;
+}
+.campus-note button {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  color: #c9b0fa;
+  font-size: 10px;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.campus-note button nexo-icon {
+  width: 14px;
+}
+.account-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  border: 1px solid #252938;
+  border-radius: 12px;
+  padding: 12px 10px;
+  background: #0b101b;
+}
+.account-card > span {
+  flex: 1;
+  min-width: 0;
+}
+.account-card strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+}
+.account-card small {
+  display: block;
+  color: #8e97aa;
+  font-size: 10px;
+  margin-top: 4px;
+}
+.account-card > nexo-icon {
+  width: 14px;
+  transform: rotate(-90deg);
+  color: #9299ac;
+}
+.session-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 4px 0;
+}
+.brand-footer {
+  font-size: 9px;
+  color: #7c8599;
+  margin: 15px 6px 0;
+}
+
+@media (max-width: 1299px) {
+  .main-navigation {
+    padding-inline: 12px;
+  }
+}
+@media (max-width: 1000px) and (min-width: 761px) {
+  .nav-item {
+    font-size: 12px;
+    gap: 11px;
+    padding-inline: 10px;
+  }
+  .navigation-caption {
+    font-size: 7px;
+    letter-spacing: 0.5px;
+  }
+  .campus-note {
+    padding: 14px 11px;
+  }
+  .campus-note button {
+    font-size: 9px;
+  }
+}
+@media (max-width: 760px) {
+  .main-navigation {
+    flex-shrink: 0;
+    overflow: visible;
+    padding: 13px 14px 9px;
+    border-right: 0;
+    border-bottom: 1px solid #262133;
+    background: #070b14;
+  }
+  .brand {
+    font-size: 23px;
+    padding: 0 4px;
+    gap: 10px;
+  }
+  .brand .nexo-mark {
+    width: 26px;
+    height: 28px;
+  }
+  .navigation-caption,
+  .navigation-bottom {
+    display: none;
+  }
+  .primary-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 3px;
+    margin-top: 12px;
+  }
+  .nav-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    flex: 1;
+    padding: 7px 4px;
+    min-height: 48px;
+    font-size: 9px;
+    border-radius: 9px;
+  }
+  .nav-item nexo-icon {
+    width: 17px;
+    height: 17px;
+  }
+}
+@media (max-height: 780px) and (min-width: 761px) {
+  .campus-note {
+    display: none;
+  }
+}
