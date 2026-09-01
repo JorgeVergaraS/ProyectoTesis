@@ -42,7 +42,7 @@ export class AuthService {
   }
 
   async restore(): Promise<boolean> {
-    if (this.session.token() && !this.activeAccount()) {
+    if (this.session.token()) {
       try { this.session.user.set(await firstValueFrom(this.http.get<DemoUser>(environment.apiUrl + '/users/me'))); return true; }
       catch { this.session.clear(); return false; }
     }

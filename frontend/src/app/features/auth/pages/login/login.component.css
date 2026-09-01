@@ -347,6 +347,8 @@ legend {
 .local-form label { display: grid; gap: 5px; color: #b9c2d4; font-size: 11px; }
 .local-form input { width: 100%; box-sizing: border-box; border: 1px solid #2a3651; border-radius: 8px; background: #0d1527; color: #eef2ff; padding: 11px 12px; outline: none; }
 .local-form input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px #8b5cf622; }
+.local-form input[aria-invalid='true'] { border-color: #ef6681; }
+.field-error { color: #ff91a5; font-size: 10px; line-height: 1.35; }
 .secondary-button { border: 1px solid #56648a; border-radius: 8px; background: #1a2540; color: #e9edff; padding: 11px; font-weight: 700; cursor: pointer; }
 .secondary-button:disabled { opacity: .55; cursor: wait; }
 .mode-link { border: 0; background: transparent; color: #b79cff; font-size: 11px; cursor: pointer; }

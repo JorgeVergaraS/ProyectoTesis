@@ -54,7 +54,7 @@ r.font.size = Pt(32)
 r.font.color.rgb = RGBColor(73, 65, 180)
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-r = p.add_run("Configuración del frontend y Microsoft Entra ID")
+r = p.add_run("Autenticación Nexo: registro, login y Microsoft Entra ID")
 r.bold = True
 r.font.size = Pt(20)
 r.font.color.rgb = RGBColor(41, 62, 120)
@@ -64,7 +64,7 @@ p.add_run("Evidencia de implementación — 1 de septiembre de 2026").font.size 
 
 p = doc.add_paragraph()
 p.add_run("Alcance. ").bold = True
-p.add_run("Este informe documenta la configuración del frontend Angular de Nexo, sus registros de Microsoft Entra ID, el redirect URI local, el scope de API y la limpieza de las aplicaciones antiguas de Pedidos360. No contiene secretos ni credenciales privadas.")
+p.add_run("Este informe documenta el login local con correo y contraseña, el registro de usuarios, la validación de Microsoft Entra ID, la persistencia en PostgreSQL y las evidencias visuales. La cuenta usada en las pruebas es del entorno local; la contraseña no se documenta.")
 
 heading(doc, "1. Resultado final")
 doc.add_paragraph("Se dejaron dos registros funcionales en el tenant local de Microsoft Entra:")
@@ -103,6 +103,8 @@ for filename, text in [
     ("02-nexo-api-scope.png", "Registro Nexo Web: Application ID URI y scope access_as_user habilitado."),
     ("03-azure-clean-nexo-only.png", "Lista final: solo permanecen Nexo Frontend y Nexo Web; Pedidos360 fue retirado."),
     ("04-nexo-login-rendered.png", "Login visual de Nexo levantado en http://localhost:4200/login, con botón Continuar con Microsoft."),
+    ("05-login-validation-errors.png", "Validación en línea: correo con formato incorrecto y contraseña menor a 8 caracteres."),
+    ("06-login-success.png", "Login local exitoso: redirección a /home y datos del usuario autenticado."),
 ]:
     path = EVIDENCE / filename
     if path.exists():
@@ -110,12 +112,27 @@ for filename, text in [
         doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
         caption(doc, text)
 
-heading(doc, "4. Cambios en el frontend")
-doc.add_paragraph("El frontend incluye MSAL con @azure/msal-angular y @azure/msal-browser, guardas de navegación, interceptor Authorization Bearer, login/logout con Microsoft y las rutas /login, /home y /profile.")
+heading(doc, "4. Flujo de registro y login")
+for text in [
+    "En /login, el usuario puede continuar con Microsoft o alternar al formulario de correo.",
+    "El registro exige nombre, correo válido y contraseña de mínimo 8 caracteres. Los errores aparecen debajo del campo y el botón no envía formularios inválidos.",
+    "El backend vuelve a validar el payload con Bean Validation, verifica que el correo no esté registrado y genera un JWT local al crear la cuenta.",
+    "El login compara la contraseña recibida contra el hash BCrypt almacenado y entrega un JWT con issuer nexo-local y audience nexo-api.",
+    "El interceptor adjunta Authorization: Bearer <JWT> a /api/users/me; la guarda permite /home solo con sesión válida.",
+    "Microsoft Entra mantiene el flujo OAuth2/OIDC; sus tokens se validan con issuer, audience, firma y expiración mediante el Resource Server.",
+]:
+    doc.add_paragraph(text, style="List Number")
+
+heading(doc, "5. Cambios en el frontend")
+doc.add_paragraph("El frontend incluye formularios reactivos, validación visual accesible, interceptor para JWT local, interceptor MSAL condicionado a cuentas Microsoft, guardas compatibles con ambos métodos y las rutas /login, /home y /profile.")
 doc.add_paragraph("Archivo actualizado: frontend/src/environments/environment.ts")
 doc.add_paragraph("La configuración de producción permanece con placeholders hasta disponer de un dominio real. No se inventaron credenciales ni se guardaron secretos.")
 
-heading(doc, "5. Verificaciones ejecutadas")
+heading(doc, "6. Persistencia y seguridad de datos")
+doc.add_paragraph("La migración V5 agrega password_hash y permite identity_provider=LOCAL. La migración V6 elimina la restricción histórica incompatible con usuarios locales. La tabla nexo.users conserva el email, username, display_name, estado y timestamps; password_hash contiene únicamente un hash BCrypt y nunca la contraseña original.")
+doc.add_paragraph("Consulta de verificación ejecutada en PostgreSQL: SELECT email, identity_provider, password_hash IS NOT NULL FROM nexo.users WHERE lower(email) = 'jor.vergaras@duocuc.cl'; Resultado: usuario LOCAL y hash presente. No se registran contraseñas en logs ni en el documento.")
+
+heading(doc, "7. Verificaciones ejecutadas")
 table = doc.add_table(rows=1, cols=3)
 table.style = "Table Grid"
 table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -124,15 +141,18 @@ for i, value in enumerate(["Validación", "Comando", "Resultado"]):
     shade(table.rows[0].cells[i], "293E78")
 for row in [
     ("Prettier", "npm run format:check", "OK"),
-    ("Pruebas frontend", "npm run test:ci", "24 tests passed"),
-    ("Build Angular", "npm run build", "OK; warning budget inicial MSAL 526.25 kB / 500 kB"),
+    ("Compilación backend", "backend/mvnw.cmd -DskipTests compile", "OK con Java 21"),
+    ("Build Angular", "npm run build", "OK; warning de presupuesto inicial por MSAL"),
+    ("Prueba API registro/login", "POST /api/auth/register y POST /api/auth/login", "OK; JWT emitido"),
+    ("Prueba protegida", "GET /api/users/me con Bearer JWT", "200; usuario persistido"),
+    ("Prueba visual", "Navegador local", "OK; errores y redirección /home verificados"),
 ]:
     cells = table.add_row().cells
     for i, value in enumerate(row):
         cell_text(cells[i], value)
 
-heading(doc, "6. Observación de integración")
-doc.add_paragraph("El login MSAL del navegador ya está configurado con los identificadores de Azure. Para completar una prueba end-to-end contra /api/users/me, el backend debe validar tokens de Microsoft Entra como OAuth2 Resource Server y aceptar el audience del API Nexo. Esa parte corresponde al módulo backend y no se modificó en este encargo frontend.")
+heading(doc, "8. Ejecución local")
+doc.add_paragraph("1) Iniciar PostgreSQL: docker compose up -d. 2) Iniciar backend: backend\\mvnw.cmd spring-boot:run. 3) Iniciar frontend: npm start. 4) Abrir http://127.0.0.1:4200/login. 5) Para Microsoft, completar el consentimiento de la API Nexo en el tenant si Azure lo solicita.")
 
 footer = section.footer.paragraphs[0]
 footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
