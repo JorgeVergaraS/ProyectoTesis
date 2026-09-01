@@ -43,7 +43,7 @@ server:
 
 nexo:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200}
   azure:
     issuer: ${AZURE_ISSUER:https://login.microsoftonline.com/21a4bbb2-fc48-4053-a98e-b805aa2306cc/v2.0}
     audience: ${AZURE_AUDIENCE:api://0f2d7cee-cabb-4482-900d-64fb07f5f81d}
