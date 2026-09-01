@@ -34,7 +34,7 @@
     <section class="login-card" aria-labelledby="login-title">
       <span class="card-tag"><nexo-icon name="compass" /> EXPLORA NEXO</span>
       <h2 id="login-title">Tu comunidad<br />te espera.</h2>
-      <p class="card-description">Conecta con tu cuenta institucional para entrar a Nexo.</p>
+      <p class="card-description">Conecta con tu cuenta institucional o crea una cuenta Nexo.</p>
       @if (notice) {
         <p class="notice" role="status">{{ notice }}</p>
       }
@@ -56,11 +56,25 @@
           {{ busy() ? 'Conectando…' : 'Continuar con Microsoft' }}<nexo-icon name="arrow" />
         </button>
       </form>
+      <div class="local-divider"><span>o continúa con tu correo</span></div>
+      <form class="local-form" [formGroup]="localForm" (ngSubmit)="submitLocal()">
+        @if (mode() === 'register') {
+          <label>Nombre<input type="text" formControlName="displayName" placeholder="Tu nombre" /></label>
+        }
+        <label>Correo electrónico<input type="email" formControlName="email" placeholder="tu@correo.com" autocomplete="email" /></label>
+        <label>Contraseña<input type="password" formControlName="password" placeholder="Mínimo 8 caracteres" autocomplete="current-password" /></label>
+        @if (localError()) { <p class="error-note" role="alert">{{ localError() }}</p> }
+        <button class="secondary-button" type="submit" [disabled]="localBusy()">
+          {{ localBusy() ? 'Procesando…' : (mode() === 'login' ? 'Iniciar sesión' : 'Crear cuenta') }}
+        </button>
+        <button class="mode-link" type="button" (click)="toggleMode()">
+          {{ mode() === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión' }}
+        </button>
+      </form>
       <div class="local-explainer">
         <nexo-icon name="shield" />
         <p>
-          <strong>Acceso seguro con tu identidad institucional.</strong><br />Nexo nunca almacena
-          contraseñas; Microsoft gestiona tu autenticación.
+          <strong>Acceso seguro.</strong><br />Las contraseñas locales se almacenan cifradas con BCrypt; Microsoft gestiona las cuentas institucionales.
         </p>
       </div>
       <div class="card-bottom">

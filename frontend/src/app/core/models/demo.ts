@@ -6,6 +6,7 @@ export interface DemoUser {
   bio: string;
   online: boolean;
   avatarUrl?: string | null;
+  email?: string | null;
 }
 export interface DemoSession {
   token: string;

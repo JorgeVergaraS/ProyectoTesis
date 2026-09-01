@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { MsalGuard } from '@azure/msal-angular';
 import { demoGuard, guestGuard } from './core/guards/demo.guard';
 
 export const routes: Routes = [
@@ -11,13 +10,13 @@ export const routes: Routes = [
   },
   {
     path: 'home',
-    canActivate: [MsalGuard, demoGuard],
+    canActivate: [demoGuard],
     loadComponent: () =>
       import('./features/home/pages/home/home.component').then((m) => m.HomeComponent),
   },
   {
     path: 'profile',
-    canActivate: [MsalGuard, demoGuard],
+    canActivate: [demoGuard],
     loadComponent: () =>
       import('./features/home/pages/profile/profile.component').then((m) => m.ProfileComponent),
   },

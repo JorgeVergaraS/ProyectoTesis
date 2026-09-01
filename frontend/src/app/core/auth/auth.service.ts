@@ -7,6 +7,10 @@ import { environment } from '../../../environments/environment';
 import { DemoSessionStore } from './demo-session.store';
 import { DemoUser } from '../models/demo';
 
+export interface LocalCredentials { email: string; password: string; }
+export interface LocalRegistration extends LocalCredentials { displayName: string; }
+export interface LocalAuthResponse { accessToken: string; tokenType: string; expiresIn: number; user: DemoUser; }
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -27,7 +31,21 @@ export class AuthService {
     await this.msal.loginRedirect({ scopes: [environment.azure.apiScope] });
   }
 
+  async loginLocal(credentials: LocalCredentials): Promise<void> {
+    const response = await firstValueFrom(this.http.post<LocalAuthResponse>(environment.apiUrl + '/auth/login', credentials));
+    this.session.start({ token: response.accessToken, expiresAt: new Date(Date.now() + response.expiresIn * 1000).toISOString(), user: response.user });
+  }
+
+  async registerLocal(registration: LocalRegistration): Promise<void> {
+    const response = await firstValueFrom(this.http.post<LocalAuthResponse>(environment.apiUrl + '/auth/register', registration));
+    this.session.start({ token: response.accessToken, expiresAt: new Date(Date.now() + response.expiresIn * 1000).toISOString(), user: response.user });
+  }
+
   async restore(): Promise<boolean> {
+    if (this.session.token() && !this.activeAccount()) {
+      try { this.session.user.set(await firstValueFrom(this.http.get<DemoUser>(environment.apiUrl + '/users/me'))); return true; }
+      catch { this.session.clear(); return false; }
+    }
     if (!this.isConfigured) return false;
     const account = this.activeAccount();
     if (!account) return false;
