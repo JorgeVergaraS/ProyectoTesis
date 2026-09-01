@@ -8,6 +8,8 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@a
 import {
   MsalGuard,
   MsalInterceptor,
+  MsalService,
+  MsalBroadcastService,
   MsalModule,
   MSAL_GUARD_CONFIG,
   MSAL_INSTANCE,
@@ -30,6 +32,8 @@ export const appConfig: ApplicationConfig = {
     { provide: MSAL_GUARD_CONFIG, useFactory: msalGuardConfigFactory },
     { provide: MSAL_INTERCEPTOR_CONFIG, useFactory: msalInterceptorConfigFactory },
     { provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true },
+    MsalService,
+    MsalBroadcastService,
     MsalGuard,
   ],
 };
