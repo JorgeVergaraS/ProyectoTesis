@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { ProfileService } from '../../../../core/services/profile.service';
 import { VoiceCallService } from '../../../../core/realtime/voice-call.service';
 import { Router, RouterLink } from '@angular/router';
-import { DemoAuthService } from '../../../../core/auth/demo-auth.service';
+import { AuthService } from '../../../../core/auth/auth.service';
 import { AvatarComponent } from '../../../../shared/components/avatar.component';
 import { IconComponent } from '../../../../shared/components/icon.component';
 
@@ -211,7 +211,7 @@ import { IconComponent } from '../../../../shared/components/icon.component';
   ],
 })
 export class ProfileComponent {
-  readonly auth = inject(DemoAuthService);
+  readonly auth = inject(AuthService);
   private readonly calls = inject(VoiceCallService);
   private readonly router = inject(Router);
   readonly busy = signal(false);

@@ -2,7 +2,8 @@
   <header class="login-header">
     <a href="/" class="brand"
       ><span class="nexo-mark" aria-hidden="true"><i></i><i></i><i></i></span>Nexo</a
-    ><span class="demo-pill"><span></span> DEMO LOCAL</span>
+    >
+    <span class="demo-pill"><span></span> ACCESO INSTITUCIONAL</span>
   </header>
   <main class="login-grid">
     <section class="welcome">
@@ -20,79 +21,51 @@
       <div class="social-art" aria-hidden="true">
         <div class="orbit orbit-one"></div>
         <div class="orbit orbit-two"></div>
-        <span class="art-core">N</span> <span class="art-avatar art-jorge">J</span
+        <span class="art-core">N</span><span class="art-avatar art-jorge">J</span
         ><span class="art-avatar art-jean">J</span><span class="art-avatar art-fernando">F</span>
         <div class="art-message">👋 <span>¿Nos vemos en la comunidad?</span></div>
         <span class="art-spark spark-one">✦</span><span class="art-spark spark-two">✧</span>
       </div>
       <div class="welcome-footer">
         <span class="mini-dots"><i>J</i><i>J</i><i>F</i></span
-        ><span>Tres perfiles. Infinitas conversaciones.</span>
+        ><span>Una comunidad. Infinitas conversaciones.</span>
       </div>
     </section>
     <section class="login-card" aria-labelledby="login-title">
       <span class="card-tag"><nexo-icon name="compass" /> EXPLORA NEXO</span>
       <h2 id="login-title">Tu comunidad<br />te espera.</h2>
-      <p class="card-description">Elige un perfil para entrar a la demo.</p>
+      <p class="card-description">Conecta con tu cuenta institucional para entrar a Nexo.</p>
       @if (notice) {
         <p class="notice" role="status">{{ notice }}</p>
       }
-      <form [formGroup]="form" (ngSubmit)="enter()">
-        <fieldset [disabled]="busy() || loading()">
-          <legend>¿Con quién quieres entrar?</legend>
-          @if (loading()) {
-            <p class="loading-text" role="status">Cargando perfiles…</p>
-          }
-          @for (person of people(); track person.id) {
-            <label class="person-option" [class.selected]="selected.value === person.id">
-              <input
-                type="radio"
-                name="demo-user"
-                [formControl]="selected"
-                [value]="person.id"
-                [attr.aria-label]="person.displayName"
-              />
-              <nexo-avatar
-                [src]="person.avatarUrl"
-                [name]="person.displayName"
-                [color]="person.color"
-              />
-              <span class="person-copy"
-                ><strong>{{ person.displayName }}</strong
-                ><small>&#64;{{ person.username }} · Perfil demo</small></span
-              >
-              <span class="radio-mark">
-                @if (selected.value === person.id) {
-                  <nexo-icon name="check" />
-                }
-              </span>
-            </label>
-          }
-        </fieldset>
+      <form (ngSubmit)="enter()">
+        @if (!configured) {
+          <p class="notice" role="status">
+            Falta configurar Microsoft Entra ID. Completa los valores del environment antes de
+            iniciar sesión.
+          </p>
+        }
         @if (error()) {
           <p class="error-note" role="alert">{{ error() }}</p>
-        }
-        @if (!people().length && !loading()) {
-          <button type="button" class="secondary-button w-full" (click)="load()">
-            Volver a intentar
-          </button>
         }
         <button
           class="primary-button enter-button"
           type="submit"
-          [disabled]="selected.invalid || busy() || loading()"
+          [disabled]="!configured || busy()"
         >
-          {{ busy() ? 'Entrando…' : 'Entrar como ' + name() }}<nexo-icon name="arrow" />
+          {{ busy() ? 'Conectando…' : 'Continuar con Microsoft' }}<nexo-icon name="arrow" />
         </button>
       </form>
       <div class="local-explainer">
         <nexo-icon name="shield" />
         <p>
-          <strong>Un espacio de prueba, solo en tu equipo.</strong><br />Sin contraseñas ni cuenta
-          Microsoft. Abre otra pestaña para conversar con otro perfil.
+          <strong>Acceso seguro con tu identidad institucional.</strong><br />Nexo nunca almacena
+          contraseñas; Microsoft gestiona tu autenticación.
         </p>
       </div>
-      <div class="card-bottom">Tus mensajes se guardan en PostgreSQL local.</div>
+      <div class="card-bottom">
+        Autenticación OAuth 2.0 / OpenID Connect con Microsoft Entra ID.
+      </div>
     </section>
   </main>
   <footer class="login-footer">

@@ -22,7 +22,7 @@ import {
   switchMap,
   timer,
 } from 'rxjs';
-import { DemoAuthService } from '../../../../core/auth/demo-auth.service';
+import { AuthService } from '../../../../core/auth/auth.service';
 import { ChatService } from '../../../../core/services/chat.service';
 import { Conversation, DemoUser, Message, Workspace } from '../../../../core/models/demo';
 import { AvatarComponent } from '../../../../shared/components/avatar.component';
@@ -53,7 +53,7 @@ import {
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
-  readonly auth = inject(DemoAuthService);
+  readonly auth = inject(AuthService);
   readonly calls = inject(VoiceCallService);
   private readonly chat = inject(ChatService);
   private readonly router = inject(Router);
