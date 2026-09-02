@@ -1,0 +1,1 @@
+ALTER TABLE nexo.users ALTER COLUMN username TYPE VARCHAR(254);

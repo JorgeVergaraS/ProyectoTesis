@@ -1,0 +1,1 @@
+ALTER TABLE nexo.users DROP CONSTRAINT IF EXISTS users_check;

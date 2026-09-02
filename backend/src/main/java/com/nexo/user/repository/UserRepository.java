@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     List<UserEntity> findByIdentityProviderAndStatusOrderByDisplayName(String identityProvider, String status);
+    java.util.Optional<UserEntity> findByEmailIgnoreCase(String email);
+    java.util.Optional<UserEntity> findByEntraObjectId(String entraObjectId);
 }
