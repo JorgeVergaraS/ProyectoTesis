@@ -1,6 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { ProfileService } from '../../../../core/services/profile.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -14,7 +16,11 @@ import { AuthService } from '../../../../core/auth/auth.service';
       @if (auth.session.user(); as user) {
         <section class="card">
           <p class="label"><i></i> PERFIL AUTENTICADO</p>
-          <div class="avatar">{{ user.displayName.charAt(0) }}<b>✓</b></div>
+          @if (user.avatarUrl; as avatarUrl) {
+            <img class="avatar avatar-image" [src]="avatarUrl" [alt]="'Foto de ' + user.displayName" />
+          } @else {
+            <div class="avatar">{{ user.displayName.charAt(0) }}<b>✓</b></div>
+          }
           <h1>{{ user.displayName }}</h1>
           <p class="username">{{ user.email || user.username }}</p>
           <p class="active"><i></i> Cuenta activa y sincronizada</p>
@@ -34,6 +40,15 @@ import { AuthService } from '../../../../core/auth/auth.service';
               </dd>
             </div>
           </dl>
+          @if (auth.session.kind() === 'demo') {
+            <label class="avatar-upload">
+              <span>{{ uploading() ? 'Guardando foto…' : 'Cambiar foto de perfil' }}</span>
+              <input type="file" accept="image/png,image/jpeg,image/webp" [disabled]="uploading()" (change)="uploadAvatar($event)" />
+            </label>
+            @if (profileError()) { <p class="profile-error" role="alert">{{ profileError() }}</p> }
+          } @else {
+            <p class="profile-help">La identidad y los datos de Microsoft se administran de forma segura por Entra ID.</p>
+          }
           <button type="button" (click)="logout()">Cerrar sesión <span>↗</span></button>
         </section>
       } @else {
@@ -140,6 +155,11 @@ import { AuthService } from '../../../../core/auth/auth.service';
       color: #0b271c;
       font-size: 11px;
     }
+    .avatar-image { object-fit: cover; }
+    .avatar-upload { display:inline-flex; align-items:center; gap:8px; margin:0 0 18px; padding:10px 14px; color:#d7c7ff; border:1px solid #55407d; border-radius:9px; background:#241942; font-size:11px; cursor:pointer; }
+    .avatar-upload input { width:1px; height:1px; opacity:0; position:absolute; }
+    .profile-error { margin:0 0 16px; color:#ff9caa; font-size:11px; }
+    .profile-help { margin:0 0 20px; color:#8f9bb2; font-size:11px; line-height:1.6; }
     .card h1 {
       margin: 0;
       font-size: 32px;
@@ -217,7 +237,32 @@ import { AuthService } from '../../../../core/auth/auth.service';
 })
 export class ProfileComponent {
   readonly auth = inject(AuthService);
+  private readonly profile = inject(ProfileService);
   private readonly router = inject(Router);
+  readonly uploading = signal(false);
+  readonly profileError = signal('');
+
+  async uploadAvatar(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      this.profileError.set('Usa una imagen PNG, JPG o WEBP de máximo 2 MB.');
+      input.value = '';
+      return;
+    }
+    this.uploading.set(true);
+    this.profileError.set('');
+    try {
+      const user = await firstValueFrom(this.profile.upload(file));
+      this.auth.session.user.set(user);
+    } catch {
+      this.profileError.set('No se pudo guardar la foto. Inténtalo nuevamente.');
+    } finally {
+      this.uploading.set(false);
+      input.value = '';
+    }
+  }
 
   async logout(): Promise<void> {
     await this.auth.logout();
