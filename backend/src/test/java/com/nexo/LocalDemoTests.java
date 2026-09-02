@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(properties = "spring.config.import=")
 @AutoConfigureMockMvc
-@ActiveProfiles("local-demo")
+@ActiveProfiles({"test", "local-demo"})
 @Testcontainers
 class LocalDemoTests {
     static final String JORGE = "10000000-0000-0000-0000-000000000001";

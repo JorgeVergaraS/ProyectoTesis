@@ -21,8 +21,8 @@ La entrega se organizará en dos repositorios:
 
 | Repositorio | Contenido | Unidad desplegable |
 | --- | --- | --- |
-| `nexo-frontend` | Angular, MSAL, guards, interceptores, vistas y tests | archivos estáticos de la SPA |
-| `nexo-backend` | una aplicación Spring Boot, migraciones y tests | un artefacto JAR / una instancia EC2 |
+| [`ProyectoTesis`](https://github.com/JorgeVergaraS/ProyectoTesis) | Angular, MSAL, guards, interceptores, vistas y tests | archivos estáticos de la SPA |
+| [`ProyectoTesisBackend`](https://github.com/JorgeVergaraS/ProyectoTesisBackend) | una aplicación Spring Boot, migraciones y tests | un artefacto JAR / una instancia EC2 |
 
 El backend seguirá siendo una sola aplicación y una sola unidad de despliegue,
 pero sus módulos tendrán límites explícitos por dominio. Los controladores y DTO
@@ -91,4 +91,3 @@ como fuente ambigua durante la defensa.
 - Un módulo necesita escalar, desplegarse o aislar fallos independientemente.
 - El equipo puede asumir observabilidad, versionado de contratos y operación distribuida.
 - Una frontera de dominio demuestra suficiente estabilidad para ser extraída.
-

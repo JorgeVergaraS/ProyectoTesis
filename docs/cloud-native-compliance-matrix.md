@@ -25,7 +25,7 @@ Los estados distinguen código, validación interactiva e infraestructura real.
 | Usuario local sin password Microsoft | Implementado | `CurrentUserController` y usuarios `ENTRA` | demostrar alta/consulta en PostgreSQL cloud |
 | Monolito modular | Decisión aceptada por equipo | ADR-001 y paquetes por dominio | obtener aprobación docente por desviación |
 | Microservicios | No cumplido literalmente | existe una sola unidad Spring Boot | aprobación explícita o extraer un segundo servicio |
-| Repositorios frontend/backend | Diseño definido | estrategia polyrepo del ADR-001 | crear y publicar ambos repositorios vacíos |
+| Repositorios frontend/backend | Implementado | `ProyectoTesis` y `ProyectoTesisBackend`, estrategia polyrepo del ADR-001 | mantener pipelines independientes |
 | Base de datos cloud | Pendiente | PostgreSQL local y Testcontainers | elegir servicio, red, TLS, backups y secretos |
 | Backend en EC2 | Pendiente | Dockerfile y health checks locales | instancia, SG, runtime, HTTPS y despliegue |
 | API Gateway desplegado | Pendiente | arquitectura y rutas planificadas | HTTP API, integración, stage y custom domain opcional |
@@ -38,7 +38,7 @@ Los estados distinguen código, validación interactiva e infraestructura real.
 
 1. Integrar las ramas Angular/MSAL y backend/JWT y mantener todas las pruebas verdes.
 2. Confirmar con el docente que el monolito modular satisface la equivalencia de componentes.
-3. Separar y publicar `nexo-frontend` y `nexo-backend` con pipelines independientes.
+3. Terminar de retirar el backend histórico de `ProyectoTesis` cuando el frontend consuma exclusivamente `ProyectoTesisBackend`.
 4. Validar tenant, scope, roles, issuer y audience con cuentas de prueba.
 5. Crear PostgreSQL cloud y desplegar el backend en EC2 sin `local-demo`.
 6. Crear HTTP API Gateway, CORS, integración y JWT Authorizer.
@@ -48,10 +48,9 @@ Los estados distinguen código, validación interactiva e infraestructura real.
 ## Decisiones que requieren confirmación humana
 
 - Aprobación docente del monolito modular frente al texto que exige microservicios.
-- Nombres y propietarios de los dos repositorios GitHub.
+- Permisos y reglas de protección que se aplicarán a ambos repositorios GitHub.
 - Cuenta, región, presupuesto y responsable de AWS.
 - Servicio de PostgreSQL cloud y política de respaldo.
 - Tenant, usuarios de prueba, scope y roles permitidos en Entra ID.
 
 No se crearán recursos cloud ni secretos como parte de una preparación local.
-
