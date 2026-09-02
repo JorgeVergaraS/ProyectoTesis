@@ -17,11 +17,10 @@
 
 ![Nexo: acceso con perfiles de demostración](docs/images/nexo-login.png)
 
-> **Estado actual:** demo local con Angular, Spring Boot y PostgreSQL. Permite
-> usar Jorge, Jean y Fernando, conversar en canales y mensajes directos, cambiar
-> la foto de perfil y realizar llamadas de voz entre sesiones del mismo equipo.
-> **No es autenticación real:** cualquier persona con acceso a la demo puede elegir
-> un perfil. No publicar el servicio en Internet ni usar datos sensibles.
+> **Estado actual:** aplicación local con Angular, Spring Boot y PostgreSQL. Mantiene
+> la demo multiusuario y añade registro/login local más integración Microsoft Entra ID
+> mediante MSAL. La implementación y las pruebas automatizadas están completas; el
+> login Microsoft real y el despliegue AWS requieren validación interactiva.
 
 ## Índice
 
@@ -83,7 +82,7 @@ las imágenes no importan esos datos a una instalación nueva.
 
 | Área | Disponible | Límite actual |
 | --- | --- | --- |
-| Acceso | Jorge, Jean y Fernando; sesión independiente por pestaña | Sin Microsoft ni verificación de identidad |
+| Acceso | Demo, registro/login local y Microsoft Entra ID mediante MSAL | Login Microsoft real pendiente de evidencia interactiva |
 | Navegación | Login, Inicio, Comunidades, Mensajes, Personas, Perfil y diagnóstico | Sin administración institucional |
 | Canales | Descubrir, unirse, salir, ver participantes y conversar | Cuatro canales predefinidos; sin creación desde UI |
 | Directos | Conversaciones entre dos perfiles con autorización backend | Sin grupos privados ni confirmaciones de lectura |
@@ -104,7 +103,7 @@ las imágenes no importan esos datos a una instalación nueva.
 | Voz | WebRTC del navegador y `getUserMedia` |
 | Backend | Java 21, Spring Boot 3.5.16, Maven Wrapper 3.9.16 |
 | API | Spring Web, Bean Validation, DTOs y errores uniformes |
-| Seguridad local | Spring Security, bearer demo y permisos por participante |
+| Seguridad | Spring Security, JWT local/Entra, scopes/roles y bearer demo aislado |
 | Persistencia | PostgreSQL 17.10, JPA/Hibernate, JdbcClient y Flyway |
 | Observabilidad | Actuator y springdoc OpenAPI 2.8.17 |
 | Pruebas | JUnit 5, Spring Security Test, Testcontainers, Vitest y jsdom |
@@ -352,7 +351,7 @@ SPRING_PROFILES_ACTIVE=local-demo
 | `SPRING_PROFILES_ACTIVE` | `local-demo` habilita perfiles de prueba |
 | `SERVER_PORT` | Puerto del backend local; 8080 |
 | `CORS_ALLOWED_ORIGINS` | Origen permitido; `http://localhost:4200` |
-| `AZURE_*` | Marcadores reservados, no utilizados todavía |
+| `AZURE_*` | Tenant, audience, JWK Set URI y scope públicos; nunca Client Secrets |
 
 Spring importa `.env` desde la raíz al iniciar en `backend/`; las variables del
 proceso tienen precedencia. Usar valores sin comillas compatibles con Java
@@ -451,12 +450,16 @@ y [conectividad WebRTC](https://webrtc.org/getting-started/peer-connections).
 <a id="api"></a>
 ## API y errores
 
-Base local: `http://localhost:8080`. Swagger documenta los contratos y permite
-Authorize con la credencial opaca demo. **No usar un token Microsoft** todavía.
+Base local: `http://localhost:8080`. Swagger documenta los contratos. Las rutas
+demo usan su credencial opaca; `/api/users/me` acepta JWT local o un Access Token
+Entra válido con `access_as_user`.
 
 | Método | Ruta | Acceso / comportamiento |
 | --- | --- | --- |
 | GET | `/api/public/health` | Público; estado básico |
+| POST | `/api/auth/register` | Registro local; correo válido y contraseña de 8+ caracteres |
+| POST | `/api/auth/login` | Login local; entrega JWT con issuer/audience propios |
+| GET | `/api/users/me` | Perfil autenticado; exige `ROLE_USER` o `SCOPE_access_as_user` |
 | GET | `/api/demo/users` | Público con demo; selector |
 | POST | `/api/demo/sessions` | Público con demo; recibe `userId` |
 | GET | `/api/demo/me` | Perfil de la sesión |
@@ -537,8 +540,10 @@ Ejemplo de error, sin credenciales ni stack trace:
   Sin demo, el resto de rutas privadas se deniega. Esto no hace al proyecto
   apto para producción.
 
-No hay MSAL, Resource Server JWT, roles Entra ni `/api/users/me` implementados.
-Los campos y marcadores Entra son preparación. Leer [SECURITY.md](SECURITY.md).
+MSAL, Resource Server JWT, scopes/roles y `/api/users/me` están implementados.
+El backend valida firma, issuer, audience, expiración y permiso; para identidades
+Microsoft persiste `oid` sin guardar contraseña. La demo continúa separada mediante
+el perfil `local-demo`. Leer [SECURITY.md](SECURITY.md).
 
 <a id="pruebas"></a>
 ## Pruebas y CI
@@ -571,8 +576,8 @@ Servicios iniciados, desde la raíz en PowerShell:
 
 | Comprobación | Resultado registrado |
 | --- | --- |
-| Backend | 16 pruebas aprobadas; dos suites con PostgreSQL Testcontainers |
-| Frontend | 39 pruebas aprobadas en nueve archivos |
+| Backend | 24 pruebas aprobadas, incluidas autenticación, 401/403/200 y Testcontainers |
+| Frontend | 30 pruebas aprobadas en doce archivos |
 | Build Angular | Compilación de producción correcta |
 | Formato | Prettier correcto |
 | Integración | Health, readiness DB, proxy, CORS y OpenAPI correctos |
@@ -662,9 +667,11 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Diseño Nexo, rutas privadas, enlaces y foto de perfil.
 - [x] Voz WebRTC entre usuarios del mismo equipo.
 - [x] Pruebas locales y definición del workflow CI.
-- [ ] Microsoft Entra ID y MSAL.
-- [ ] Resource Server: firma, issuer, audience, expiración, scopes y roles JWT.
-- [ ] Sincronización Microsoft mediante `/api/users/me`.
+- [x] Microsoft Entra ID y MSAL implementados en código.
+- [x] Resource Server: firma, issuer, audience, expiración, scopes y roles JWT.
+- [x] Sincronización Microsoft mediante `/api/users/me` sin contraseña.
+- [ ] Validación interactiva del login/logout Microsoft real en Brave.
+- [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.
 - [ ] STUN/TURN, HTTPS y pruebas entre dispositivos/redes.
 - [ ] Video, grupos y adjuntos según el alcance aprobado.

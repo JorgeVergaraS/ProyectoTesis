@@ -16,6 +16,8 @@ target/
 *.log
 .tools/
 .artifacts/
+tmp/
+*.pptx.inspect.ndjson
 .DS_Store
 Thumbs.db
 
