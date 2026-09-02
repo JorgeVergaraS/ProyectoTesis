@@ -48,9 +48,12 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Configuration
 public class SecurityConfig {
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
     private static final String LOCAL_ISSUER = "nexo-local";
     private static final String LOCAL_AUDIENCE = "nexo-api";
 
@@ -131,11 +134,14 @@ public class SecurityConfig {
                 JwtValidators.createDefaultWithIssuer(LOCAL_ISSUER), audience(LOCAL_AUDIENCE)));
 
         String issuer = environment.getRequiredProperty("nexo.azure.issuer");
+        String legacyIssuer = environment.getProperty(
+                "nexo.azure.legacy-issuer",
+                "https://sts.windows.net/21a4bbb2-fc48-4053-a98e-b805aa2306cc/");
         String audience = environment.getRequiredProperty("nexo.azure.audience");
         String jwkSetUri = environment.getRequiredProperty("nexo.azure.jwk-set-uri");
         NimbusJwtDecoder entra = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
         entra.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
-                JwtValidators.createDefaultWithIssuer(issuer), audience(audience)));
+                issuer(issuer, legacyIssuer), audience(audience)));
 
         return authentication -> {
             try {
@@ -144,6 +150,7 @@ public class SecurityConfig {
                 Jwt jwt = (LOCAL_ISSUER.equals(tokenIssuer) ? local : entra).decode(token);
                 return new JwtAuthenticationToken(jwt, authorities(jwt));
             } catch (Exception invalidToken) {
+                log.warn("Bearer token rejected: {}", invalidToken.getMessage());
                 throw new OAuth2AuthenticationException(
                         new OAuth2Error("invalid_token"), "Invalid bearer token");
             }
@@ -151,10 +158,27 @@ public class SecurityConfig {
     }
 
     static OAuth2TokenValidator<Jwt> audience(String expected) {
-        return token -> expected != null && !expected.isBlank() && token.getAudience().contains(expected)
+        List<String> expectedAudiences = expected == null ? List.of()
+                : java.util.Arrays.stream(expected.split(","))
+                        .map(String::trim)
+                        .filter(value -> !value.isBlank())
+                        .toList();
+        return token -> !expectedAudiences.isEmpty()
+                && token.getAudience().stream().anyMatch(expectedAudiences::contains)
                 ? OAuth2TokenValidatorResult.success()
                 : OAuth2TokenValidatorResult.failure(
                         new OAuth2Error("invalid_token", "Invalid audience", null));
+    }
+
+    static OAuth2TokenValidator<Jwt> issuer(String expected, String legacy) {
+        OAuth2TokenValidator<Jwt> timestamps = JwtValidators.createDefault();
+        return token -> {
+            String actual = token.getIssuer() == null ? "" : token.getIssuer().toString();
+            return expected.equals(actual) || legacy.equals(actual)
+                    ? timestamps.validate(token)
+                    : OAuth2TokenValidatorResult.failure(
+                            new OAuth2Error("invalid_token", "Invalid issuer", null));
+        };
     }
 
     static Collection<GrantedAuthority> authorities(Jwt jwt) {
