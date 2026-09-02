@@ -28,6 +28,7 @@ export class AuthService {
 
   async login(): Promise<void> {
     if (!this.isConfigured) throw new Error('MSAL is not configured');
+    await this.msal.instance.initialize();
     await this.msal.loginRedirect({ scopes: [environment.azure.apiScope] });
   }
 
@@ -60,6 +61,7 @@ export class AuthService {
   }
 
   async completeRedirect(result: AuthenticationResult | null): Promise<void> {
+    await this.msal.instance.initialize();
     if (result?.account) this.msal.instance.setActiveAccount(result.account);
     await this.restore();
   }
