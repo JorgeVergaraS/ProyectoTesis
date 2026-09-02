@@ -60,3 +60,14 @@ El comando `npm test` ejecuta Vitest mediante el builder de Angular. No se debe 
 - Las rutas privadas usan guard; el interceptor sólo agrega credenciales a la API permitida.
 - El logout limpia el estado local y, para una cuenta Microsoft, ejecuta `logoutRedirect()`.
 - WebSocket/WebRTC sólo aparecen como espacio reservado en la interfaz; no se habilitan en esta etapa.
+
+## Evidencia de verificación — 2026-09-01/2026-09-02
+
+- Azure Entra ID: el scope `access_as_user` está habilitado para la API Nexo y la aplicación frontend está autorizada como cliente.
+- Redirect URI verificada: `http://localhost:4200`.
+- Frontend: `npm run build` exitoso y `24/24` pruebas aprobadas.
+- Backend: health, login local y `GET /api/users/me` verificados contra PostgreSQL; `16/16` pruebas aprobadas.
+- Login local: las credenciales inválidas muestran `Correo o contraseña incorrectos.` debajo del formulario.
+- La pantalla `reason=expired` indica una sesión Microsoft vencida; se debe volver a iniciar el flujo OAuth. No representa un error de registro local.
+
+Las capturas de evidencia del flujo local se encuentran en `docs/evidence/`. La validación final de Microsoft requiere que el usuario introduzca manualmente su contraseña y MFA en la pantalla oficial de Entra ID.
