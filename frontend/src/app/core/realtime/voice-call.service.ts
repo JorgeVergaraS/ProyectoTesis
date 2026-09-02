@@ -44,6 +44,9 @@ export class VoiceCallService {
     typeof RTCPeerConnection !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
   readonly occupied = computed(() => this.busy() || !!this.call());
   readonly now = signal(Date.now());
+  private readonly demoToken = computed(() =>
+    this.session.kind() === 'demo' ? this.session.token() : null,
+  );
   readonly duration = computed(() => {
     const started = this.call()?.connectedAt;
     const seconds = started
@@ -67,7 +70,7 @@ export class VoiceCallService {
 
   constructor() {
     const destroy = inject(DestroyRef);
-    toObservable(this.session.token)
+    toObservable(this.demoToken)
       .pipe(
         switchMap((token) => {
           this.generation++;

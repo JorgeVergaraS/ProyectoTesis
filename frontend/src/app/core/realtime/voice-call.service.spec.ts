@@ -32,6 +32,7 @@ describe('VoiceCallService', () => {
   let service: VoiceCallService;
   let server: VoiceCall | null;
   const token = signal<string | null>('demo-token');
+  const kind = signal<'demo' | 'local' | 'microsoft'>('demo');
   const person = {
     id: 'jean',
     username: 'jean',
@@ -52,6 +53,7 @@ describe('VoiceCallService', () => {
     vi.useFakeTimers();
     FakePeer.instances = [];
     token.set('demo-token');
+    kind.set('demo');
     track.enabled = true;
     track.stop.mockClear();
     server = null;
@@ -81,7 +83,7 @@ describe('VoiceCallService', () => {
       providers: [
         VoiceCallService,
         { provide: HttpClient, useValue: http },
-        { provide: DemoSessionStore, useValue: { token } },
+        { provide: DemoSessionStore, useValue: { token, kind } },
       ],
     });
     service = TestBed.inject(VoiceCallService);
@@ -225,5 +227,14 @@ describe('VoiceCallService', () => {
     TestBed.tick();
     expect(track.stop).toHaveBeenCalled();
     expect(service.call()).toBeNull();
+  });
+
+  it('does not poll demo call endpoints for a local JWT session', async () => {
+    http.get.mockClear();
+    kind.set('local');
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(http.get).not.toHaveBeenCalled();
   });
 });

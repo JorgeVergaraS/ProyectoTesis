@@ -1,10 +1,12 @@
 package com.nexo.auth.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 class SecurityConfigTest {
@@ -24,6 +26,16 @@ class SecurityConfigTest {
                 .isFalse();
         assertThat(SecurityConfig.audience("api://other").validate(jwt(List.of("api://nexo"), null, List.of())).hasErrors())
                 .isTrue();
+    }
+
+    @Test
+    void rejectsDemoCapabilitiesInAProductionProfile() {
+        var environment = new MockEnvironment();
+        environment.setActiveProfiles("local-demo", "production");
+
+        assertThatThrownBy(() -> SecurityConfig.rejectUnsafeProfileCombination(environment))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("cannot be active together");
     }
 
     private static Jwt jwt(List<String> audience, String scopes, List<String> roles) {

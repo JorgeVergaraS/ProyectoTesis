@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { demoGuard, guestGuard } from './core/guards/demo.guard';
+import { authGuard, guestGuard } from './core/guards/demo.guard';
 
 export const routes: Routes = [
   {
@@ -10,18 +10,19 @@ export const routes: Routes = [
   },
   {
     path: 'home',
-    canActivate: [demoGuard],
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/home/pages/home/home.component').then((m) => m.HomeComponent),
   },
   {
     path: 'profile',
-    canActivate: [demoGuard],
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/home/pages/profile/profile.component').then((m) => m.ProfileComponent),
   },
   {
     path: 'status',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/status/pages/status/status.component').then((m) => m.StatusComponent),
   },

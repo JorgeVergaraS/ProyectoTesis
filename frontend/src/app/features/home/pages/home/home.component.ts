@@ -61,9 +61,16 @@ export class HomeComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   readonly workspace = signal<Workspace>({ channels: [], directs: [], people: [] });
-  readonly providerLabel = computed(() =>
-    this.auth.session.kind() === 'local' ? 'una cuenta local Nexo' : 'Microsoft Entra ID',
-  );
+  readonly providerLabel = computed(() => {
+    switch (this.auth.session.kind()) {
+      case 'demo':
+        return 'el modo demostración local';
+      case 'local':
+        return 'una cuenta local Nexo';
+      default:
+        return 'Microsoft Entra ID';
+    }
+  });
   readonly dashboardView = signal<'home' | 'explore' | 'communities' | 'messages' | 'calls'>(
     'home',
   );
@@ -119,11 +126,6 @@ export class HomeComponent {
   });
 
   constructor() {
-    if (this.auth.session.kind() !== 'demo') {
-      this.initialLoading.set(false);
-      this.connected.set(true);
-      return;
-    }
     merge(timer(0, 5000), this.refreshWorkspace)
       .pipe(
         exhaustMap(() =>

@@ -2,11 +2,15 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { Conversation, DemoUser, Message, Workspace } from '../models/demo';
+import { DemoSessionStore } from '../auth/demo-session.store';
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private readonly http = inject(HttpClient);
-  private readonly base = environment.apiUrl + '/demo';
+  private readonly session = inject(DemoSessionStore);
+  private get base(): string {
+    return environment.apiUrl + (this.session.kind() === 'demo' ? '/demo' : '');
+  }
   workspace() {
     return this.http.get<Workspace>(this.base + '/workspace');
   }

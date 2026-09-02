@@ -74,6 +74,10 @@ public class UserEntity {
         return new UserView(id, username, displayName, color, bio, online, avatarUrl(id, avatarVersion), email);
     }
 
+    public UserView toPublicView(boolean online) {
+        return new UserView(id, username, displayName, color, bio, online, avatarUrl(id, avatarVersion), null);
+    }
+
     public void updateEntraProfile(String email, String username, String displayName) {
         this.email = email; this.username = username; this.displayName = displayName; this.updatedAt = Instant.now();
     }

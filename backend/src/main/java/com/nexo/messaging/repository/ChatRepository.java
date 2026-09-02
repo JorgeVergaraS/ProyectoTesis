@@ -6,14 +6,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
 @Repository
-@Profile("local-demo")
 public class ChatRepository {
     private final JdbcClient jdbc;
     public ChatRepository(JdbcClient jdbc) { this.jdbc = jdbc; }
@@ -55,6 +53,14 @@ public class ChatRepository {
                 INSERT INTO nexo.conversation_members(conversation_id, user_id) VALUES (:conversation, :user)
                 ON CONFLICT DO NOTHING
                 """).param("conversation", conversation).param("user", user).update();
+    }
+
+    public void joinDefaultChannel(UUID user) {
+        jdbc.sql("""
+                INSERT INTO nexo.conversation_members(conversation_id, user_id)
+                SELECT id, :user FROM nexo.conversations WHERE slug='general' AND kind='CHANNEL'
+                ON CONFLICT DO NOTHING
+                """).param("user", user).update();
     }
 
     public void leave(UUID conversation, UUID user) {

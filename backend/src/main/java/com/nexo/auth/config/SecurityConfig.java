@@ -69,6 +69,7 @@ public class SecurityConfig {
             ObjectMapper json,
             Environment environment,
             AuthenticationManager bearerAuthenticationManager) throws Exception {
+        rejectUnsafeProfileCombination(environment);
         boolean demo = environment.acceptsProfiles(org.springframework.core.env.Profiles.of("local-demo"));
         String requiredScope = environment.getProperty("nexo.azure.required-scope", "access_as_user");
 
@@ -101,9 +102,14 @@ public class SecurityConfig {
                         authorize.requestMatchers("/api/demo/**").hasRole("DEMO");
                     }
                     authorize.requestMatchers("/api/admin/**").hasRole("ADMIN");
-                    authorize.requestMatchers("/api/users/me")
+                    authorize.requestMatchers(
+                                    "/api/users/me",
+                                    "/api/workspace",
+                                    "/api/directs",
+                                    "/api/conversations/**")
                             .access((authentication, context) -> new AuthorizationDecision(
                                     hasAuthority(authentication.get(), "ROLE_USER")
+                                            || hasAuthority(authentication.get(), "ROLE_DEMO")
                                             || hasAuthority(authentication.get(), "SCOPE_" + requiredScope)));
                     authorize.anyRequest().denyAll();
                 });
@@ -117,6 +123,14 @@ public class SecurityConfig {
                     UsernamePasswordAuthenticationFilter.class);
         }
         return http.build();
+    }
+
+    static void rejectUnsafeProfileCombination(Environment environment) {
+        boolean demo = environment.acceptsProfiles(org.springframework.core.env.Profiles.of("local-demo"));
+        boolean production = environment.acceptsProfiles(org.springframework.core.env.Profiles.of("prod", "production"));
+        if (demo && production) {
+            throw new IllegalStateException("The local-demo and production profiles cannot be active together");
+        }
     }
 
     @Bean
@@ -244,7 +258,7 @@ public class SecurityConfig {
                     HttpServletRequest request, HttpServletResponse response, FilterChain chain)
                     throws ServletException, IOException {
                 String path = request.getRequestURI();
-                if (!path.equals("/api/users/me") && !path.startsWith("/api/admin/")) {
+                if (!isJwtProtectedPath(path)) {
                     chain.doFilter(request, response);
                     return;
                 }
@@ -263,6 +277,14 @@ public class SecurityConfig {
                 }
             }
         }, UsernamePasswordAuthenticationFilter.class);
+    }
+
+    private static boolean isJwtProtectedPath(String path) {
+        return path.equals("/api/users/me")
+                || path.equals("/api/workspace")
+                || path.equals("/api/directs")
+                || path.startsWith("/api/conversations/")
+                || path.startsWith("/api/admin/");
     }
 
     private static void writeError(

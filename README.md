@@ -127,8 +127,8 @@ No hay microservicios ni un servidor adicional que transporte el audio.
 
 ```mermaid
 flowchart LR
-    A[Angular · Jorge] -->|HTTP /api + bearer demo| P[Proxy Angular · 4200]
-    B[Angular · Jean] -->|HTTP /api + bearer demo| P
+    A[Angular · cuenta local] -->|HTTP /api + JWT Nexo| P[Proxy Angular · 4200]
+    B[Angular · cuenta Microsoft] -->|HTTP /api + Access Token Entra| P
     P --> S[Spring Boot · 8080]
     subgraph M[Monolito modular]
       S --> AU[auth · sesiones y permisos]
@@ -145,12 +145,14 @@ flowchart LR
 
 ### Responsabilidades y decisiones
 
-- **auth:** crea credenciales opacas aleatorias de demo, valida expiración y
-  revocación y entrega un principal al backend. No emite JWT.
+- **auth:** emite JWT para cuentas locales, valida Access Tokens de Entra y mantiene
+  credenciales opacas sólo para la demo. Todos convergen en una identidad Nexo
+  controlada por el backend.
 - **user:** conserva perfiles y procesa fotos. JPA administra usuarios;
   JdbcClient guarda y consulta los bytes del avatar.
-- **messaging:** conversaciones, miembros y mensajes. Consultas parametrizadas,
-  transacciones y restricciones de base controlan permisos e idempotencia.
+- **messaging:** workspace autenticado, conversaciones, miembros y mensajes.
+  Consultas parametrizadas, transacciones y restricciones de base controlan
+  permisos e idempotencia.
 - **realtime:** intercambia SDP entre participantes autorizados. El audio viaja
   entre navegadores; la señalización temporal permanece en memoria del monolito.
 - **common:** CORS, errores, health y OpenAPI.
@@ -317,6 +319,8 @@ duplicar un mensaje al reintentarlo.
 | V2 | Sesiones, conversaciones, miembros, mensajes e índices |
 | V3 | Tres perfiles, cuatro canales y mensajes ficticios; solo `local-demo` |
 | V4 | Fotos `bytea` y versión UUID |
+| V5–V7 | Identidad local, contraseñas BCrypt y nombres de usuario Entra |
+| V8 | Canal `general` común y membresía inicial para usuarios activos |
 
 Flyway guarda su historial en `public`; Hibernate usa `ddl-auto=validate`.
 No editar migraciones aplicadas: agregar una nueva. Desactivar `local-demo` no
@@ -451,8 +455,8 @@ y [conectividad WebRTC](https://webrtc.org/getting-started/peer-connections).
 ## API y errores
 
 Base local: `http://localhost:8080`. Swagger documenta los contratos. Las rutas
-demo usan su credencial opaca; `/api/users/me` acepta JWT local o un Access Token
-Entra válido con `access_as_user`.
+autenticadas aceptan un JWT local con `ROLE_USER` o un Access Token Entra válido
+con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 
 | Método | Ruta | Acceso / comportamiento |
 | --- | --- | --- |
@@ -460,6 +464,11 @@ Entra válido con `access_as_user`.
 | POST | `/api/auth/register` | Registro local; correo válido y contraseña de 8+ caracteres |
 | POST | `/api/auth/login` | Login local; entrega JWT con issuer/audience propios |
 | GET | `/api/users/me` | Perfil autenticado; exige `ROLE_USER` o `SCOPE_access_as_user` |
+| GET | `/api/workspace` | Canales, directos y personas para la cuenta autenticada |
+| POST | `/api/directs` | Abrir un directo con `userId`; impide hablar consigo mismo |
+| POST / DELETE | `/api/conversations/{id}/membership` | Unirse / salir de un canal |
+| GET | `/api/conversations/{id}/members` | Participantes; exige membresía |
+| GET / POST | `/api/conversations/{id}/messages` | Consultar / enviar; identidad derivada del token |
 | GET | `/api/demo/users` | Público con demo; selector |
 | POST | `/api/demo/sessions` | Público con demo; recibe `userId` |
 | GET | `/api/demo/me` | Perfil de la sesión |
@@ -670,6 +679,8 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Microsoft Entra ID y MSAL implementados en código.
 - [x] Resource Server: firma, issuer, audience, expiración, scopes y roles JWT.
 - [x] Sincronización Microsoft mediante `/api/users/me` sin contraseña.
+- [x] Workspace, comunidades y mensajería para cuentas locales y Microsoft.
+- [x] Identidad del mensaje y autorización de membresía controladas por el backend.
 - [ ] Validación interactiva del login/logout Microsoft real en Brave.
 - [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.

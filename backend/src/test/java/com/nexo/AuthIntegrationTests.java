@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -119,6 +120,80 @@ class AuthIntegrationTests {
                 .isEqualTo(1);
     }
 
+    @Test
+    void localUsersShareTheDefaultChannelWithServerControlledIdentity() throws Exception {
+        JsonNode first = register("workspace-one@nexo.cl", "valid-password-8", "Workspace One", 201);
+        JsonNode second = register("workspace-two@nexo.cl", "valid-password-8", "Workspace Two", 201);
+        String firstToken = first.get("accessToken").asText();
+        String secondToken = second.get("accessToken").asText();
+        String general = "20000000-0000-0000-0000-000000000001";
+
+        mvc.perform(get("/api/workspace").header("Authorization", "Bearer " + firstToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.channels[0].slug").value("general"))
+                .andExpect(jsonPath("$.channels[0].joined").value(true));
+
+        UUID clientId = UUID.randomUUID();
+        mvc.perform(post("/api/conversations/" + general + "/messages")
+                        .header("Authorization", "Bearer " + firstToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "clientId", clientId,
+                                "body", "Mensaje desde una cuenta local"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.senderId").value(first.get("user").get("id").asText()));
+
+        mvc.perform(get("/api/conversations/" + general + "/messages")
+                        .header("Authorization", "Bearer " + secondToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].body").value("Mensaje desde una cuenta local"));
+    }
+
+    @Test
+    void privateConversationRejectsAnAuthenticatedThirdUser() throws Exception {
+        var alice = jwt()
+                .jwt(token -> token.claim("oid", "entra-alice")
+                        .claim("preferred_username", "alice@nexo.cl")
+                        .claim("name", "Alice"))
+                .authorities(new SimpleGrantedAuthority("SCOPE_access_as_user"));
+        var bob = jwt()
+                .jwt(token -> token.claim("oid", "entra-bob")
+                        .claim("preferred_username", "bob@nexo.cl")
+                        .claim("name", "Bob"))
+                .authorities(new SimpleGrantedAuthority("SCOPE_access_as_user"));
+        var eve = jwt()
+                .jwt(token -> token.claim("oid", "entra-eve")
+                        .claim("preferred_username", "eve@nexo.cl")
+                        .claim("name", "Eve"))
+                .authorities(new SimpleGrantedAuthority("SCOPE_access_as_user"));
+
+        JsonNode aliceUser = responseJson(mvc.perform(get("/api/users/me").with(alice))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        JsonNode bobUser = responseJson(mvc.perform(get("/api/users/me").with(bob))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        mvc.perform(get("/api/users/me").with(eve)).andExpect(status().isOk());
+
+        JsonNode direct = responseJson(mvc.perform(post("/api/directs")
+                        .with(alice)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("userId", bobUser.get("id").asText()))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        String directId = direct.get("id").asText();
+
+        mvc.perform(post("/api/conversations/" + directId + "/messages")
+                        .with(alice)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "clientId", UUID.randomUUID(), "body", "Sólo para Bob"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.senderId").value(aliceUser.get("id").asText()));
+        mvc.perform(get("/api/conversations/" + directId + "/messages").with(bob))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/conversations/" + directId + "/messages").with(eve))
+                .andExpect(status().isForbidden());
+    }
+
     private JsonNode register(String email, String password, String displayName, int expectedStatus)
             throws Exception {
         String body = mvc.perform(post("/api/auth/register")
@@ -130,6 +205,10 @@ class AuthIntegrationTests {
                 .getResponse()
                 .getContentAsString();
         return body.isBlank() ? json.createObjectNode() : json.readTree(body);
+    }
+
+    private JsonNode responseJson(String body) throws Exception {
+        return json.readTree(body);
     }
 
     private static String expiredLocalToken() {

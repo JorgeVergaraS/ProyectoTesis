@@ -1,4 +1,4 @@
-@if (auth.session.kind() === 'demo') {
+@if (auth.session.user()) {
   <div class="workspace-shell">
     <nexo-workspace-navigation
       [view]="view()"
@@ -99,8 +99,8 @@
               <div>
                 <strong>Prueba Nexo con otra persona.</strong>
                 <p>
-                  Sesión protegida con Microsoft Entra ID. Abre otra pestaña y conversa entre
-                  perfiles locales.
+                  Sesión protegida con {{ providerLabel() }}. Abre otra pestaña y conversa con otra
+                  cuenta.
                 </p>
               </div>
               <a href="/login" target="_blank" rel="noopener noreferrer" class="secondary-button"
@@ -193,13 +193,15 @@
                   <button class="primary-button" [disabled]="actionBusy()" (click)="direct(person)">
                     <nexo-icon name="chat" />Enviar mensaje
                   </button>
-                  <button
-                    class="secondary-button call-person-button"
-                    [disabled]="calls.occupied()"
-                    (click)="calls.start(person)"
-                  >
-                    <nexo-icon name="phone" />Llamar
-                  </button>
+                  @if (auth.session.kind() === 'demo') {
+                    <button
+                      class="secondary-button call-person-button"
+                      [disabled]="calls.occupied()"
+                      (click)="calls.start(person)"
+                    >
+                      <nexo-icon name="phone" />Llamar
+                    </button>
+                  }
                 </article>
               }
             </div>
@@ -247,7 +249,7 @@
             >
               <nexo-icon name="info" />
             </button>
-            @if (peer(); as person) {
+            @if (auth.session.kind() === 'demo' && peer(); as person) {
               <button
                 class="icon-button"
                 [attr.aria-label]="'Llamar a ' + person.displayName"
@@ -481,7 +483,7 @@
                     Llama a otra persona con el micrófono de tu equipo. En esta etapa, prueba entre
                     pestañas en localhost. El video queda pendiente.
                   </p>
-                  @if (peer(); as person) {
+                  @if (auth.session.kind() === 'demo' && peer(); as person) {
                     <button
                       class="primary-button call-person-button"
                       [disabled]="calls.occupied()"
@@ -494,8 +496,9 @@
                 <div class="local-note">
                   <nexo-icon name="info" />
                   <p>
-                    Perfiles de prueba, sin autenticación Microsoft. Los mensajes no tienen cifrado
-                    de extremo a extremo. Audio mediante WebRTC.
+                    Sesión protegida con {{ providerLabel() }}. Los mensajes no tienen cifrado de
+                    extremo a extremo. Las llamadas WebRTC permanecen disponibles sólo en el modo
+                    demostración local.
                   </p>
                 </div>
               </aside>

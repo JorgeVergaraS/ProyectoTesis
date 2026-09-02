@@ -90,4 +90,26 @@ describe('AuthService', () => {
     expect(auth.session.kind()).toBe('local');
     expect(auth.session.token()).toBe('local-token-redacted');
   });
+
+  it('restores and revokes an isolated demo session through demo endpoints', async () => {
+    auth.session.start(
+      {
+        token: 'demo-token-redacted',
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+        user,
+      },
+      'demo',
+    );
+    auth.session.user.set(null);
+
+    const restore = auth.restore();
+    http.expectOne('/api/demo/me').flush(user);
+    expect(await restore).toBe(true);
+    expect(auth.session.kind()).toBe('demo');
+
+    const logout = auth.logout();
+    http.expectOne('/api/demo/sessions/current').flush(null);
+    expect(await logout).toBe(true);
+    expect(auth.session.token()).toBeNull();
+  });
 });

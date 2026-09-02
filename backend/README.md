@@ -29,7 +29,9 @@ para usar los tres perfiles. Sin ese perfil, la demo no queda habilitada.
 | realtime | Señalización HTTP y estado temporal de llamadas |
 | common | CORS, errores, health y OpenAPI |
 
-Flyway aplica V0–V7. V3 reside en `db/demo` y se carga solo bajo `local-demo`.
+Flyway aplica V0–V8. V3 reside en `db/demo` y se carga solo bajo `local-demo`;
+V8 crea el canal `general` para cualquier ambiente y matricula a los usuarios
+activos existentes.
 Hibernate valida el schema; no lo recrea. El historial Flyway está en `public`
 y las tablas de dominio en `nexo`.
 
@@ -39,9 +41,10 @@ y las tablas de dominio en `nexo`.
 .\mvnw.cmd verify
 ```
 
-24 pruebas con PostgreSQL de Testcontainers. Se necesita Docker activo; no se usa
-la base demo. Cubren health, registro/login local, validaciones JWT, 401/403/200,
-persistencia Entra sin contraseña, aislamiento, permisos, fotos y llamadas.
+La suite usa PostgreSQL de Testcontainers. Se necesita Docker activo; no se usa
+la base local. Cubre health, registro/login local, validaciones JWT, 401/403/200,
+persistencia Entra sin contraseña, workspace autenticado, aislamiento, permisos,
+fotos y llamadas.
 
 La imagen Docker omite tests al construir. Ejecutarlos antes mediante verify/CI.
 
@@ -49,10 +52,13 @@ La imagen Docker omite tests al construir. Ejecutarlos antes mediante verify/CI.
 
 - `GET /api/public/health`: público, estado básico.
 - `GET /actuator/health/readiness`: incluye disponibilidad de PostgreSQL.
-- `/swagger-ui/index.html`: contratos y bearer demo.
+- `/swagger-ui/index.html`: contratos para JWT y bearer demo.
 - `POST /api/auth/register`: registro local con contraseña BCrypt.
 - `POST /api/auth/login`: entrega JWT local con issuer `nexo-local` y audience `nexo-api`.
 - `GET /api/users/me`: acepta `ROLE_USER` local o `SCOPE_access_as_user` de Entra.
+- `GET /api/workspace`: canales, conversaciones directas y directorio para la identidad autenticada.
+- `POST /api/directs`: crea o recupera una conversación privada canónica.
+- `GET|POST /api/conversations/{id}/messages`: exige membresía y deriva el remitente del token.
 - Sin credencial válida, las rutas privadas responden 401; sin permisos, 403.
 
 El decoder de Entra valida firma, issuer, audience y expiración mediante las claves

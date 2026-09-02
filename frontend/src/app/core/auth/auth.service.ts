@@ -86,6 +86,16 @@ export class AuthService {
   }
 
   async logout(): Promise<boolean> {
+    if (this.session.kind() === 'demo') {
+      try {
+        await firstValueFrom(this.http.delete<void>(environment.apiUrl + '/demo/sessions/current'));
+        return true;
+      } catch {
+        return false;
+      } finally {
+        this.session.clear();
+      }
+    }
     const microsoftAccount =
       this.session.kind() === 'microsoft' ? await this.getActiveAccount() : null;
     this.session.clear();
@@ -100,8 +110,9 @@ export class AuthService {
   private async restoreSession(): Promise<boolean> {
     if (this.session.token()) {
       try {
+        const profilePath = this.session.kind() === 'demo' ? '/demo/me' : '/users/me';
         const user = await firstValueFrom(
-          this.http.get<DemoUser>(environment.apiUrl + '/users/me'),
+          this.http.get<DemoUser>(environment.apiUrl + profilePath),
         );
         this.session.user.set(user);
         if (this.session.kind() !== 'demo') this.session.kind.set('local');

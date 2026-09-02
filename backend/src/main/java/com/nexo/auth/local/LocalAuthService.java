@@ -3,6 +3,7 @@ package com.nexo.auth.local;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nexo.user.entity.UserEntity;
 import com.nexo.user.repository.UserRepository;
+import com.nexo.messaging.service.WorkspaceProvisioningService;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -25,10 +26,17 @@ public class LocalAuthService {
     private final UserRepository users;
     private final PasswordEncoder encoder;
     private final JwtEncoder jwtEncoder;
+    private final WorkspaceProvisioningService workspace;
 
-    public LocalAuthService(UserRepository users, PasswordEncoder encoder, Environment environment) {
-        this.users = users; this.encoder = encoder;
-        String secret = environment.getProperty("nexo.jwt.secret", "change-me-in-local-env-please-32-bytes");
+    public LocalAuthService(
+            UserRepository users,
+            PasswordEncoder encoder,
+            Environment environment,
+            WorkspaceProvisioningService workspace) {
+        this.users = users;
+        this.encoder = encoder;
+        this.workspace = workspace;
+        String secret = environment.getRequiredProperty("nexo.jwt.secret");
         this.jwtEncoder = new NimbusJwtEncoder(new ImmutableSecret<>(secret.getBytes(StandardCharsets.UTF_8)));
     }
 
@@ -36,7 +44,9 @@ public class LocalAuthService {
     public LocalAuthDtos.AuthResponse register(LocalAuthDtos.RegisterRequest request) {
         String email = normalize(request.email());
         if (users.findByEmailIgnoreCase(email).isPresent()) throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
-        UserEntity user = users.save(UserEntity.local(email, request.displayName().trim(), encoder.encode(request.password())));
+        UserEntity user = users.saveAndFlush(
+                UserEntity.local(email, request.displayName().trim(), encoder.encode(request.password())));
+        workspace.enrollInGeneral(user.getId());
         return response(user);
     }
 

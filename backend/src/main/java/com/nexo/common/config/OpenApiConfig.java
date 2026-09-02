@@ -15,9 +15,13 @@ public class OpenApiConfig {
         return new OpenAPI().info(new Info()
                 .title("Nexo API")
                 .version("0.0.1")
-                .description("Local demo sessions and messaging. No Microsoft authentication yet."))
-                .components(new Components().addSecuritySchemes("demoSession", new SecurityScheme()
-                        .type(SecurityScheme.Type.HTTP).scheme("bearer")
-                        .description("Opaque session returned by POST /api/demo/sessions; local-demo only, not a Microsoft JWT.")));
+                .description("Authenticated community and messaging API for local JWT and Microsoft Entra ID."))
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")
+                                .description("Local Nexo JWT or Microsoft Entra access token."))
+                        .addSecuritySchemes("demoSession", new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP).scheme("bearer")
+                                .description("Opaque session returned by POST /api/demo/sessions; local-demo only.")));
     }
 }
