@@ -1,288 +1,226 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { ProfileService } from '../../../../core/services/profile.service';
-import { VoiceCallService } from '../../../../core/realtime/voice-call.service';
+import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
-import { AvatarComponent } from '../../../../shared/components/avatar.component';
-import { IconComponent } from '../../../../shared/components/icon.component';
 
 @Component({
   selector: 'app-profile',
-  imports: [RouterLink, AvatarComponent, IconComponent],
-  template: `<main class="profile-page">
-    <a routerLink="/home" class="back-link"><nexo-icon name="back" />Volver a la comunidad</a>
-    <section class="profile-card">
-      <span class="demo-pill">PERFIL DEMO LOCAL</span>
+  imports: [RouterLink],
+  template: `
+    <main class="profile-page">
+      <header>
+        <a routerLink="/home" class="brand"><span>N</span>Nexo<b>.</b></a>
+        <a routerLink="/home" class="back">← Volver al inicio</a>
+      </header>
       @if (auth.session.user(); as user) {
-        <nexo-avatar
-          [src]="user.avatarUrl"
-          [name]="user.displayName"
-          [color]="user.color"
-          [large]="true"
-        />
-        <h1>{{ user.displayName }}</h1>
-        <span class="handle">@{{ user.username }}</span>
-        <section class="photo-settings" aria-label="Foto de perfil">
-          <h2>Tu foto de perfil</h2>
-          <p>Opcional · JPG o PNG, hasta 2 MB. Se recorta al centro.</p>
-          <label for="avatar-file">Elegir una imagen</label>
-          <input
-            id="avatar-file"
-            type="file"
-            accept="image/jpeg,image/png"
-            [disabled]="busy()"
-            (change)="choosePhoto($event)"
-          />
-          @if (preview()) {
-            <img class="photo-preview" [src]="preview()" alt="Vista previa de tu nueva foto" />
-            <div class="photo-actions">
-              <button class="primary-button" [disabled]="busy()" (click)="savePhoto()">
-                {{ busy() ? 'Guardando…' : 'Guardar foto' }}
-              </button>
-              <button class="secondary-button" [disabled]="busy()" (click)="clearPhoto()">
-                Cancelar
-              </button>
+        <section class="card">
+          <p class="label"><i></i> PERFIL AUTENTICADO</p>
+          <div class="avatar">{{ user.displayName.charAt(0) }}<b>✓</b></div>
+          <h1>{{ user.displayName }}</h1>
+          <p class="username">{{ user.email || user.username }}</p>
+          <p class="active"><i></i> Cuenta activa y sincronizada</p>
+          <dl>
+            <div>
+              <dt>Nombre</dt>
+              <dd>{{ user.displayName }}</dd>
             </div>
-          }
-          @if (user.avatarUrl) {
-            <button class="secondary-button" [disabled]="busy()" (click)="removePhoto()">
-              Quitar foto
-            </button>
-          }
-          @if (photoError()) {
-            <p class="error-note" role="alert">{{ photoError() }}</p>
-          }
-          @if (photoNotice()) {
-            <p role="status">{{ photoNotice() }}</p>
-          }
-          <small
-            >La foto será visible para los demás perfiles y en el selector de usuarios de esta
-            demo.</small
-          >
+            <div>
+              <dt>Usuario</dt>
+              <dd>{{ user.username }}</dd>
+            </div>
+            <div>
+              <dt>Proveedor de identidad</dt>
+              <dd>
+                {{ auth.session.kind() === 'local' ? 'Cuenta local Nexo' : 'Microsoft Entra ID' }}
+              </dd>
+            </div>
+          </dl>
+          <button type="button" (click)="logout()">Cerrar sesión <span>↗</span></button>
         </section>
-        <p>{{ user.bio }}</p>
-        <dl>
-          <div>
-            <dt>Tipo de identidad</dt>
-            <dd>Usuario de demostración</dd>
-          </div>
-          <div>
-            <dt>Sesión</dt>
-            <dd>Independiente por pestaña</dd>
-          </div>
-          <div>
-            <dt>Correo Microsoft</dt>
-            <dd>No conectado</dd>
-          </div>
-        </dl>
+      } @else {
+        <p role="status">Cargando tu perfil…</p>
       }
-      <p class="profile-note">
-        Este perfil no tiene contraseña ni está vinculado a Microsoft. Puedes probar otro usuario
-        cerrando esta sesión o abriendo una pestaña nueva.
-      </p>
-      <button class="secondary-button" [disabled]="busy()" (click)="logout()">
-        <nexo-icon name="logout" />Cerrar sesión
-      </button>
-    </section>
-  </main>`,
-  styles: [
-    `
+    </main>
+  `,
+  styles: `
+    .profile-page {
+      max-width: 850px;
+      min-height: 100dvh;
+      margin: auto;
+      padding: 30px 24px 60px;
+    }
+    .profile-page header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 34px;
+      border-bottom: 1px solid #202940;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #eef2ff;
+      font-size: 24px;
+      font-weight: 750;
+      text-decoration: none;
+    }
+    .brand > span {
+      display: grid;
+      place-items: center;
+      width: 33px;
+      height: 35px;
+      border-radius: 10px;
+      background: linear-gradient(140deg, #9c5df5, #576fea);
+      font-size: 20px;
+    }
+    .brand > b {
+      color: #a78bfa;
+    }
+    .back {
+      color: #9daac3;
+      text-decoration: none;
+      font-size: 12px;
+    }
+    .back:hover {
+      color: #fff;
+    }
+    .card {
+      max-width: 650px;
+      margin: 62px auto 0;
+      padding: 38px clamp(22px, 6vw, 60px);
+      background: linear-gradient(145deg, #151e34, #0e1728);
+      border: 1px solid #2c3853;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 25px 60px #00000024;
+    }
+    .label {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      color: #b99eff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+    .label i,
+    .active i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #63e2a5;
+      box-shadow: 0 0 10px #63e2a5;
+    }
+    .avatar {
+      position: relative;
+      width: 95px;
+      height: 95px;
+      margin: 28px auto 17px;
+      display: grid;
+      place-items: center;
+      border: 3px solid #8c63ec;
+      border-radius: 28px;
+      background: linear-gradient(145deg, #6840cf, #2a4f9e);
+      font-size: 43px;
+      font-weight: 800;
+      box-shadow: 0 0 0 8px #8255d21c;
+    }
+    .avatar > b {
+      position: absolute;
+      right: -7px;
+      bottom: -5px;
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border: 3px solid #111a2c;
+      border-radius: 50%;
+      background: #49cd91;
+      color: #0b271c;
+      font-size: 11px;
+    }
+    .card h1 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: -0.8px;
+    }
+    .username {
+      color: #a78bfa;
+      font-size: 13px;
+    }
+    .active {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 7px;
+      color: #8de0b7;
+      font-size: 10px;
+    }
+    .card dl {
+      margin: 32px 0 28px;
+      text-align: left;
+    }
+    .card dl > div {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      border-top: 1px solid #283047;
+      font-size: 12px;
+    }
+    .card dt {
+      color: #8492ae;
+    }
+    .card dd {
+      margin: 0;
+      color: #e0e7f6;
+      text-align: right;
+    }
+    .card button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #35405a;
+      border-radius: 8px;
+      padding: 10px 15px;
+      background: #1a2337;
+      color: #c9d3e8;
+      font-size: 12px;
+    }
+    .card button:hover {
+      background: #242d45;
+    }
+    .card button span {
+      color: #b99eff;
+    }
+    @media (max-width: 500px) {
       .profile-page {
-        max-width: 700px;
-        margin: auto;
-        padding: 45px 24px;
+        padding: 22px 18px 45px;
       }
-      .back-link {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #abb7d0;
-        text-decoration: none;
-        font-size: 13px;
+      .profile-page header {
+        padding-bottom: 23px;
       }
-      .profile-card {
-        margin-top: 36px;
-        padding: 40px;
-        background: #101726;
-        border: 1px solid #263047;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
+      .card {
+        margin-top: 40px;
+        padding: 30px 18px;
+      }
+      .card dl > div {
         flex-direction: column;
+        gap: 5px;
       }
-      .profile-card > nexo-avatar {
-        margin-top: 30px;
+      .card dd {
+        text-align: left;
       }
-      h1 {
-        font-size: 32px;
-        font-weight: 650;
-        margin: 15px 0 0;
-      }
-      .handle {
-        font-size: 13px;
-        color: #a78bfa;
-      }
-      .profile-card > p {
-        color: #a0acc3;
-        line-height: 1.8;
-        text-align: center;
-        font-size: 14px;
-      }
-      dl {
-        width: 100%;
-        margin: 25px 0;
-      }
-      dl > div {
-        display: flex;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 16px 0;
-        border-top: 1px solid #283047;
-        font-size: 12px;
-      }
-      dt {
-        color: #8c99b4;
-      }
-      dd {
-        margin: 0;
-        text-align: right;
-      }
-      .profile-note {
-        font-size: 12px !important;
-      }
-      .secondary-button {
-        margin-top: 16px;
-      }
-      .photo-settings {
-        width: 100%;
-        margin: 22px 0 0;
-        padding: 20px;
-        border: 1px solid #363047;
-        border-radius: 14px;
-      }
-      .photo-settings h2 {
-        font-size: 17px;
-        margin: 0 0 8px;
-      }
-      .photo-settings p,
-      .photo-settings small {
-        font-size: 11px;
-        line-height: 1.8;
-        color: #a9b3c7;
-      }
-      .photo-settings small {
-        display: block;
-        margin-top: 14px;
-      }
-      .photo-settings label {
-        display: block;
-        font-size: 12px;
-        margin: 14px 0 8px;
-      }
-      .photo-settings input {
-        max-width: 100%;
-        font-size: 12px;
-      }
-      .photo-preview {
-        width: 96px;
-        height: 96px;
-        object-fit: cover;
-        border-radius: 50%;
-        margin: 18px auto;
-      }
-      .photo-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-      .photo-actions .secondary-button {
-        margin: 0;
-      }
-      @media (max-width: 500px) {
-        .profile-card {
-          padding: 24px 16px;
-        }
-        .photo-settings {
-          padding: 14px;
-        }
-      }
-    `,
-  ],
+    }
+  `,
 })
 export class ProfileComponent {
   readonly auth = inject(AuthService);
-  private readonly calls = inject(VoiceCallService);
   private readonly router = inject(Router);
-  readonly busy = signal(false);
-  private readonly profiles = inject(ProfileService);
-  readonly preview = signal('');
-  readonly photoError = signal('');
-  readonly photoNotice = signal('');
-  private selectedPhoto: File | null = null;
-  constructor() {
-    inject(DestroyRef).onDestroy(() => this.clearPhoto());
-  }
-  clearPhoto(): void {
-    if (this.preview()) URL.revokeObjectURL(this.preview());
-    this.preview.set('');
-    this.selectedPhoto = null;
-  }
-  choosePhoto(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) return;
-    this.clearPhoto();
-    this.photoNotice.set('');
-    this.photoError.set('');
-    if (
-      !['image/jpeg', 'image/png'].includes(file.type) ||
-      file.size > 2 * 1024 * 1024 ||
-      !file.size
-    ) {
-      this.photoError.set('Elige una imagen JPG o PNG de hasta 2 MB.');
-      return;
-    }
-    this.selectedPhoto = file;
-    this.preview.set(URL.createObjectURL(file));
-  }
-  async savePhoto(): Promise<void> {
-    if (!this.selectedPhoto || this.busy()) return;
-    this.busy.set(true);
-    this.photoError.set('');
-    try {
-      this.auth.session.user.set(await firstValueFrom(this.profiles.upload(this.selectedPhoto)));
-      this.clearPhoto();
-      this.photoNotice.set('Tu foto se actualizó.');
-    } catch {
-      this.photoError.set(
-        'No se pudo guardar. Usa un JPG o PNG válido de hasta 2 MB y 4096 × 4096 píxeles.',
-      );
-    } finally {
-      this.busy.set(false);
-    }
-  }
-  async removePhoto(): Promise<void> {
-    if (this.busy()) return;
-    this.busy.set(true);
-    this.photoError.set('');
-    try {
-      this.auth.session.user.set(await firstValueFrom(this.profiles.removeAvatar()));
-      this.clearPhoto();
-      this.photoNotice.set('Foto eliminada. Se mostrarán tus iniciales.');
-    } catch {
-      this.photoError.set('No pudimos quitar tu foto. Inténtalo de nuevo.');
-    } finally {
-      this.busy.set(false);
-    }
-  }
+
   async logout(): Promise<void> {
-    this.busy.set(true);
-    if (this.calls.occupied()) await this.calls.hangUp();
-    const revoked = await this.auth.logout();
-    await this.router.navigate(['/login'], {
-      queryParams: revoked ? {} : { reason: 'local-only' },
-    });
+    await this.auth.logout();
+    await this.router.navigate(['/login']);
   }
 }

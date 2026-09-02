@@ -5,14 +5,14 @@ import {
   RouterStateSnapshot,
   provideRouter,
 } from '@angular/router';
-import { DemoAuthService } from '../auth/demo-auth.service';
+import { AuthService } from '../auth/auth.service';
 import { demoGuard, guestGuard } from './demo.guard';
 
 describe('demo route guards', () => {
   const auth = { restore: vi.fn() };
   beforeEach(() =>
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: DemoAuthService, useValue: auth }],
+      providers: [provideRouter([]), { provide: AuthService, useValue: auth }],
     }),
   );
   it('redirects anonymous users to login', async () => {

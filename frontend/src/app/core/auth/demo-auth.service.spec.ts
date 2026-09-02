@@ -34,8 +34,9 @@ describe('DemoAuthService', () => {
       .flush({ token: 'demo-opaque', expiresAt: '2099-01-01', user });
     await login;
     expect(auth.session.user()?.displayName).toBe('Jorge');
-    expect(sessionStorage.getItem('nexo.local-demo.session')).toBe('demo-opaque');
-    expect(localStorage.getItem('nexo.local-demo.session')).toBeNull();
+    expect(sessionStorage.getItem('nexo.auth.local-token')).toBe('demo-opaque');
+    expect(sessionStorage.getItem('nexo.auth.session-kind')).toBe('demo');
+    expect(localStorage.getItem('nexo.auth.local-token')).toBeNull();
     auth.session.user.set(null);
     const restore = auth.restore();
     http.expectOne('/api/demo/me').flush(user);
@@ -49,7 +50,7 @@ describe('DemoAuthService', () => {
     request.flush(null);
     expect(await logout).toBe(true);
     expect(auth.session.token()).toBeNull();
-    expect(sessionStorage.getItem('nexo.local-demo.session')).toBeNull();
+    expect(sessionStorage.getItem('nexo.auth.local-token')).toBeNull();
   });
   it('clears the local session but reports failed server revocation', async () => {
     auth.session.start({ token: 'demo', expiresAt: '2099-01-01', user });

@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import {
   catchError,
@@ -48,6 +48,7 @@ import {
     MessageTextComponent,
     WorkspaceNavigationComponent,
     ConversationInboxComponent,
+    RouterLink,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
@@ -60,6 +61,9 @@ export class HomeComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   readonly workspace = signal<Workspace>({ channels: [], directs: [], people: [] });
+  readonly providerLabel = computed(() =>
+    this.auth.session.kind() === 'local' ? 'una cuenta local Nexo' : 'Microsoft Entra ID',
+  );
   readonly activeId = signal(this.route.snapshot.queryParamMap.get('conversation') ?? '');
   readonly active = computed(() =>
     [...this.workspace().channels, ...this.workspace().directs].find(
@@ -112,6 +116,11 @@ export class HomeComponent {
   });
 
   constructor() {
+    if (this.auth.session.kind() !== 'demo') {
+      this.initialLoading.set(false);
+      this.connected.set(true);
+      return;
+    }
     merge(timer(0, 5000), this.refreshWorkspace)
       .pipe(
         exhaustMap(() =>

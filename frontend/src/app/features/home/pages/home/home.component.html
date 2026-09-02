@@ -1,506 +1,540 @@
-<div class="workspace-shell">
-  <nexo-workspace-navigation
-    [view]="view()"
-    [user]="auth.session.user()"
-    [busy]="actionBusy()"
-    (navigate)="navigate($event)"
-    (signOut)="logout()"
-  />
+@if (auth.session.kind() === 'demo') {
+  <div class="workspace-shell">
+    <nexo-workspace-navigation
+      [view]="view()"
+      [user]="auth.session.user()"
+      [busy]="actionBusy()"
+      (navigate)="navigate($event)"
+      (signOut)="logout()"
+    />
 
-  <div
-    class="workspace-content"
-    [class.messaging]="view() === 'chat'"
-    [class.inbox-visible]="inboxOpen()"
-  >
-    @if (view() === 'chat') {
-      <nexo-conversation-inbox
-        [people]="people()"
-        [channels]="inboxChannels()"
-        [directs]="workspace().directs"
-        [active]="active()"
-        [activeId]="activeId()"
-        [busy]="actionBusy()"
-        [connected]="connected()"
-        [searchControl]="filter"
-        [filterKind]="inboxFilter()"
-        (filterChange)="inboxFilter.set($event)"
-        (personSelected)="direct($event)"
-        (channelSelected)="select($event)"
-        (navigate)="navigate($event)"
-      />
-    }
+    <div
+      class="workspace-content"
+      [class.messaging]="view() === 'chat'"
+      [class.inbox-visible]="inboxOpen()"
+    >
+      @if (view() === 'chat') {
+        <nexo-conversation-inbox
+          [people]="people()"
+          [channels]="inboxChannels()"
+          [directs]="workspace().directs"
+          [active]="active()"
+          [activeId]="activeId()"
+          [busy]="actionBusy()"
+          [connected]="connected()"
+          [searchControl]="filter"
+          [filterKind]="inboxFilter()"
+          (filterChange)="inboxFilter.set($event)"
+          (personSelected)="direct($event)"
+          (channelSelected)="select($event)"
+          (navigate)="navigate($event)"
+        />
+      }
 
-    <main class="workspace-main">
-      @if (connectionError()) {
-        <div class="connection-banner" role="status">
-          {{ connectionError() }}<button (click)="retry()">Reintentar</button>
-        </div>
-      }
-      @if (actionError()) {
-        <div class="action-banner" role="alert">
-          {{ actionError()
-          }}<button class="icon-button" aria-label="Cerrar aviso" (click)="actionError.set('')">
-            <nexo-icon name="close" />
-          </button>
-        </div>
-      }
-      @if (initialLoading()) {
-        <div class="center-state" role="status">
-          <span class="nexo-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-          <h1>Preparando tu espacio…</h1>
-          <p>Conectando con tu comunidad local.</p>
-        </div>
-      } @else if (view() === 'overview') {
-        <section class="explore-page overview-page">
-          <span class="eyebrow">MENOS DISTANCIA. MÁS CONEXIONES.</span>
-          <h1>
-            Hola, {{ auth.session.user()?.displayName }}.<br /><span
-              >Este es tu punto de encuentro.</span
-            >
-          </h1>
-          <p class="page-intro">
-            Tu comunidad, tus conversaciones y las ideas que todavía están por llegar. Todo empieza
-            con las personas.
-          </p>
-          <div class="overview-stats">
-            <div>
-              <strong>{{ workspace().people.length }}</strong
-              ><span>Personas en Nexo</span>
-            </div>
-            <div>
-              <strong>{{ joinedCount() }}</strong
-              ><span>Tus comunidades</span>
-            </div>
-            <div>
-              <strong>{{ onlineCount() }}</strong
-              ><span>Con actividad reciente</span>
-            </div>
+      <main class="workspace-main">
+        @if (connectionError()) {
+          <div class="connection-banner" role="status">
+            {{ connectionError() }}<button (click)="retry()">Reintentar</button>
           </div>
-          <div class="section-title">
-            <h2>Un espacio para cada idea</h2>
-            <button class="text-link" (click)="navigate('discover')">
-              Ver comunidades <nexo-icon name="arrow" />
+        }
+        @if (actionError()) {
+          <div class="action-banner" role="alert">
+            {{ actionError()
+            }}<button class="icon-button" aria-label="Cerrar aviso" (click)="actionError.set('')">
+              <nexo-icon name="close" />
             </button>
           </div>
-          <div class="channel-grid">
-            @for (channel of workspace().channels; track channel.id) {
-              <button class="overview-channel" (click)="select(channel)">
-                <span class="channel-card-icon"><nexo-icon name="users" /></span
-                ><span
-                  ><strong>{{ channel.title }}</strong
-                  ><small>{{ channel.description }}</small></span
-                ><nexo-icon name="arrow" />
+        }
+        @if (initialLoading()) {
+          <div class="center-state" role="status">
+            <span class="nexo-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+            <h1>Preparando tu espacio…</h1>
+            <p>Conectando con tu comunidad local.</p>
+          </div>
+        } @else if (view() === 'overview') {
+          <section class="explore-page overview-page">
+            <span class="eyebrow">MENOS DISTANCIA. MÁS CONEXIONES.</span>
+            <h1>
+              Hola, {{ auth.session.user()?.displayName }}.<br /><span
+                >Este es tu punto de encuentro.</span
+              >
+            </h1>
+            <p class="page-intro">
+              Tu comunidad, tus conversaciones y las ideas que todavía están por llegar. Todo
+              empieza con las personas.
+            </p>
+            <div class="overview-stats">
+              <div>
+                <strong>{{ workspace().people.length }}</strong
+                ><span>Personas en Nexo</span>
+              </div>
+              <div>
+                <strong>{{ joinedCount() }}</strong
+                ><span>Tus comunidades</span>
+              </div>
+              <div>
+                <strong>{{ onlineCount() }}</strong
+                ><span>Con actividad reciente</span>
+              </div>
+            </div>
+            <div class="section-title">
+              <h2>Un espacio para cada idea</h2>
+              <button class="text-link" (click)="navigate('discover')">
+                Ver comunidades <nexo-icon name="arrow" />
               </button>
-            }
-          </div>
-          <div class="demo-guidance">
-            <nexo-icon name="chat" />
-            <div>
-              <strong>Prueba Nexo con otra persona.</strong>
-              <p>Abre otra pestaña como Jorge, Jean o Fernando y conversa entre ambos perfiles.</p>
             </div>
-            <a href="/login" target="_blank" rel="noopener noreferrer" class="secondary-button"
-              >Abrir otra sesión <nexo-icon name="arrow"
-            /></a>
-          </div>
-        </section>
-      } @else if (view() === 'discover') {
-        <section class="explore-page">
-          <span class="eyebrow">ENCUENTRA TU LUGAR</span>
-          <h1>Una comunidad.<br /><span>Muchas conversaciones.</span></h1>
-          <p class="page-intro">
-            Desde tu próximo proyecto hasta los planes después de clases.<br />Hay un espacio para
-            lo que te mueve.
-          </p>
-          <div class="community-stats">
-            <span><nexo-icon name="users" />{{ workspace().channels.length }} canales</span
-            ><span><nexo-icon name="users" />{{ workspace().people.length }} personas</span
-            ><span class="online-stat"><i></i>{{ onlineCount() }} en línea</span>
-          </div>
-          <div class="section-title">
-            <h2>Descubre los canales</h2>
-            <span>{{ joinedCount() }} unidos</span>
-          </div>
-          <div class="channel-grid">
-            @for (channel of channels(); track channel.id) {
-              <article class="channel-card">
-                <div class="channel-card-top">
+            <div class="channel-grid">
+              @for (channel of workspace().channels; track channel.id) {
+                <button class="overview-channel" (click)="select(channel)">
                   <span class="channel-card-icon"><nexo-icon name="users" /></span
-                  ><span class="channel-state" [class.joined]="channel.joined">{{
-                    channel.joined ? 'Ya eres miembro' : 'Abierto a todos'
-                  }}</span>
-                </div>
-                <h3>{{ channel.title }}</h3>
-                <p>{{ channel.description }}</p>
-                <div class="channel-card-bottom">
-                  <span><nexo-icon name="users" />{{ channel.memberCount }} miembros</span
-                  ><button
-                    [class]="channel.joined ? 'secondary-button' : 'primary-button'"
-                    [disabled]="actionBusy()"
-                    (click)="channel.joined ? select(channel) : membership(channel, true)"
-                  >
-                    {{ channel.joined ? 'Abrir canal' : 'Unirme'
-                    }}<nexo-icon [name]="channel.joined ? 'arrow' : 'plus'" />
-                  </button>
-                </div>
-              </article>
-            }
-          </div>
-          @if (!channels().length) {
-            <p class="empty-results">No hay resultados para tu búsqueda.</p>
-          }
-          <div class="demo-guidance">
-            <nexo-icon name="shield" />
-            <div>
-              <strong>Prueba la comunidad desde ambos lados.</strong>
-              <p>
-                Abre Nexo en otra pestaña, entra con otro perfil y envía un mensaje. Se actualiza
-                cada 2 segundos.
-              </p>
+                  ><span
+                    ><strong>{{ channel.title }}</strong
+                    ><small>{{ channel.description }}</small></span
+                  ><nexo-icon name="arrow" />
+                </button>
+              }
             </div>
-            <a href="/login" target="_blank" rel="noopener noreferrer" class="secondary-button"
-              >Abrir otra sesión <nexo-icon name="arrow"
-            /></a>
-          </div>
-        </section>
-      } @else if (view() === 'people') {
-        <section class="explore-page people-page">
-          <span class="eyebrow">LAS PERSONAS HACEN LA COMUNIDAD</span>
-          <h1>Un hola puede<br /><span>conectarlo todo.</span></h1>
-          <p class="page-intro">
-            Abre una conversación directa. Solo sus dos participantes pueden ver los mensajes dentro
-            de cada sesión demo.
-          </p>
-          <div class="people-grid">
-            @for (person of people(); track person.id) {
-              <article class="person-card">
+            <div class="demo-guidance">
+              <nexo-icon name="chat" />
+              <div>
+                <strong>Prueba Nexo con otra persona.</strong>
+                <p>
+                  Sesión protegida con Microsoft Entra ID. Abre otra pestaña y conversa entre
+                  perfiles locales.
+                </p>
+              </div>
+              <a href="/login" target="_blank" rel="noopener noreferrer" class="secondary-button"
+                >Abrir otra sesión <nexo-icon name="arrow"
+              /></a>
+            </div>
+          </section>
+        } @else if (view() === 'discover') {
+          <section class="explore-page">
+            <span class="eyebrow">ENCUENTRA TU LUGAR</span>
+            <h1>Una comunidad.<br /><span>Muchas conversaciones.</span></h1>
+            <p class="page-intro">
+              Desde tu próximo proyecto hasta los planes después de clases.<br />Hay un espacio para
+              lo que te mueve.
+            </p>
+            <div class="community-stats">
+              <span><nexo-icon name="users" />{{ workspace().channels.length }} canales</span
+              ><span><nexo-icon name="users" />{{ workspace().people.length }} personas</span
+              ><span class="online-stat"><i></i>{{ onlineCount() }} en línea</span>
+            </div>
+            <div class="section-title">
+              <h2>Descubre los canales</h2>
+              <span>{{ joinedCount() }} unidos</span>
+            </div>
+            <div class="channel-grid">
+              @for (channel of channels(); track channel.id) {
+                <article class="channel-card">
+                  <div class="channel-card-top">
+                    <span class="channel-card-icon"><nexo-icon name="users" /></span
+                    ><span class="channel-state" [class.joined]="channel.joined">{{
+                      channel.joined ? 'Ya eres miembro' : 'Abierto a todos'
+                    }}</span>
+                  </div>
+                  <h3>{{ channel.title }}</h3>
+                  <p>{{ channel.description }}</p>
+                  <div class="channel-card-bottom">
+                    <span><nexo-icon name="users" />{{ channel.memberCount }} miembros</span
+                    ><button
+                      [class]="channel.joined ? 'secondary-button' : 'primary-button'"
+                      [disabled]="actionBusy()"
+                      (click)="channel.joined ? select(channel) : membership(channel, true)"
+                    >
+                      {{ channel.joined ? 'Abrir canal' : 'Unirme'
+                      }}<nexo-icon [name]="channel.joined ? 'arrow' : 'plus'" />
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+            @if (!channels().length) {
+              <p class="empty-results">No hay resultados para tu búsqueda.</p>
+            }
+            <div class="demo-guidance">
+              <nexo-icon name="shield" />
+              <div>
+                <strong>Prueba la comunidad desde ambos lados.</strong>
+                <p>
+                  Abre Nexo en otra pestaña, entra con otro perfil y envía un mensaje. Se actualiza
+                  cada 2 segundos.
+                </p>
+              </div>
+              <a href="/login" target="_blank" rel="noopener noreferrer" class="secondary-button"
+                >Abrir otra sesión <nexo-icon name="arrow"
+              /></a>
+            </div>
+          </section>
+        } @else if (view() === 'people') {
+          <section class="explore-page people-page">
+            <span class="eyebrow">LAS PERSONAS HACEN LA COMUNIDAD</span>
+            <h1>Un hola puede<br /><span>conectarlo todo.</span></h1>
+            <p class="page-intro">
+              Abre una conversación directa. Solo sus dos participantes pueden ver los mensajes
+              dentro de cada sesión demo.
+            </p>
+            <div class="people-grid">
+              @for (person of people(); track person.id) {
+                <article class="person-card">
+                  <nexo-avatar
+                    [src]="person.avatarUrl"
+                    [name]="person.displayName"
+                    [color]="person.color"
+                    [large]="true"
+                    [online]="person.online"
+                  />
+                  <h2>{{ person.displayName }}</h2>
+                  <span class="person-status">{{
+                    person.online ? 'Actividad reciente' : 'Sin actividad reciente'
+                  }}</span>
+                  <p>{{ person.bio }}</p>
+                  <button class="primary-button" [disabled]="actionBusy()" (click)="direct(person)">
+                    <nexo-icon name="chat" />Enviar mensaje
+                  </button>
+                  <button
+                    class="secondary-button call-person-button"
+                    [disabled]="calls.occupied()"
+                    (click)="calls.start(person)"
+                  >
+                    <nexo-icon name="phone" />Llamar
+                  </button>
+                </article>
+              }
+            </div>
+          </section>
+        } @else if (active(); as conversation) {
+          <header class="conversation-heading">
+            <button
+              class="icon-button inbox-back"
+              aria-label="Volver a conversaciones"
+              (click)="inboxOpen.set(true)"
+            >
+              <nexo-icon name="back" />
+            </button>
+            <div class="conversation-title">
+              @if (peer(); as person) {
                 <nexo-avatar
                   [src]="person.avatarUrl"
                   [name]="person.displayName"
                   [color]="person.color"
-                  [large]="true"
                   [online]="person.online"
                 />
-                <h2>{{ person.displayName }}</h2>
-                <span class="person-status">{{
-                  person.online ? 'Actividad reciente' : 'Sin actividad reciente'
-                }}</span>
-                <p>{{ person.bio }}</p>
-                <button class="primary-button" [disabled]="actionBusy()" (click)="direct(person)">
-                  <nexo-icon name="chat" />Enviar mensaje
-                </button>
-                <button
-                  class="secondary-button call-person-button"
-                  [disabled]="calls.occupied()"
-                  (click)="calls.start(person)"
-                >
-                  <nexo-icon name="phone" />Llamar
-                </button>
-              </article>
-            }
-          </div>
-        </section>
-      } @else if (active(); as conversation) {
-        <header class="conversation-heading">
-          <button
-            class="icon-button inbox-back"
-            aria-label="Volver a conversaciones"
-            (click)="inboxOpen.set(true)"
-          >
-            <nexo-icon name="back" />
-          </button>
-          <div class="conversation-title">
-            @if (peer(); as person) {
-              <nexo-avatar
-                [src]="person.avatarUrl"
-                [name]="person.displayName"
-                [color]="person.color"
-                [online]="person.online"
-              />
-            } @else {
-              <span class="group-avatar"><nexo-icon name="users" /></span>
-            }
-            <div>
-              <h2>{{ conversation.title }}</h2>
-              <p>
-                @if (peer(); as person) {
-                  &#64;{{ person.username }} <span class="subtitle-dot">·</span>
-                  {{ person.online ? 'Actividad reciente' : 'Sin actividad reciente' }}
-                } @else {
-                  Comunidad Nexo <span class="subtitle-dot">·</span>
-                  {{ conversation.memberCount }} miembros
-                }
-              </p>
-            </div>
-          </div>
-          <button
-            class="icon-button info-button"
-            aria-label="Mostrar información de la conversación"
-            title="Información de la conversación"
-            [attr.aria-expanded]="detailsOpen()"
-            aria-controls="conversation-details"
-            (click)="detailsOpen.set(!detailsOpen())"
-          >
-            <nexo-icon name="info" />
-          </button>
-          @if (peer(); as person) {
-            <button
-              class="icon-button"
-              [attr.aria-label]="'Llamar a ' + person.displayName"
-              title="Llamada de voz"
-              [disabled]="calls.occupied()"
-              (click)="calls.start(person)"
-            >
-              <nexo-icon name="phone" />
-            </button>
-          }
-        </header>
-        <div class="conversation-body" [class.hide-details]="!detailsOpen()">
-          <section class="chat-pane" aria-label="Conversación">
-            @if (!conversation.joined) {
-              <div class="center-state">
-                <span class="preview-icon"><nexo-icon name="users" /></span>
-                <h2>Encuentra tu lugar en<br />{{ conversation.title }}</h2>
-                <p>{{ conversation.description }}</p>
-                <small>{{ conversation.memberCount }} miembros · Canal abierto</small
-                ><button
-                  class="primary-button"
-                  [disabled]="actionBusy()"
-                  (click)="membership(conversation, true)"
-                >
-                  <nexo-icon name="plus" />Unirme al canal</button
-                ><small>Únete para leer y enviar mensajes.</small>
-              </div>
-            } @else {
-              <div
-                class="message-scroll"
-                #messageList
-                role="log"
-                aria-label="Historial de mensajes"
-                aria-live="polite"
-                aria-relevant="additions"
-              >
-                <div class="conversation-notice">
-                  <nexo-icon name="info" />
-                  <p>
-                    Este es tu espacio de prueba local. Los mensajes se guardan en tu equipo.<span
-                      >No compartas información sensible.</span
-                    >
-                  </p>
-                </div>
-                @if (messagesLoading()) {
-                  <p class="messages-loading" role="status">Cargando mensajes…</p>
-                }
-                @for (message of messages(); track message.id; let index = $index) {
-                  @if (newDay(index)) {
-                    <div class="day-separator">
-                      <span>{{ message.sentAt | date: 'dd/MM/yyyy' }}</span>
-                    </div>
-                  }
-                  <article
-                    class="message-row"
-                    [class.own-message]="message.senderId === auth.session.user()?.id"
-                    [attr.aria-label]="'Mensaje de ' + message.senderName"
-                  >
-                    @if (message.senderId !== auth.session.user()?.id) {
-                      <nexo-avatar
-                        [src]="message.senderAvatarUrl"
-                        [name]="message.senderName"
-                        [color]="message.senderColor"
-                      />
-                    }
-                    <div class="message-bubble">
-                      @if (
-                        conversation.kind === 'CHANNEL' &&
-                        message.senderId !== auth.session.user()?.id
-                      ) {
-                        <strong class="sender-name" [style.color]="message.senderColor">{{
-                          message.senderName
-                        }}</strong>
-                      }
-                      <p><nexo-message-text [text]="message.body" /></p>
-                      <div class="message-meta">
-                        @if (message.senderId === auth.session.user()?.id) {
-                          <span class="sr-only">Tú · </span>
-                        }
-                        <time [attr.datetime]="message.sentAt">{{
-                          message.sentAt | date: 'HH:mm'
-                        }}</time>
-                      </div>
-                    </div>
-                  </article>
-                } @empty {
-                  @if (!messagesLoading()) {
-                    <div class="empty-conversation">
-                      <span class="preview-icon"><nexo-icon name="chat" /></span>
-                      <h3>Las grandes conexiones<br />empiezan con un hola.</h3>
-                      <p>
-                        {{
-                          conversation.kind === 'CHANNEL'
-                            ? conversation.description
-                            : 'Este es el comienzo de tu conversación con ' +
-                              conversation.title +
-                              '.'
-                        }}
-                      </p>
-                    </div>
-                  }
-                }
-              </div>
-              <form class="composer-area" [formGroup]="composer" (ngSubmit)="send()">
-                <div class="composer-box">
-                  <label class="sr-only" for="message-input"
-                    >Mensaje para {{ conversation.title }}</label
-                  >
-                  <textarea
-                    id="message-input"
-                    [formControl]="draft"
-                    rows="2"
-                    maxlength="2000"
-                    placeholder="Escribe un mensaje…"
-                    (keydown)="onComposerKey($event)"
-                  ></textarea>
-                  <div class="composer-actions">
-                    <span><nexo-icon name="chat" />Conecta a través de tus ideas.</span
-                    ><button
-                      class="send-button"
-                      type="submit"
-                      aria-label="Enviar mensaje"
-                      title="Enviar mensaje"
-                      [disabled]="sending() || !draftText().trim() || draft.invalid"
-                    >
-                      <nexo-icon name="send" />
-                    </button>
-                  </div>
-                </div>
-                <div class="composer-hint">
-                  <span>Enter para enviar · Shift + Enter para nueva línea</span
-                  ><span
-                    >{{ draftText().length }} / 2000
-                    @if (sending()) {
-                      · Enviando…
-                    }
-                  </span>
-                </div>
-              </form>
-            }
-          </section>
-          @if (detailsOpen()) {
-            <aside
-              class="conversation-details"
-              id="conversation-details"
-              aria-label="Información de la conversación"
-            >
-              <div class="details-heading">
-                <h2>En esta conversación</h2>
-                <button
-                  class="icon-button"
-                  aria-label="Cerrar información"
-                  (click)="detailsOpen.set(false)"
-                >
-                  <nexo-icon name="close" />
-                </button>
-              </div>
-              <section class="context-card">
-                <div class="context-cover">
-                  <span class="cover-orbit"></span>
+              } @else {
+                <span class="group-avatar"><nexo-icon name="users" /></span>
+              }
+              <div>
+                <h2>{{ conversation.title }}</h2>
+                <p>
                   @if (peer(); as person) {
-                    <nexo-avatar
-                      [src]="person.avatarUrl"
-                      [name]="person.displayName"
-                      [color]="person.color"
-                      [large]="true"
-                    />
+                    &#64;{{ person.username }} <span class="subtitle-dot">·</span>
+                    {{ person.online ? 'Actividad reciente' : 'Sin actividad reciente' }}
                   } @else {
-                    <span class="context-emblem"><nexo-icon name="users" /></span>
+                    Comunidad Nexo <span class="subtitle-dot">·</span>
+                    {{ conversation.memberCount }} miembros
                   }
+                </p>
+              </div>
+            </div>
+            <button
+              class="icon-button info-button"
+              aria-label="Mostrar información de la conversación"
+              title="Información de la conversación"
+              [attr.aria-expanded]="detailsOpen()"
+              aria-controls="conversation-details"
+              (click)="detailsOpen.set(!detailsOpen())"
+            >
+              <nexo-icon name="info" />
+            </button>
+            @if (peer(); as person) {
+              <button
+                class="icon-button"
+                [attr.aria-label]="'Llamar a ' + person.displayName"
+                title="Llamada de voz"
+                [disabled]="calls.occupied()"
+                (click)="calls.start(person)"
+              >
+                <nexo-icon name="phone" />
+              </button>
+            }
+          </header>
+          <div class="conversation-body" [class.hide-details]="!detailsOpen()">
+            <section class="chat-pane" aria-label="Conversación">
+              @if (!conversation.joined) {
+                <div class="center-state">
+                  <span class="preview-icon"><nexo-icon name="users" /></span>
+                  <h2>Encuentra tu lugar en<br />{{ conversation.title }}</h2>
+                  <p>{{ conversation.description }}</p>
+                  <small>{{ conversation.memberCount }} miembros · Canal abierto</small
+                  ><button
+                    class="primary-button"
+                    [disabled]="actionBusy()"
+                    (click)="membership(conversation, true)"
+                  >
+                    <nexo-icon name="plus" />Unirme al canal</button
+                  ><small>Únete para leer y enviar mensajes.</small>
                 </div>
-                <div class="context-description">
-                  <span class="eyebrow">{{
-                    conversation.kind === 'CHANNEL' ? 'PUNTO DE ENCUENTRO' : 'CONVERSACIÓN DIRECTA'
-                  }}</span>
-                  <h3>{{ conversation.title }}</h3>
-                  <p>
-                    {{
-                      peer()?.bio ||
-                        conversation.description ||
-                        'Un espacio para compartir ideas, coordinar y conversar.'
-                    }}
-                  </p>
-                </div>
-                <div class="members-section">
-                  <h3>
-                    Participantes <span>{{ conversation.memberCount }}</span>
-                  </h3>
-                  @if (conversation.joined) {
-                    @for (person of members(); track person.id) {
-                      <div class="member-row">
+              } @else {
+                <div
+                  class="message-scroll"
+                  #messageList
+                  role="log"
+                  aria-label="Historial de mensajes"
+                  aria-live="polite"
+                  aria-relevant="additions"
+                >
+                  <div class="conversation-notice">
+                    <nexo-icon name="info" />
+                    <p>
+                      Este es tu espacio de prueba local. Los mensajes se guardan en tu equipo.<span
+                        >No compartas información sensible.</span
+                      >
+                    </p>
+                  </div>
+                  @if (messagesLoading()) {
+                    <p class="messages-loading" role="status">Cargando mensajes…</p>
+                  }
+                  @for (message of messages(); track message.id; let index = $index) {
+                    @if (newDay(index)) {
+                      <div class="day-separator">
+                        <span>{{ message.sentAt | date: 'dd/MM/yyyy' }}</span>
+                      </div>
+                    }
+                    <article
+                      class="message-row"
+                      [class.own-message]="message.senderId === auth.session.user()?.id"
+                      [attr.aria-label]="'Mensaje de ' + message.senderName"
+                    >
+                      @if (message.senderId !== auth.session.user()?.id) {
                         <nexo-avatar
-                          [src]="person.avatarUrl"
-                          [name]="person.displayName"
-                          [color]="person.color"
-                          [online]="person.online"
+                          [src]="message.senderAvatarUrl"
+                          [name]="message.senderName"
+                          [color]="message.senderColor"
                         />
-                        <div>
-                          <strong
-                            >{{ person.displayName }}
-                            @if (person.id === auth.session.user()?.id) {
-                              <small>(tú)</small>
-                            }</strong
-                          ><span>{{
-                            person.online ? 'Actividad reciente' : 'Sin actividad reciente'
-                          }}</span>
+                      }
+                      <div class="message-bubble">
+                        @if (
+                          conversation.kind === 'CHANNEL' &&
+                          message.senderId !== auth.session.user()?.id
+                        ) {
+                          <strong class="sender-name" [style.color]="message.senderColor">{{
+                            message.senderName
+                          }}</strong>
+                        }
+                        <p><nexo-message-text [text]="message.body" /></p>
+                        <div class="message-meta">
+                          @if (message.senderId === auth.session.user()?.id) {
+                            <span class="sr-only">Tú · </span>
+                          }
+                          <time [attr.datetime]="message.sentAt">{{
+                            message.sentAt | date: 'HH:mm'
+                          }}</time>
                         </div>
                       </div>
+                    </article>
+                  } @empty {
+                    @if (!messagesLoading()) {
+                      <div class="empty-conversation">
+                        <span class="preview-icon"><nexo-icon name="chat" /></span>
+                        <h3>Las grandes conexiones<br />empiezan con un hola.</h3>
+                        <p>
+                          {{
+                            conversation.kind === 'CHANNEL'
+                              ? conversation.description
+                              : 'Este es el comienzo de tu conversación con ' +
+                                conversation.title +
+                                '.'
+                          }}
+                        </p>
+                      </div>
                     }
-                  } @else {
-                    <p class="details-help">Únete para ver quién está aquí.</p>
                   }
                 </div>
-                @if (conversation.kind === 'CHANNEL' && conversation.joined) {
+                <form class="composer-area" [formGroup]="composer" (ngSubmit)="send()">
+                  <div class="composer-box">
+                    <label class="sr-only" for="message-input"
+                      >Mensaje para {{ conversation.title }}</label
+                    >
+                    <textarea
+                      id="message-input"
+                      [formControl]="draft"
+                      rows="2"
+                      maxlength="2000"
+                      placeholder="Escribe un mensaje…"
+                      (keydown)="onComposerKey($event)"
+                    ></textarea>
+                    <div class="composer-actions">
+                      <span><nexo-icon name="chat" />Conecta a través de tus ideas.</span
+                      ><button
+                        class="send-button"
+                        type="submit"
+                        aria-label="Enviar mensaje"
+                        title="Enviar mensaje"
+                        [disabled]="sending() || !draftText().trim() || draft.invalid"
+                      >
+                        <nexo-icon name="send" />
+                      </button>
+                    </div>
+                  </div>
+                  <div class="composer-hint">
+                    <span>Enter para enviar · Shift + Enter para nueva línea</span
+                    ><span
+                      >{{ draftText().length }} / 2000
+                      @if (sending()) {
+                        · Enviando…
+                      }
+                    </span>
+                  </div>
+                </form>
+              }
+            </section>
+            @if (detailsOpen()) {
+              <aside
+                class="conversation-details"
+                id="conversation-details"
+                aria-label="Información de la conversación"
+              >
+                <div class="details-heading">
+                  <h2>En esta conversación</h2>
                   <button
-                    class="leave-button"
-                    [disabled]="actionBusy()"
-                    (click)="membership(conversation, false)"
+                    class="icon-button"
+                    aria-label="Cerrar información"
+                    (click)="detailsOpen.set(false)"
                   >
-                    <nexo-icon name="logout" />Salir del canal
+                    <nexo-icon name="close" />
                   </button>
-                }
-              </section>
-              <section class="future-card">
-                <span class="future-icon"><nexo-icon name="phone" /></span
-                ><span class="future-tag">LLAMADAS DE VOZ</span>
-                <h3>De un mensaje<br />a una buena charla.</h3>
-                <p>
-                  Llama a otra persona con el micrófono de tu equipo. En esta etapa, prueba entre
-                  pestañas en localhost. El video queda pendiente.
-                </p>
-                @if (peer(); as person) {
-                  <button
-                    class="primary-button call-person-button"
-                    [disabled]="calls.occupied()"
-                    (click)="calls.start(person)"
-                  >
-                    Iniciar llamada
-                  </button>
-                }
-              </section>
-              <div class="local-note">
-                <nexo-icon name="info" />
-                <p>
-                  Perfiles de prueba, sin autenticación Microsoft. Los mensajes no tienen cifrado de
-                  extremo a extremo. Audio mediante WebRTC.
-                </p>
-              </div>
-            </aside>
-          }
-        </div>
-      } @else {
-        <div class="center-state">
-          <h1>No se pudo cargar tu comunidad</h1>
-          <button class="primary-button" (click)="retry()">Reintentar</button>
-        </div>
-      }
-    </main>
+                </div>
+                <section class="context-card">
+                  <div class="context-cover">
+                    <span class="cover-orbit"></span>
+                    @if (peer(); as person) {
+                      <nexo-avatar
+                        [src]="person.avatarUrl"
+                        [name]="person.displayName"
+                        [color]="person.color"
+                        [large]="true"
+                      />
+                    } @else {
+                      <span class="context-emblem"><nexo-icon name="users" /></span>
+                    }
+                  </div>
+                  <div class="context-description">
+                    <span class="eyebrow">{{
+                      conversation.kind === 'CHANNEL'
+                        ? 'PUNTO DE ENCUENTRO'
+                        : 'CONVERSACIÓN DIRECTA'
+                    }}</span>
+                    <h3>{{ conversation.title }}</h3>
+                    <p>
+                      {{
+                        peer()?.bio ||
+                          conversation.description ||
+                          'Un espacio para compartir ideas, coordinar y conversar.'
+                      }}
+                    </p>
+                  </div>
+                  <div class="members-section">
+                    <h3>
+                      Participantes <span>{{ conversation.memberCount }}</span>
+                    </h3>
+                    @if (conversation.joined) {
+                      @for (person of members(); track person.id) {
+                        <div class="member-row">
+                          <nexo-avatar
+                            [src]="person.avatarUrl"
+                            [name]="person.displayName"
+                            [color]="person.color"
+                            [online]="person.online"
+                          />
+                          <div>
+                            <strong
+                              >{{ person.displayName }}
+                              @if (person.id === auth.session.user()?.id) {
+                                <small>(tú)</small>
+                              }</strong
+                            ><span>{{
+                              person.online ? 'Actividad reciente' : 'Sin actividad reciente'
+                            }}</span>
+                          </div>
+                        </div>
+                      }
+                    } @else {
+                      <p class="details-help">Únete para ver quién está aquí.</p>
+                    }
+                  </div>
+                  @if (conversation.kind === 'CHANNEL' && conversation.joined) {
+                    <button
+                      class="leave-button"
+                      [disabled]="actionBusy()"
+                      (click)="membership(conversation, false)"
+                    >
+                      <nexo-icon name="logout" />Salir del canal
+                    </button>
+                  }
+                </section>
+                <section class="future-card">
+                  <span class="future-icon"><nexo-icon name="phone" /></span
+                  ><span class="future-tag">LLAMADAS DE VOZ</span>
+                  <h3>De un mensaje<br />a una buena charla.</h3>
+                  <p>
+                    Llama a otra persona con el micrófono de tu equipo. En esta etapa, prueba entre
+                    pestañas en localhost. El video queda pendiente.
+                  </p>
+                  @if (peer(); as person) {
+                    <button
+                      class="primary-button call-person-button"
+                      [disabled]="calls.occupied()"
+                      (click)="calls.start(person)"
+                    >
+                      Iniciar llamada
+                    </button>
+                  }
+                </section>
+                <div class="local-note">
+                  <nexo-icon name="info" />
+                  <p>
+                    Perfiles de prueba, sin autenticación Microsoft. Los mensajes no tienen cifrado
+                    de extremo a extremo. Audio mediante WebRTC.
+                  </p>
+                </div>
+              </aside>
+            }
+          </div>
+        } @else {
+          <div class="center-state">
+            <h1>No se pudo cargar tu comunidad</h1>
+            <button class="primary-button" (click)="retry()">Reintentar</button>
+          </div>
+        }
+      </main>
+    </div>
   </div>
-</div>
+} @else {
+  <main class="authenticated-home">
+    <header>
+      <a routerLink="/home" class="brand">Nexo<b>.</b></a>
+      <button class="secondary-button" type="button" [disabled]="actionBusy()" (click)="logout()">
+        Cerrar sesión
+      </button>
+    </header>
+    @if (auth.session.user(); as user) {
+      <section class="authenticated-card">
+        <span class="eyebrow">IDENTIDAD VERIFICADA</span>
+        <h1>Hola, {{ user.displayName }}.</h1>
+        <p>Tu sesión está activa mediante {{ providerLabel() }}.</p>
+        <dl>
+          <div>
+            <dt>Correo</dt>
+            <dd>{{ user.email || user.username }}</dd>
+          </div>
+          <div>
+            <dt>Proveedor</dt>
+            <dd>{{ providerLabel() }}</dd>
+          </div>
+        </dl>
+        <a routerLink="/profile" class="primary-button">Ver mi perfil <nexo-icon name="arrow" /></a>
+      </section>
+    }
+  </main>
+}

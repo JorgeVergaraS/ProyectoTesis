@@ -998,3 +998,69 @@
     flex: 1;
   }
 }
+.authenticated-home {
+  max-width: 1050px;
+  min-height: 100dvh;
+  margin: auto;
+  padding: 34px clamp(20px, 6vw, 64px);
+}
+.authenticated-home > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #283047;
+}
+.authenticated-home .brand {
+  color: #eef2ff;
+  font-size: 26px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.authenticated-home .brand b {
+  color: #a78bfa;
+}
+.authenticated-card {
+  max-width: 700px;
+  margin: 12vh auto 0;
+  padding: clamp(28px, 6vw, 58px);
+  border: 1px solid #2c3853;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #151e34, #0e1728);
+  box-shadow: 0 25px 60px #00000024;
+}
+.authenticated-card h1 {
+  margin: 14px 0;
+  font-size: clamp(40px, 6vw, 68px);
+  line-height: 1.04;
+  letter-spacing: -2px;
+}
+.authenticated-card > p {
+  color: #a7b2ca;
+}
+.authenticated-card dl {
+  margin: 30px 0;
+}
+.authenticated-card dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px 0;
+  border-top: 1px solid #2a3550;
+}
+.authenticated-card dt {
+  color: #8492ae;
+}
+.authenticated-card dd {
+  margin: 0;
+  text-align: right;
+}
+@media (max-width: 600px) {
+  .authenticated-card dl > div {
+    flex-direction: column;
+    gap: 5px;
+  }
+  .authenticated-card dd {
+    text-align: left;
+  }
+}

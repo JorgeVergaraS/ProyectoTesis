@@ -34,11 +34,11 @@
     <section class="login-card" aria-labelledby="login-title">
       <span class="card-tag"><nexo-icon name="compass" /> EXPLORA NEXO</span>
       <h2 id="login-title">Tu comunidad<br />te espera.</h2>
-      <p class="card-description">Conecta con tu cuenta institucional para entrar a Nexo.</p>
+      <p class="card-description">Conecta con tu cuenta institucional o crea una cuenta Nexo.</p>
       @if (notice) {
         <p class="notice" role="status">{{ notice }}</p>
       }
-      <form (ngSubmit)="enter()">
+      <div>
         @if (!configured) {
           <p class="notice" role="status">
             Falta configurar Microsoft Entra ID. Completa los valores del environment antes de
@@ -50,17 +50,38 @@
         }
         <button
           class="primary-button enter-button"
-          type="submit"
+          type="button"
+          (click)="enter()"
           [disabled]="!configured || busy()"
         >
           {{ busy() ? 'Conectando…' : 'Continuar con Microsoft' }}<nexo-icon name="arrow" />
+        </button>
+      </div>
+      <div class="local-divider"><span>o continúa con tu correo</span></div>
+      <form class="local-form" [formGroup]="localForm" (ngSubmit)="submitLocal()">
+        @if (mode() === 'register') {
+          <label for="displayName">Nombre</label><input id="displayName" type="text" formControlName="displayName" placeholder="Tu nombre" autocomplete="name" [attr.aria-invalid]="hasError('displayName', 'required')" />
+            @if (hasError('displayName', 'required')) { <small class="field-error">El nombre es obligatorio.</small> }
+
+        }
+        <label for="email">Correo electrónico</label><input id="email" type="email" formControlName="email" placeholder="tu@correo.com" autocomplete="email" [attr.aria-invalid]="hasError('email', 'required') || hasError('email', 'email')" />
+          @if (hasError('email', 'required')) { <small class="field-error">El correo es obligatorio.</small> }
+          @if (hasError('email', 'email')) { <small class="field-error">Ingresa un correo válido, por ejemplo nombre@dominio.com.</small> }
+        <label for="password">Contraseña</label><input id="password" type="password" formControlName="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" [attr.aria-invalid]="hasError('password', 'required') || hasError('password', 'minlength')" />
+          @if (hasError('password', 'required')) { <small class="field-error">La contraseña es obligatoria.</small> }
+          @if (hasError('password', 'minlength')) { <small class="field-error">La contraseña debe tener al menos 8 caracteres.</small> }
+        @if (localError()) { <p class="error-note" role="alert">{{ localError() }}</p> }
+        <button class="secondary-button" type="submit" [disabled]="localBusy()">
+          {{ localBusy() ? 'Procesando…' : (mode() === 'login' ? 'Iniciar sesión' : 'Crear cuenta') }}
+        </button>
+        <button class="mode-link" type="button" (click)="toggleMode()">
+          {{ mode() === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión' }}
         </button>
       </form>
       <div class="local-explainer">
         <nexo-icon name="shield" />
         <p>
-          <strong>Acceso seguro con tu identidad institucional.</strong><br />Nexo nunca almacena
-          contraseñas; Microsoft gestiona tu autenticación.
+          <strong>Acceso seguro.</strong><br />Las contraseñas locales se almacenan cifradas con BCrypt; Microsoft gestiona las cuentas institucionales.
         </p>
       </div>
       <div class="card-bottom">

@@ -6,12 +6,14 @@ export interface DemoUser {
   bio: string;
   online: boolean;
   avatarUrl?: string | null;
+  email?: string | null;
 }
 export interface DemoSession {
   token: string;
   expiresAt: string;
   user: DemoUser;
 }
+export type AuthSessionKind = 'demo' | 'local' | 'microsoft';
 export interface Conversation {
   id: string;
   kind: 'CHANNEL' | 'DIRECT';
