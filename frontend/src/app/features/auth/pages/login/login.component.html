@@ -38,7 +38,7 @@
       @if (notice) {
         <p class="notice" role="status">{{ notice }}</p>
       }
-      <form (ngSubmit)="enter()">
+      <div>
         @if (!configured) {
           <p class="notice" role="status">
             Falta configurar Microsoft Entra ID. Completa los valores del environment antes de
@@ -50,12 +50,13 @@
         }
         <button
           class="primary-button enter-button"
-          type="submit"
+          type="button"
+          (click)="enter()"
           [disabled]="!configured || busy()"
         >
           {{ busy() ? 'Conectando…' : 'Continuar con Microsoft' }}<nexo-icon name="arrow" />
         </button>
-      </form>
+      </div>
       <div class="local-divider"><span>o continúa con tu correo</span></div>
       <form class="local-form" [formGroup]="localForm" (ngSubmit)="submitLocal()">
         @if (mode() === 'register') {
