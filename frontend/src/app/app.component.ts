@@ -22,7 +22,14 @@ export class App {
           if (result && authenticated) void this.router.navigate(['/home'], { replaceUrl: true });
         });
       },
-      error: () => void this.router.navigate(['/login'], { replaceUrl: true }),
+      error: (error: unknown) => {
+        const details = error as { errorCode?: string; message?: string };
+        console.error('MSAL redirect failed', {
+          errorCode: details?.errorCode,
+          message: details?.message,
+        });
+        void this.router.navigate(['/login'], { replaceUrl: true, queryParams: { reason: 'microsoft-error' } });
+      },
     });
   }
 }

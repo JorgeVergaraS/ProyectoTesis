@@ -118,7 +118,14 @@ export class AuthService {
       const user = await firstValueFrom(this.http.get<DemoUser>(environment.apiUrl + '/users/me'));
       this.session.setMicrosoftUser(user);
       return true;
-    } catch {
+    } catch (error: unknown) {
+      const details = error as { status?: number; name?: string; message?: string; error?: unknown };
+      console.error('Microsoft profile sync failed', JSON.stringify({
+        status: details?.status,
+        name: details?.name,
+        message: details?.message,
+        error: details?.error,
+      }));
       this.session.user.set(null);
       return false;
     }

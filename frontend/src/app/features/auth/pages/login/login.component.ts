@@ -18,10 +18,12 @@ export class LoginComponent {
   readonly configured = this.auth.isConfigured;
   readonly busy = signal(false);
   readonly error = signal('');
-  readonly notice =
-    this.route.snapshot.queryParamMap.get('reason') === 'expired'
-      ? 'Tu sesión venció. Vuelve a iniciar sesión con Microsoft.'
-      : '';
+  readonly notice = (() => {
+    const reason = this.route.snapshot.queryParamMap.get('reason');
+    if (reason === 'expired') return 'Tu sesión venció. Vuelve a iniciar sesión con Microsoft.';
+    if (reason === 'microsoft-error') return 'Microsoft no pudo completar el retorno. Revisa el tenant, el consentimiento y la cuenta autorizada.';
+    return '';
+  })();
   readonly mode = signal<'login' | 'register'>('login');
   readonly localBusy = signal(false);
   readonly localError = signal('');
