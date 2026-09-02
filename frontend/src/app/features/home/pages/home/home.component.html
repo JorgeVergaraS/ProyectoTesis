@@ -511,30 +511,53 @@
     </div>
   </div>
 } @else {
-  <main class="authenticated-home">
-    <header>
-      <a routerLink="/home" class="brand">Nexo<b>.</b></a>
-      <button class="secondary-button" type="button" [disabled]="actionBusy()" (click)="logout()">
-        Cerrar sesión
-      </button>
-    </header>
-    @if (auth.session.user(); as user) {
-      <section class="authenticated-card">
-        <span class="eyebrow">IDENTIDAD VERIFICADA</span>
-        <h1>Hola, {{ user.displayName }}.</h1>
-        <p>Tu sesión está activa mediante {{ providerLabel() }}.</p>
-        <dl>
-          <div>
-            <dt>Correo</dt>
-            <dd>{{ user.email || user.username }}</dd>
+  @if (auth.session.user(); as user) {
+    <main class="authenticated-home dashboard-home">
+      <aside class="dashboard-sidebar">
+        <a routerLink="/home" class="brand"><span class="brand-mark">N</span>Nexo<b>.</b></a>
+        <nav aria-label="Navegación principal">
+          <a routerLink="/home" class="dashboard-nav active"><nexo-icon name="home" />Inicio</a>
+          <a href="#communities" class="dashboard-nav"><nexo-icon name="compass" />Explorar</a>
+          <a href="#communities" class="dashboard-nav"><nexo-icon name="users" />Comunidades</a>
+          <a href="#activity" class="dashboard-nav"><nexo-icon name="chat" />Mensajes<span class="nav-badge">3</span></a>
+          <a href="#activity" class="dashboard-nav"><nexo-icon name="phone" />Llamadas</a>
+          <a routerLink="/profile" class="dashboard-nav"><nexo-icon name="profile" />Perfil</a>
+        </nav>
+        <div class="dashboard-user">
+          <span class="user-avatar">{{ user.displayName.charAt(0) }}</span>
+          <span><strong>{{ user.displayName }}</strong><small>{{ user.username }}</small></span>
+        </div>
+        <button class="dashboard-logout" type="button" [disabled]="actionBusy()" (click)="logout()">
+          <nexo-icon name="logout" />Cerrar sesión
+        </button>
+      </aside>
+
+      <section class="dashboard-main">
+        <header class="dashboard-header">
+          <div><span class="eyebrow">TU ESPACIO EN NEXO</span><h1>Hola, {{ user.displayName }}.</h1></div>
+          <div class="identity-chip"><span class="status-dot"></span>{{ providerLabel() }}</div>
+        </header>
+        <section class="welcome-card">
+          <div><span class="eyebrow">COMUNIDAD DESTACADA</span><h2>Desarrollo Web</h2><p>Aprende, comparte y conecta con personas que construyen el futuro.</p><div class="welcome-meta"><span><i></i> 128 en línea</span><span>16,2K miembros</span></div></div>
+          <span class="code-emblem"><nexo-icon name="code" /></span>
+        </section>
+        <section id="communities" class="dashboard-section">
+          <div class="section-heading"><div><span class="eyebrow">TUS ESPACIOS</span><h2>Un lugar para cada idea</h2></div><a href="#communities">Ver comunidades <nexo-icon name="arrow" /></a></div>
+          <div class="community-cards">
+            <article class="community-card featured"><span class="community-icon"><nexo-icon name="code" /></span><div><h3>Desarrollo Web</h3><p>Frontend, backend y tecnologías modernas.</p><small><i></i> 128 en línea · 16,2K miembros</small></div><nexo-icon name="arrow" /></article>
+            <article class="community-card"><span class="community-icon blue"><nexo-icon name="sparkle" /></span><div><h3>Ideas y proyectos</h3><p>Comparte lo que estás creando.</p><small><i></i> 46 en línea · 4,8K miembros</small></div><nexo-icon name="arrow" /></article>
           </div>
-          <div>
-            <dt>Proveedor</dt>
-            <dd>{{ providerLabel() }}</dd>
-          </div>
-        </dl>
-        <a routerLink="/profile" class="primary-button">Ver mi perfil <nexo-icon name="arrow" /></a>
+        </section>
+        <section id="activity" class="dashboard-section activity-section">
+          <div class="section-heading"><div><span class="eyebrow">ACTIVIDAD RECIENTE</span><h2>Lo que está pasando</h2></div><a routerLink="/profile">Ver mi perfil <nexo-icon name="arrow" /></a></div>
+          <article class="activity-card"><span class="activity-avatar">MF</span><div><strong>María Fernanda</strong><span>publicó en Desarrollo Web · hace 2 h</span><p>Guía de inicio: Bienvenido a Desarrollo Web 🚀</p><small>Si eres nuevo en la comunidad, aquí encontrarás canales y recursos para comenzar.</small></div><span class="activity-reaction">♡ 342</span></article>
+          <article class="activity-card"><span class="activity-avatar teal">CR</span><div><strong>Camilo Rojas</strong><span>inició una conversación · hace 4 h</span><p>¿Qué stack usan para proyectos fullstack?</p><small>Comparte tus herramientas favoritas con la comunidad.</small></div><span class="activity-reaction">↑ 128</span></article>
+        </section>
       </section>
-    }
-  </main>
+      <aside class="dashboard-right">
+        <section class="rules-card"><h2><nexo-icon name="shield" />Reglas de la comunidad</h2><ol><li><strong>Sé respetuoso y amable</strong><span>Trata a todos con respeto.</span></li><li><strong>Contenido relevante</strong><span>Publica sobre tecnología y comunidad.</span></li><li><strong>Nada de spam</strong><span>Comparte contenido útil.</span></li><li><strong>Da crédito</strong><span>Respeta el trabajo ajeno.</span></li></ol><a href="#communities">Ver todas las reglas <nexo-icon name="arrow" /></a></section>
+        <section class="profile-card"><span class="profile-card-icon"><nexo-icon name="check" /></span><span class="eyebrow">IDENTIDAD VERIFICADA</span><h2>Tu cuenta está lista</h2><p>{{ user.email || user.username }}</p><a routerLink="/profile" class="primary-button">Ver perfil <nexo-icon name="arrow" /></a></section>
+      </aside>
+    </main>
+  }
 }
