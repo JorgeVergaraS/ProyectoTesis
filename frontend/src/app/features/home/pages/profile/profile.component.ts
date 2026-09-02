@@ -17,7 +17,11 @@ import { firstValueFrom } from 'rxjs';
         <section class="card">
           <p class="label"><i></i> PERFIL AUTENTICADO</p>
           @if (user.avatarUrl; as avatarUrl) {
-            <img class="avatar avatar-image" [src]="avatarUrl" [alt]="'Foto de ' + user.displayName" />
+            <img
+              class="avatar avatar-image"
+              [src]="avatarUrl"
+              [alt]="'Foto de ' + user.displayName"
+            />
           } @else {
             <div class="avatar">{{ user.displayName.charAt(0) }}<b>✓</b></div>
           }
@@ -43,11 +47,20 @@ import { firstValueFrom } from 'rxjs';
           @if (auth.session.kind() === 'demo') {
             <label class="avatar-upload">
               <span>{{ uploading() ? 'Guardando foto…' : 'Cambiar foto de perfil' }}</span>
-              <input type="file" accept="image/png,image/jpeg,image/webp" [disabled]="uploading()" (change)="uploadAvatar($event)" />
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                [disabled]="uploading()"
+                (change)="uploadAvatar($event)"
+              />
             </label>
-            @if (profileError()) { <p class="profile-error" role="alert">{{ profileError() }}</p> }
+            @if (profileError()) {
+              <p class="profile-error" role="alert">{{ profileError() }}</p>
+            }
           } @else {
-            <p class="profile-help">La identidad y los datos de Microsoft se administran de forma segura por Entra ID.</p>
+            <p class="profile-help">
+              La identidad y los datos de Microsoft se administran de forma segura por Entra ID.
+            </p>
           }
           <button type="button" (click)="logout()">Cerrar sesión <span>↗</span></button>
         </section>
@@ -155,11 +168,39 @@ import { firstValueFrom } from 'rxjs';
       color: #0b271c;
       font-size: 11px;
     }
-    .avatar-image { object-fit: cover; }
-    .avatar-upload { display:inline-flex; align-items:center; gap:8px; margin:0 0 18px; padding:10px 14px; color:#d7c7ff; border:1px solid #55407d; border-radius:9px; background:#241942; font-size:11px; cursor:pointer; }
-    .avatar-upload input { width:1px; height:1px; opacity:0; position:absolute; }
-    .profile-error { margin:0 0 16px; color:#ff9caa; font-size:11px; }
-    .profile-help { margin:0 0 20px; color:#8f9bb2; font-size:11px; line-height:1.6; }
+    .avatar-image {
+      object-fit: cover;
+    }
+    .avatar-upload {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 18px;
+      padding: 10px 14px;
+      color: #d7c7ff;
+      border: 1px solid #55407d;
+      border-radius: 9px;
+      background: #241942;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .avatar-upload input {
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      position: absolute;
+    }
+    .profile-error {
+      margin: 0 0 16px;
+      color: #ff9caa;
+      font-size: 11px;
+    }
+    .profile-help {
+      margin: 0 0 20px;
+      color: #8f9bb2;
+      font-size: 11px;
+      line-height: 1.6;
+    }
     .card h1 {
       margin: 0;
       font-size: 32px;
@@ -246,7 +287,10 @@ export class ProfileComponent {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+    if (
+      !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) ||
+      file.size > 2 * 1024 * 1024
+    ) {
       this.profileError.set('Usa una imagen PNG, JPG o WEBP de máximo 2 MB.');
       input.value = '';
       return;

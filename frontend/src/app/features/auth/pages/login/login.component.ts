@@ -21,7 +21,8 @@ export class LoginComponent {
   readonly notice = (() => {
     const reason = this.route.snapshot.queryParamMap.get('reason');
     if (reason === 'expired') return 'Tu sesión venció. Vuelve a iniciar sesión con Microsoft.';
-    if (reason === 'microsoft-error') return 'Microsoft no pudo completar el retorno. Revisa el tenant, el consentimiento y la cuenta autorizada.';
+    if (reason === 'microsoft-error')
+      return 'Microsoft no pudo completar el retorno. Revisa el tenant, el consentimiento y la cuenta autorizada.';
     return '';
   })();
   readonly mode = signal<'login' | 'register'>('login');
@@ -56,8 +57,12 @@ export class LoginComponent {
   }
 
   async submitLocal(): Promise<void> {
-    if (this.localForm.invalid || this.localBusy()) { this.localForm.markAllAsTouched(); return; }
-    this.localBusy.set(true); this.localError.set('');
+    if (this.localForm.invalid || this.localBusy()) {
+      this.localForm.markAllAsTouched();
+      return;
+    }
+    this.localBusy.set(true);
+    this.localError.set('');
     const value = this.localForm.getRawValue();
     try {
       if (this.mode() === 'register') await this.auth.registerLocal(value);
@@ -66,7 +71,13 @@ export class LoginComponent {
       if (!navigated) this.localError.set('La sesión es válida, pero no se pudo abrir el inicio.');
     } catch (error: unknown) {
       const status = (error as { status?: number })?.status;
-      this.localError.set(status === 409 ? 'Ese correo ya está registrado.' : status === 401 ? 'Correo o contraseña incorrectos.' : 'No pudimos completar la operación.');
+      this.localError.set(
+        status === 409
+          ? 'Ese correo ya está registrado.'
+          : status === 401
+            ? 'Correo o contraseña incorrectos.'
+            : 'No pudimos completar la operación.',
+      );
       this.localBusy.set(false);
     }
   }

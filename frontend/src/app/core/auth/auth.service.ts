@@ -119,13 +119,21 @@ export class AuthService {
       this.session.setMicrosoftUser(user);
       return true;
     } catch (error: unknown) {
-      const details = error as { status?: number; name?: string; message?: string; error?: unknown };
-      console.error('Microsoft profile sync failed', JSON.stringify({
-        status: details?.status,
-        name: details?.name,
-        message: details?.message,
-        error: details?.error,
-      }));
+      const details = error as {
+        status?: number;
+        name?: string;
+        message?: string;
+        error?: unknown;
+      };
+      console.error(
+        'Microsoft profile sync failed',
+        JSON.stringify({
+          status: details?.status,
+          name: details?.name,
+          message: details?.message,
+          error: details?.error,
+        }),
+      );
       this.session.user.set(null);
       return false;
     }

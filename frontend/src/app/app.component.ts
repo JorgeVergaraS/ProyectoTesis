@@ -28,7 +28,10 @@ export class App {
           errorCode: details?.errorCode,
           message: details?.message,
         });
-        void this.router.navigate(['/login'], { replaceUrl: true, queryParams: { reason: 'microsoft-error' } });
+        void this.router.navigate(['/login'], {
+          replaceUrl: true,
+          queryParams: { reason: 'microsoft-error' },
+        });
       },
     });
   }

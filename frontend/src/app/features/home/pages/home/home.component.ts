@@ -64,7 +64,9 @@ export class HomeComponent {
   readonly providerLabel = computed(() =>
     this.auth.session.kind() === 'local' ? 'una cuenta local Nexo' : 'Microsoft Entra ID',
   );
-  readonly dashboardView = signal<'home' | 'explore' | 'communities' | 'messages' | 'calls'>('home');
+  readonly dashboardView = signal<'home' | 'explore' | 'communities' | 'messages' | 'calls'>(
+    'home',
+  );
   readonly activeId = signal(this.route.snapshot.queryParamMap.get('conversation') ?? '');
   readonly active = computed(() =>
     [...this.workspace().channels, ...this.workspace().directs].find(
@@ -299,10 +301,18 @@ export class HomeComponent {
     this.refreshWorkspace.next();
     this.refreshMessages.next();
   }
-  openDashboard(view: 'home' | 'explore' | 'communities' | 'messages' | 'calls', event?: Event): void {
+  openDashboard(
+    view: 'home' | 'explore' | 'communities' | 'messages' | 'calls',
+    event?: Event,
+  ): void {
     event?.preventDefault();
     this.dashboardView.set(view);
-    const target = view === 'home' ? 'dashboard-top' : view === 'messages' || view === 'calls' ? 'activity' : 'communities';
+    const target =
+      view === 'home'
+        ? 'dashboard-top'
+        : view === 'messages' || view === 'calls'
+          ? 'activity'
+          : 'communities';
     document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   newDay(index: number): boolean {

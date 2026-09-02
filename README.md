@@ -685,6 +685,8 @@ Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilic
 
 - [Backend](backend/README.md) y [frontend](frontend/README.md).
 - [Git Pattern y GitHub](docs/git-workflow.md).
+- [ADR: monolito modular y repositorios separados](docs/architecture/ADR-001-modular-monolith-and-polyrepo.md).
+- [Matriz de cumplimiento cloud-native](docs/cloud-native-compliance-matrix.md).
 - [Contribución](CONTRIBUTING.md) y [seguridad](SECURITY.md).
 - [Verificación actual de fotos y voz](docs/photos-and-calls-verification.md).
 - Evidencia histórica: [fundación](docs/verification.md),

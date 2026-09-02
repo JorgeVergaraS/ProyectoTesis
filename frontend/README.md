@@ -24,7 +24,8 @@ Requiere Node 24/npm 11 y Spring Boot con `local-demo`. Abrir
 - `features/status`: diagnóstico técnico.
 
 Rutas: `/login`, `/home`, `/profile` y `/status`. Crear pestañas nuevas sin
-duplicarlas para usar perfiles independientes. No se usa MSAL todavía.
+duplicarlas para usar perfiles locales independientes. MSAL delega el login
+Microsoft a Entra ID y solicita el scope público configurado para la API Nexo.
 
 ## Pruebas y build
 
@@ -34,7 +35,7 @@ npm run test:ci
 npm run build
 ```
 
-39 pruebas en nueve archivos. Los tests unitarios de voz simulan medios;
+30 pruebas en doce archivos. Los tests unitarios de voz simulan medios;
 la conectividad WebRTC real se verifica por separado. `npm run format` aplica
 Prettier. El build de producción genera `dist/nexo`, que no se versiona.
 

@@ -1,0 +1,3 @@
+nexo:
+  jwt:
+    secret: nexo-test-only-secret-never-use-outside-tests
