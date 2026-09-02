@@ -1,27 +1,304 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import {
+  catchError,
+  EMPTY,
+  exhaustMap,
+  firstValueFrom,
+  forkJoin,
+  merge,
+  Subject,
+  switchMap,
+  timer,
+} from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { ChatService } from '../../../../core/services/chat.service';
+import { Conversation, DemoUser, Message, Workspace } from '../../../../core/models/demo';
+import { AvatarComponent } from '../../../../shared/components/avatar.component';
+import { IconComponent } from '../../../../shared/components/icon.component';
+import { MessageTextComponent } from '../../../../shared/components/message-text.component';
+import { VoiceCallService } from '../../../../core/realtime/voice-call.service';
+import {
+  WorkspaceNavigationComponent,
+  WorkspaceView,
+} from '../../components/workspace-navigation.component';
+import {
+  ConversationInboxComponent,
+  InboxFilter,
+} from '../../components/conversation-inbox.component';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
-  template: `
-    <main class="home-page">
-      <div class="glow glow-purple"></div><div class="glow glow-blue"></div>
-      <header class="home-header">
-        <a routerLink="/home" class="brand"><span class="brand-symbol">N</span>Nexo<span class="brand-dot">.</span></a>
-        <nav aria-label="Navegación principal"><a routerLink="/home" class="nav-link active">Inicio</a><a routerLink="/profile" class="nav-link">Mi perfil</a><span class="secure-pill"><i></i> Sesión segura</span><button type="button" class="logout-button" (click)="logout()">Salir</button></nav>
-      </header>
-      @if (auth.session.user(); as user) {
-        <section class="hero-grid"><div class="hero-copy"><p class="eyebrow">TU COMUNIDAD UNIVERSITARIA</p><h1>Hola, <span>{{ user.displayName }}</span>.</h1><p class="hero-description">Tu espacio para conectar, aprender y crear junto a otros estudiantes.</p><div class="hero-actions"><a routerLink="/profile" class="primary-button">Ver mi perfil <b>↗</b></a><a routerLink="/status" class="text-link">Ver estado del sistema <b>→</b></a></div></div><aside class="identity-card"><div class="verified"><i></i> IDENTIDAD VERIFICADA</div><div class="avatar">{{ user.displayName.charAt(0) }}</div><strong>{{ user.displayName }}</strong><span>{{ user.email || user.username }}</span><div class="provider">✦ Microsoft Entra ID <b>✓</b></div></aside></section>
-        <section class="metrics" aria-label="Resumen de la cuenta"><article><em class="purple">✦</em><div><strong>Tu espacio</strong><small>Listo para explorar</small></div><b>01</b></article><article><em class="blue">⌁</em><div><strong>Sesión activa</strong><small>Token protegido</small></div><b class="online">●</b></article><article><em class="pink">↗</em><div><strong>Perfil completo</strong><small>Identidad sincronizada</small></div><b>100%</b></article></section>
-        <section class="panels"><article class="panel"><div class="panel-title"><div><p class="eyebrow">CÓMO FUNCIONA</p><h2>Tu acceso, protegido.</h2></div><span>OAuth 2.0 / OIDC</span></div><div class="step"><i>01</i><div><strong>Microsoft valida tu identidad</strong><small>Inicio de sesión seguro con MSAL para Angular.</small></div><b>✓</b></div><hr><div class="step"><i>02</i><div><strong>Recibes un Access Token JWT</strong><small>El token viaja en cada solicitud autorizada.</small></div><b>✓</b></div><hr><div class="step"><i>03</i><div><strong>Nexo carga tu perfil</strong><small>Spring Boot valida y sincroniza tus datos.</small></div><b>✓</b></div></article><article class="panel"><div class="panel-title"><div><p class="eyebrow">ACCESOS RÁPIDOS</p><h2>Tu espacio Nexo</h2></div></div><a routerLink="/profile" class="action"><em>◉</em><div><strong>Mi perfil</strong><small>Revisa tus datos</small></div><b>→</b></a><a routerLink="/status" class="action"><em class="cyan">⌁</em><div><strong>Estado de la API</strong><small>Verifica la conexión</small></div><b>→</b></a><div class="reserved"><span>✦</span><div><strong>Más conexiones, pronto</strong><small>WebSocket y WebRTC están reservados para la siguiente etapa.</small></div></div></article></section>
-      } @else { <div class="loading" role="status"><i></i> Cargando tu perfil…</div> }
-    </main>
-  `,
-  styles: `
-    .home-page{min-height:100dvh;position:relative;overflow:hidden;max-width:1280px;margin:auto;padding:30px clamp(20px,5vw,72px) 70px;color:#e9edfa}.glow{position:absolute;border-radius:50%;pointer-events:none;filter:blur(3px);opacity:.5}.glow-purple{width:380px;height:380px;top:100px;left:-220px;background:#6d28d933}.glow-blue{width:300px;height:300px;top:330px;right:-190px;background:#0ea5e933}.home-header{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;padding-bottom:34px;border-bottom:1px solid #202940}.brand{display:flex;align-items:center;gap:9px;color:#eef2ff;font-size:25px;font-weight:750;text-decoration:none;letter-spacing:-.8px}.brand-symbol{display:grid;place-items:center;width:34px;height:36px;border-radius:10px;background:linear-gradient(140deg,#9c5df5,#576fea);font-size:21px;font-weight:800}.brand-dot{color:#a78bfa}.home-header nav{display:flex;align-items:center;gap:23px;font-size:12px}.nav-link{color:#8491ad;text-decoration:none}.nav-link:hover,.nav-link.active{color:#eee9ff}.secure-pill{display:flex;align-items:center;gap:7px;border:1px solid #30435a;border-radius:99px;padding:7px 11px;color:#9ee7c6;background:#12251f66}.secure-pill i,.verified i,.online{width:6px;height:6px;border-radius:50%;background:#55e09c;box-shadow:0 0 12px #55e09c}.logout-button{border:0;background:transparent;color:#93a0b9;font-size:12px}.hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 310px;align-items:center;gap:64px;padding:82px 0 62px}.eyebrow{margin:0 0 17px;color:#ae8bfa;font-size:10px;font-weight:700;letter-spacing:2.3px}.hero-copy{max-width:680px}h1{margin:0;font-size:clamp(43px,6vw,76px);line-height:.99;letter-spacing:-4px}h1 span{background:linear-gradient(105deg,#9d70ff,#65a4ff);-webkit-background-clip:text;background-clip:text;color:transparent}.hero-description{max-width:470px;margin:25px 0 30px;color:#95a3c0;font-size:16px;line-height:1.75}.hero-actions{display:flex;align-items:center;gap:22px}.primary-button{display:inline-flex;align-items:center;gap:10px;border:1px solid #9964f1;border-radius:8px;padding:13px 18px;color:#fff;background:linear-gradient(110deg,#8352e2,#7443d3);box-shadow:0 10px 30px #7c3aed35;text-decoration:none;font-size:12px}.primary-button b,.text-link b{color:#c2a6ff;font-size:16px}.text-link{color:#adb9d0;font-size:12px;text-decoration:none}.identity-card{padding:26px;border:1px solid #303a56;border-radius:22px;background:linear-gradient(145deg,#151e34cc,#0e1628dd);text-align:center}.verified{display:flex;align-items:center;justify-content:center;gap:8px;color:#86e3b9;font-size:9px;font-weight:700;letter-spacing:1.6px}.avatar{display:grid;place-items:center;width:76px;height:76px;margin:25px auto 15px;border:3px solid #8c63ec;border-radius:25px;background:linear-gradient(145deg,#6840cf,#2a4f9e);font-size:35px;font-weight:800;box-shadow:0 0 0 7px #8255d21c}.identity-card>strong{display:block;font-size:17px}.identity-card>span{display:block;overflow:hidden;margin-top:7px;color:#98a6c2;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.provider{display:flex;gap:8px;margin-top:22px;padding-top:17px;border-top:1px solid #29354e;color:#b7c2d7;font-size:10px}.provider:first-letter{color:#a78bfa}.provider b{margin-left:auto;color:#73e5ad}.metrics{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.metrics article{display:flex;align-items:center;gap:13px;padding:18px;border:1px solid #252f48;border-radius:15px;background:#111a2bcc}.metrics em,.action em{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;font-style:normal}.metrics em.purple,.action em{color:#c4a6ff;background:#6d3fbe33}.metrics em.blue{color:#6bc9ff;background:#15618c40}.metrics em.pink{color:#f6a9d7;background:#9d397044}.metrics article div{display:flex;flex-direction:column;gap:5px}.metrics strong,.metrics small{display:block}.metrics strong{font-size:12px}.metrics small{color:#7787a4;font-size:10px}.metrics article>b{margin-left:auto;color:#bda2ff;font-size:12px}.metrics .online{color:#65e3a9;font-size:11px}.panels{position:relative;z-index:1;display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px}.panel{padding:27px;border:1px solid #252f48;border-radius:18px;background:#0f1829d9}.panel-title{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:26px}.panel-title h2{margin:0;font-size:19px;letter-spacing:-.5px}.panel-title .eyebrow{margin-bottom:9px}.panel-title>span{padding:6px 8px;border:1px solid #4b3671;border-radius:6px;color:#bb9cff;font-size:8px;letter-spacing:.7px;white-space:nowrap}.step{display:flex;align-items:center;gap:15px}.step>i{display:grid;place-items:center;width:34px;height:34px;border:1px solid #3b4e6f;border-radius:10px;color:#9cb0d0;font-size:9px;font-style:normal}.step strong,.step small{display:block}.step strong{color:#dce4f4;font-size:12px}.step small{margin-top:5px;color:#7585a1;font-size:10px}.step>b{display:grid;place-items:center;width:19px;height:19px;margin-left:auto;border-radius:50%;background:#215f4a;color:#82e5b7;font-size:10px}.panel hr{height:21px;margin:0 0 0 16px;border:0;border-left:1px dashed #3d4962}.action{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #263149;color:inherit;text-decoration:none}.action em{width:31px;height:31px}.action em.cyan{color:#75d6ff;background:#135e7a44}.action small{margin-top:4px}.action>b{margin-left:auto;color:#9c7bdf}.reserved{display:flex;gap:12px;margin-top:18px;padding:14px;border:1px dashed #37415a;border-radius:11px;background:#18223966}.reserved>span{color:#f2c879}.reserved strong,.reserved small{display:block}.reserved strong{font-size:10px}.reserved small{margin-top:5px;color:#73819d;font-size:9px;line-height:1.5}.loading{display:flex;justify-content:center;align-items:center;min-height:60vh;gap:10px;color:#9aa8c2}.loading i{width:8px;height:8px;border-radius:50%;background:#a78bfa;animation:pulse 1s infinite alternate}@keyframes pulse{to{opacity:.25;transform:scale(.65)}}
-    @media(max-width:760px){.home-header nav{gap:12px}.nav-link,.secure-pill{display:none}.hero-grid,.panels{grid-template-columns:1fr}.hero-grid{gap:35px;padding:58px 0 40px}.identity-card{max-width:360px}.panel-title>span{display:none}}@media(max-width:520px){.home-page{padding:22px 18px 45px}.home-header{padding-bottom:23px}.hero-actions{align-items:flex-start;flex-direction:column;gap:17px}.metrics{grid-template-columns:1fr}.panel{padding:21px 17px}}
-  `,
+  imports: [
+    ReactiveFormsModule,
+    DatePipe,
+    AvatarComponent,
+    IconComponent,
+    MessageTextComponent,
+    WorkspaceNavigationComponent,
+    ConversationInboxComponent,
+  ],
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.css',
 })
-export class HomeComponent { readonly auth=inject(AuthService); private readonly router=inject(Router); async logout():Promise<void>{await this.auth.logout();await this.router.navigate(['/login']);} }
+export class HomeComponent {
+  readonly auth = inject(AuthService);
+  readonly calls = inject(VoiceCallService);
+  private readonly chat = inject(ChatService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly workspace = signal<Workspace>({ channels: [], directs: [], people: [] });
+  readonly activeId = signal(this.route.snapshot.queryParamMap.get('conversation') ?? '');
+  readonly active = computed(() =>
+    [...this.workspace().channels, ...this.workspace().directs].find(
+      (c) => c.id === this.activeId(),
+    ),
+  );
+  readonly view = signal<WorkspaceView>('chat');
+  readonly inboxOpen = signal(window.innerWidth <= 760);
+  readonly inboxFilter = signal<InboxFilter>('all');
+  readonly peer = computed(() =>
+    this.workspace().people.find((person) => person.id === this.active()?.peerId),
+  );
+  readonly detailsOpen = signal(window.innerWidth >= 1200);
+  readonly initialLoading = signal(true);
+  readonly messagesLoading = signal(false);
+  readonly connected = signal(false);
+  readonly connectionError = signal('');
+  readonly actionError = signal('');
+  readonly actionBusy = signal(false);
+  readonly sending = signal(false);
+  readonly messages = signal<Message[]>([]);
+  readonly members = signal<DemoUser[]>([]);
+  readonly filter = new FormControl('', { nonNullable: true });
+  readonly filterValue = toSignal(this.filter.valueChanges, { initialValue: '' });
+  readonly draft = new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.maxLength(2000)],
+  });
+  readonly draftText = toSignal(this.draft.valueChanges, { initialValue: '' });
+  readonly composer = new FormGroup({ body: this.draft });
+  readonly channels = computed(() =>
+    this.workspace().channels.filter((c) => this.matches(c.title)),
+  );
+  readonly people = computed(() =>
+    this.workspace().people.filter(
+      (p) => p.id !== this.auth.session.user()?.id && this.matches(p.displayName),
+    ),
+  );
+  readonly joinedCount = computed(() => this.workspace().channels.filter((c) => c.joined).length);
+  readonly inboxChannels = computed(() => this.channels().filter((c) => c.joined));
+  readonly onlineCount = computed(() => this.workspace().people.filter((p) => p.online).length);
+  readonly messageList = viewChild<ElementRef<HTMLElement>>('messageList');
+  private readonly refreshWorkspace = new Subject<void>();
+  private readonly refreshMessages = new Subject<void>();
+  private readonly drafts = new Map<string, string>();
+  private pendingSend: { conversation: string; body: string; clientId: string } | null = null;
+  private readonly selected = computed(() => {
+    const c = this.active();
+    return c?.joined ? c.id : '';
+  });
+
+  constructor() {
+    merge(timer(0, 5000), this.refreshWorkspace)
+      .pipe(
+        exhaustMap(() =>
+          this.chat.workspace().pipe(
+            catchError(() => {
+              this.connectionError.set('Conexión interrumpida. Reintentando automáticamente…');
+              this.connected.set(false);
+              this.initialLoading.set(false);
+              return EMPTY;
+            }),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((workspace) => {
+        this.workspace.set(workspace);
+        const current = this.auth.session.user();
+        const refreshed = workspace.people.find((person) => person.id === current?.id);
+        if (refreshed && refreshed.avatarUrl !== current?.avatarUrl)
+          this.auth.session.user.set(refreshed);
+        this.initialLoading.set(false);
+        this.connectionError.set('');
+        this.connected.set(true);
+        if (!this.active() && workspace.channels.length)
+          this.activeId.set(
+            workspace.channels.find((c) => c.slug === 'general')?.id ?? workspace.channels[0].id,
+          );
+      });
+    toObservable(this.selected)
+      .pipe(
+        switchMap((id) => {
+          this.messages.set([]);
+          this.members.set([]);
+          this.messagesLoading.set(!!id);
+          if (!id) return EMPTY;
+          return merge(timer(0, 2000), this.refreshMessages).pipe(
+            exhaustMap(() =>
+              forkJoin({
+                messages: this.chat.messages(id),
+                members: this.chat.members(id),
+              }).pipe(
+                catchError(() => {
+                  this.messagesLoading.set(false);
+                  this.connected.set(false);
+                  this.connectionError.set('No se pudo actualizar la conversación. Reintentando…');
+                  this.refreshWorkspace.next();
+                  return EMPTY;
+                }),
+              ),
+            ),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((result) => {
+        const element = this.messageList()?.nativeElement;
+        const nearBottom =
+          !element || element.scrollHeight - element.scrollTop - element.clientHeight < 120;
+        const first = this.messagesLoading();
+        const changed = this.messages().at(-1)?.id !== result.messages.at(-1)?.id;
+        this.messages.set(result.messages);
+        this.members.set(result.members);
+        this.messagesLoading.set(false);
+        this.connected.set(true);
+        this.connectionError.set('');
+        if (first || (changed && nearBottom)) requestAnimationFrame(() => this.scrollBottom());
+      });
+  }
+
+  private matches(value: string): boolean {
+    return value.toLowerCase().includes(this.filterValue().trim().toLowerCase());
+  }
+  select(conversation: Conversation): void {
+    this.drafts.set(this.activeId(), this.draft.value);
+    this.activeId.set(conversation.id);
+    this.draft.setValue(this.drafts.get(conversation.id) ?? '');
+    this.view.set('chat');
+    this.inboxOpen.set(false);
+    if (window.innerWidth < 1200) this.detailsOpen.set(false);
+    this.actionError.set('');
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { conversation: conversation.id },
+      replaceUrl: true,
+    });
+  }
+  navigate(view: WorkspaceView): void {
+    this.view.set(view);
+    if (view === 'chat') this.inboxOpen.set(true);
+    this.filter.setValue('');
+    this.actionError.set('');
+  }
+  async membership(conversation: Conversation, join: boolean): Promise<void> {
+    if (this.actionBusy()) return;
+    this.actionBusy.set(true);
+    this.actionError.set('');
+    try {
+      await firstValueFrom(
+        join ? this.chat.join(conversation.id) : this.chat.leave(conversation.id),
+      );
+      this.workspace.set(await firstValueFrom(this.chat.workspace()));
+      if (join) {
+        const updated = this.workspace().channels.find((c) => c.id === conversation.id);
+        if (updated) this.select(updated);
+      } else {
+        this.messages.set([]);
+        this.members.set([]);
+      }
+    } catch {
+      this.actionError.set('No pudimos cambiar tu membresía. Vuelve a intentarlo.');
+    } finally {
+      this.actionBusy.set(false);
+    }
+  }
+  async direct(person: DemoUser): Promise<void> {
+    if (this.actionBusy()) return;
+    this.actionBusy.set(true);
+    this.actionError.set('');
+    try {
+      const conversation = await firstValueFrom(this.chat.direct(person.id));
+      this.workspace.set(await firstValueFrom(this.chat.workspace()));
+      this.select(conversation);
+    } catch {
+      this.actionError.set('No pudimos abrir la conversación. Inténtalo de nuevo.');
+    } finally {
+      this.actionBusy.set(false);
+    }
+  }
+  async send(): Promise<void> {
+    const conversation = this.active();
+    const body = this.draft.value.trim();
+    if (!conversation?.joined || !body || this.draft.invalid || this.sending()) return;
+    this.sending.set(true);
+    this.actionError.set('');
+    if (
+      !this.pendingSend ||
+      this.pendingSend.conversation !== conversation.id ||
+      this.pendingSend.body !== body
+    ) {
+      this.pendingSend = { conversation: conversation.id, body, clientId: crypto.randomUUID() };
+    }
+    const pending = this.pendingSend;
+    try {
+      await firstValueFrom(this.chat.send(pending.conversation, pending.body, pending.clientId));
+      this.drafts.delete(conversation.id);
+      if (this.activeId() === conversation.id && this.draft.value.trim() === body)
+        this.draft.setValue('');
+      this.pendingSend = null;
+      this.refreshMessages.next();
+      requestAnimationFrame(() => this.scrollBottom());
+    } catch {
+      this.actionError.set(
+        'No se confirmó el envío. Tu texto está guardado en esta pestaña; vuelve a enviar para reintentar sin duplicarlo.',
+      );
+    } finally {
+      this.sending.set(false);
+    }
+  }
+  onComposerKey(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      void this.send();
+    }
+  }
+  async logout(): Promise<void> {
+    if (this.actionBusy()) return;
+    this.actionBusy.set(true);
+    if (this.calls.occupied()) await this.calls.hangUp();
+    const revoked = await this.auth.logout();
+    await this.router.navigate(['/login'], {
+      queryParams: revoked ? {} : { reason: 'local-only' },
+    });
+  }
+  retry(): void {
+    this.refreshWorkspace.next();
+    this.refreshMessages.next();
+  }
+  newDay(index: number): boolean {
+    return (
+      index === 0 ||
+      new Date(this.messages()[index].sentAt).toDateString() !==
+        new Date(this.messages()[index - 1].sentAt).toDateString()
+    );
+  }
+  private scrollBottom(): void {
+    const element = this.messageList()?.nativeElement;
+    if (element) element.scrollTop = element.scrollHeight;
+  }
+}
+
