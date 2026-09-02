@@ -512,15 +512,15 @@
   </div>
 } @else {
   @if (auth.session.user(); as user) {
-    <main class="authenticated-home dashboard-home">
+    <main id="dashboard-top" class="authenticated-home dashboard-home">
       <aside class="dashboard-sidebar">
         <a routerLink="/home" class="brand"><span class="brand-mark">N</span>Nexo<b>.</b></a>
         <nav aria-label="Navegación principal">
-          <a routerLink="/home" class="dashboard-nav active"><nexo-icon name="home" />Inicio</a>
-          <a href="#communities" class="dashboard-nav"><nexo-icon name="compass" />Explorar</a>
-          <a href="#communities" class="dashboard-nav"><nexo-icon name="users" />Comunidades</a>
-          <a href="#activity" class="dashboard-nav"><nexo-icon name="chat" />Mensajes<span class="nav-badge">3</span></a>
-          <a href="#activity" class="dashboard-nav"><nexo-icon name="phone" />Llamadas</a>
+          <a href="#dashboard-top" class="dashboard-nav" [class.active]="dashboardView() === 'home'" (click)="openDashboard('home', $event)"><nexo-icon name="home" />Inicio</a>
+          <a href="#communities" class="dashboard-nav" [class.active]="dashboardView() === 'explore'" (click)="openDashboard('explore', $event)"><nexo-icon name="compass" />Explorar</a>
+          <a href="#communities" class="dashboard-nav" [class.active]="dashboardView() === 'communities'" (click)="openDashboard('communities', $event)"><nexo-icon name="users" />Comunidades</a>
+          <a href="#activity" class="dashboard-nav" [class.active]="dashboardView() === 'messages'" (click)="openDashboard('messages', $event)"><nexo-icon name="chat" />Mensajes<span class="nav-badge">3</span></a>
+          <a href="#activity" class="dashboard-nav" [class.active]="dashboardView() === 'calls'" (click)="openDashboard('calls', $event)"><nexo-icon name="phone" />Llamadas</a>
           <a routerLink="/profile" class="dashboard-nav"><nexo-icon name="profile" />Perfil</a>
         </nav>
         <div class="dashboard-user">
