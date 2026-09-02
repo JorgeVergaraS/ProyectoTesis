@@ -66,9 +66,13 @@ public class SecurityConfig {
                     }
                     c.requestMatchers("/api/admin/**").hasRole("ADMIN").requestMatchers("/api/users/me").authenticated();
                     c.anyRequest().denyAll();
-                });
-        if (demo) addDemoFilter(http, sessions.getObject(), json);
-        if (!demo) http.addFilterBefore(new BearerTokenAuthenticationFilter(bearerAuthenticationManager), UsernamePasswordAuthenticationFilter.class);
+        });
+        if (demo) {
+            addDemoFilter(http, sessions.getObject(), json);
+            addLocalBearerFilter(http, bearerAuthenticationManager, json);
+        } else {
+            http.addFilterBefore(new BearerTokenAuthenticationFilter(bearerAuthenticationManager), UsernamePasswordAuthenticationFilter.class);
+        }
         return http.build();
     }
 
@@ -109,6 +113,21 @@ public class SecurityConfig {
                     SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(principal.get(), null, List.of(new SimpleGrantedAuthority("ROLE_DEMO"))));
                 }
                 chain.doFilter(request, response);
+            }
+        }, BearerTokenAuthenticationFilter.class);
+    }
+
+    private static void addLocalBearerFilter(HttpSecurity http, AuthenticationManager manager, ObjectMapper json) {
+        http.addFilterBefore(new OncePerRequestFilter() {
+            protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+                if (!request.getRequestURI().equals("/api/users/me")) { chain.doFilter(request, response); return; }
+                String header = request.getHeader("Authorization");
+                if (header == null || !header.startsWith("Bearer ")) { writeError(json, request, response, 401, "Unauthorized"); return; }
+                try {
+                    var authentication = manager.authenticate(new BearerTokenAuthenticationToken(header.substring(7)));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    chain.doFilter(request, response);
+                } catch (Exception ignored) { writeError(json, request, response, 401, "Unauthorized"); }
             }
         }, BearerTokenAuthenticationFilter.class);
     }
