@@ -33,7 +33,10 @@ LoginComponent
 - `src/app/core/interceptors/local-auth.interceptor.ts`: permite el modo local de desarrollo sin alterar el flujo MSAL.
 - `src/app/core/guards/demo.guard.ts`: evita entrar a `/home`, `/profile` y `/status` sin sesión válida.
 - `src/app/core/auth/demo-session.store.ts`: señales reactivas para token, expiración y usuario.
-- `src/app/features/home/pages/home/home.component.ts`: dashboard autenticado y explicación visual del flujo.
+- `src/app/features/home/pages/home/home.component.ts`: workspace autenticado con Inicio, Comunidades, Mensajes, Personas y explicación visual del flujo.
+- `src/app/features/home/components/workspace-navigation.component.html`: sidebar visual de Nexo y navegación entre vistas.
+
+Las vistas de Comunidades, Mensajes y Personas están preparadas para la siguiente integración del backend. En esta entrega no se presenta WebRTC/WebSocket como funcionalidad terminada.
 
 ## Configuración sin secretos
 
