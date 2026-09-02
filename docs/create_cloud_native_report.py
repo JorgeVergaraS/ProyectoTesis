@@ -97,9 +97,9 @@ meta.add_run("DSY1107 · Informe técnico · 2 de septiembre de 2026").font.size
 notice = doc.add_paragraph()
 notice.add_run("Estado del documento. ").bold = True
 notice.add_run(
-    "Registra únicamente resultados comprobados. La integración local está terminada; "
-    "el acceso Microsoft real y la infraestructura AWS permanecen marcados como pendientes "
-    "hasta realizar la sesión interactiva y el despliegue autorizado."
+    "Registra únicamente resultados comprobados. La integración local y el acceso Microsoft "
+    "real están verificados en Brave contra el tenant configurado. La infraestructura AWS "
+    "permanece pendiente."
 )
 
 heading(doc, "1. Resumen ejecutivo")
@@ -240,9 +240,9 @@ doc.add_paragraph(
 
 heading(doc, "11. Pendientes reales antes de la entrega final")
 for item in [
-    "Habilitar el control de Brave y completar manualmente autenticación/MFA Microsoft.",
-    "Capturar callback, logout y Network con Authorization redactado.",
-    "Revalidar SPA, redirect URI, permisos delegados, cliente autorizado y consentimiento.",
+    "Mantener evidencia del login Microsoft exitoso y logout en Brave; no se requirió cambiar Azure.",
+    "Capturar Network con Authorization redactado, sin mostrar el JWT completo.",
+    "Conservar la configuración validada de SPA, redirect URI, permisos delegados y cliente autorizado.",
     "Confirmar cuenta y región AWS antes de crear recursos con costo.",
     "Desplegar Spring Boot en EC2 y configurar HTTP API Gateway, CORS, stage y JWT Authorizer.",
     "Ejecutar en Gateway la matriz 401/401/403/200 y capturar evidencias.",
