@@ -1,6 +1,8 @@
 import {
   ApplicationConfig,
+  inject,
   importProvidersFrom,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -26,6 +28,7 @@ import {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideAppInitializer(() => inject(MSAL_INSTANCE).initialize()),
     provideRouter(routes),
     provideHttpClient(withInterceptors([localAuthInterceptor, msalAuthInterceptor])),
     importProvidersFrom(MsalModule),
