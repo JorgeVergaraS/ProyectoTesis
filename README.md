@@ -15,7 +15,7 @@
   <a href="CONTRIBUTING.md">Contribuir</a>
 </p>
 
-![Nexo: acceso con perfiles de demostración](docs/images/nexo-login.png)
+![Nexo: acceso autenticado con cuenta institucional o local](docs/images/nexo-login.png)
 
 > **Estado actual:** aplicación local con Angular, Spring Boot y PostgreSQL. Mantiene
 > la demo multiusuario y añade registro/login local más integración Microsoft Entra ID
@@ -51,7 +51,7 @@ teclado, conserva las preferencias visuales y adapta su disposición a móvil.
 
 ### Mensajería
 
-![Nexo: bandeja, conversación directa y participantes](docs/images/nexo-messages.png)
+![Nexo: bandeja, canal general y participantes](docs/images/nexo-messages.png)
 
 Canales y conversaciones directas con texto persistente, enlaces navegables,
 avatares y distinción entre mensajes propios y recibidos.
@@ -60,8 +60,17 @@ avatares y distinción entre mensajes propios y recibidos.
 
 ![Nexo: catálogo de comunidades y acciones de membresía](docs/images/nexo-communities.png)
 
-Cuatro canales iniciales: `general`, `desarrollo`, `ideas-y-proyectos` y
-`vida-universitaria`. Cada perfil puede consultar sus membresías, unirse y salir.
+El espacio autenticado local inicia con el canal `general`; el modo demostración
+mantiene además `desarrollo`, `ideas-y-proyectos` y `vida-universitaria`. Cada
+perfil puede consultar sus membresías, unirse y salir.
+
+### Apariencia
+
+![Nexo: configuración de temas y estilos de botones](docs/images/nexo-settings.png)
+
+Los temas predeterminado, OLED y claro pueden combinarse con los acabados Mate,
+Style SkayGlass y Y2K 2000. La selección se aplica al instante y permanece en el
+navegador.
 
 <details>
 <summary><strong>Ver perfil y foto opcional</strong></summary>
@@ -74,8 +83,9 @@ quitar la imagen para recuperar las iniciales.
 </details>
 
 Son capturas de la aplicación local real, no de funcionalidades futuras.
-Los perfiles, mensajes y fotos visibles corresponden al entorno de demostración;
-las imágenes no importan esos datos a una instalación nueva.
+La cuenta y el mensaje preparados para documentar la interfaz se eliminaron del
+entorno local después de capturarlos; las imágenes no importan esos datos a una
+instalación nueva.
 [Origen de las capturas](docs/images/README.md).
 
 <a id="alcance"></a>
