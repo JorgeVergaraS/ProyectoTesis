@@ -94,4 +94,40 @@ describe('ProfileEditFormComponent', () => {
     expect(profile.update).not.toHaveBeenCalled();
     expect(fixture.componentInstance.form.controls.displayName.touched).toBe(true);
   });
+
+  it('focuses the first invalid field instead of moving back to the name', async () => {
+    const fixture = TestBed.createComponent(ProfileEditFormComponent);
+    fixture.componentRef.setInput('user', user);
+    fixture.detectChanges();
+    const username = fixture.nativeElement.querySelector(
+      '[formControlName="username"]',
+    ) as HTMLInputElement;
+    const focus = vi.spyOn(username, 'focus');
+    fixture.componentInstance.form.controls.username.setValue('!invalid');
+
+    await fixture.componentInstance.submit();
+    await Promise.resolve();
+
+    expect(focus).toHaveBeenCalledOnce();
+    expect(profile.update).not.toHaveBeenCalled();
+  });
+
+  it('preserves a dirty draft when the user input refreshes', () => {
+    const fixture = TestBed.createComponent(ProfileEditFormComponent);
+    fixture.componentRef.setInput('user', user);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component.form.controls.bio.setValue('Borrador sin guardar');
+    component.form.controls.bio.markAsDirty();
+
+    fixture.componentRef.setInput('user', { ...user, bio: 'Cambio recibido del servidor' });
+    fixture.detectChanges();
+
+    expect(component.form.controls.bio.value).toBe('Borrador sin guardar');
+    expect(component.form.dirty).toBe(true);
+
+    component.markDiscarded();
+    expect(component.form.controls.bio.value).toBe('Cambio recibido del servidor');
+    expect(component.form.pristine).toBe(true);
+  });
 });

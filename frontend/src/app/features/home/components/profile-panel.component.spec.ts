@@ -80,4 +80,36 @@ describe('ProfilePanelComponent', () => {
     expect(fixture.componentInstance.avatarError()).toContain('PNG o JPG');
     expect(target.value).toBe('');
   });
+
+  it('keeps keyboard focus inside the profile dialog', async () => {
+    const fixture = TestBed.createComponent(ProfilePanelComponent);
+    fixture.componentRef.setInput('user', user);
+    fixture.detectChanges();
+    await Promise.resolve();
+    const component = fixture.componentInstance;
+    const lastButton = fixture.nativeElement.querySelector('.sign-out') as HTMLButtonElement;
+    lastButton.focus();
+    const event = new KeyboardEvent('keydown', { key: 'Tab', cancelable: true });
+
+    component.onDocumentKeydown(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(component.closeButton()?.nativeElement);
+  });
+
+  it('restores focus to the control that opened the profile', async () => {
+    const opener = document.createElement('button');
+    document.body.append(opener);
+    opener.focus();
+    const fixture = TestBed.createComponent(ProfilePanelComponent);
+    fixture.componentRef.setInput('user', user);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    fixture.componentInstance.requestClose();
+    await Promise.resolve();
+
+    expect(document.activeElement).toBe(opener);
+    opener.remove();
+  });
 });

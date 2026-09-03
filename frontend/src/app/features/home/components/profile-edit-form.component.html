@@ -1,4 +1,4 @@
-<form class="profile-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+<form #profileForm class="profile-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
   <div class="field">
     <label for="profile-display-name">Nombre visible</label>
     <input

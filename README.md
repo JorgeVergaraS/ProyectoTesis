@@ -605,7 +605,7 @@ Servicios iniciados, desde la raíz en PowerShell:
 | Comprobación | Resultado registrado |
 | --- | --- |
 | Backend | 36 pruebas aprobadas, incluidas autenticación, perfil, mensajería, CORS y Testcontainers |
-| Frontend | 54 pruebas aprobadas en diecinueve archivos |
+| Frontend | 58 pruebas aprobadas en diecinueve archivos |
 | Build Angular | Compilación de producción correcta |
 | Formato | Prettier correcto |
 | Integración | Health, readiness DB, proxy, CORS y OpenAPI correctos |

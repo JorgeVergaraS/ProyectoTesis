@@ -1,8 +1,10 @@
 <aside
+  #panel
   class="profile-panel"
   [class.page-panel]="variant() === 'page'"
   [style.--profile-color]="user().color"
   role="dialog"
+  [attr.aria-busy]="uploading() || removing() || editForm()?.busy() ? 'true' : null"
   [attr.aria-modal]="variant() === 'drawer' ? 'true' : null"
   aria-labelledby="profile-panel-title"
 >
@@ -45,7 +47,7 @@
         />
         <label
           class="avatar-edit"
-          [class.disabled]="uploading()"
+          [class.disabled]="uploading() || removing()"
           [attr.aria-label]="uploading() ? 'Guardando foto' : 'Cambiar foto de perfil'"
           title="Cambiar foto de perfil"
         >
@@ -53,7 +55,7 @@
           <input
             type="file"
             accept="image/png,image/jpeg"
-            [disabled]="uploading()"
+            [disabled]="uploading() || removing()"
             (change)="uploadAvatar($event)"
           />
         </label>
@@ -87,7 +89,13 @@
       }
 
       <div class="action-stack">
-        <button class="primary-button" type="button" (click)="openEdit()">
+        <button
+          #editButton
+          class="primary-button"
+          type="button"
+          [disabled]="uploading() || removing()"
+          (click)="openEdit()"
+        >
           <nexo-icon name="edit" />Editar mi perfil
         </button>
         @if (user().avatarUrl) {
@@ -110,7 +118,12 @@
         </button>
       </div>
 
-      <button class="sign-out" type="button" (click)="signOut.emit()">
+      <button
+        class="sign-out"
+        type="button"
+        [disabled]="uploading() || removing()"
+        (click)="signOut.emit()"
+      >
         <nexo-icon name="logout" />Cerrar sesión
       </button>
     </div>

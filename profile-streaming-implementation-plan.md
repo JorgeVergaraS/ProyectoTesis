@@ -191,7 +191,9 @@ subir/quitar avatar y ver el cambio en perfil, mensajes y participantes.
 
 **Estado:** completada en `feature/authenticated-workspace`. El panel y el formulario son
 reutilizables, se adaptan a escritorio/móvil y conservan compatibilidad con demo, cuenta local
-y Microsoft. La persistencia y la recarga se validaron desde la interfaz real.
+y Microsoft. La persistencia y la recarga se validaron desde la interfaz real. El cierre de
+brechas incorpora contención y restauración del foco, protección de borradores ante refrescos
+del perfil y bloqueo de navegación durante operaciones pendientes.
 
 1. Extraer `ProfilePanelComponent` reutilizable desde la página actual.
 2. Crear `ProfileEditFormComponent` con Reactive Forms.

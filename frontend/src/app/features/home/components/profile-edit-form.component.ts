@@ -29,6 +29,7 @@ export class ProfileEditFormComponent implements AfterViewInit {
   readonly cancelRequested = output<void>();
   readonly busy = signal(false);
   readonly error = signal('');
+  readonly profileForm = viewChild<ElementRef<HTMLFormElement>>('profileForm');
   readonly displayNameInput = viewChild<ElementRef<HTMLInputElement>>('displayNameInput');
   readonly form = new FormGroup({
     displayName: new FormControl('', {
@@ -61,7 +62,10 @@ export class ProfileEditFormComponent implements AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
-    effect(() => this.load(this.user()));
+    effect(() => {
+      const user = this.user();
+      if (!this.form.dirty && !this.busy()) this.load(user);
+    });
     this.form.controls.username.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.removeUsernameConflict());
@@ -76,14 +80,14 @@ export class ProfileEditFormComponent implements AfterViewInit {
   }
 
   markDiscarded(): void {
-    this.form.markAsPristine();
+    this.load(this.user());
   }
 
   async submit(): Promise<void> {
     if (this.busy()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.displayNameInput()?.nativeElement.focus();
+      this.focusFirstInvalidControl();
       return;
     }
 
@@ -110,8 +114,11 @@ export class ProfileEditFormComponent implements AfterViewInit {
         });
         this.form.controls.username.markAsTouched();
         this.error.set('Ese nombre de usuario ya está en uso. Prueba con otro.');
+        this.focusControl('username');
       } else if (error instanceof HttpErrorResponse && error.status === 400) {
+        this.form.markAllAsTouched();
         this.error.set('Revisa los campos marcados antes de guardar.');
+        this.focusFirstInvalidControl();
       } else {
         this.error.set('No pudimos guardar los cambios. Tu formulario permanece intacto.');
       }
@@ -141,5 +148,20 @@ export class ProfileEditFormComponent implements AfterViewInit {
     const { conflict: _conflict, ...remaining } = errors;
     this.form.controls.username.setErrors(Object.keys(remaining).length ? remaining : null);
     this.error.set('');
+  }
+
+  private focusFirstInvalidControl(): void {
+    const invalidControl = Object.entries(this.form.controls).find(
+      ([, control]) => control.invalid,
+    );
+    if (invalidControl) this.focusControl(invalidControl[0]);
+  }
+
+  private focusControl(name: string): void {
+    queueMicrotask(() =>
+      this.profileForm()
+        ?.nativeElement.querySelector<HTMLElement>(`[formControlName="${name}"]`)
+        ?.focus(),
+    );
   }
 }

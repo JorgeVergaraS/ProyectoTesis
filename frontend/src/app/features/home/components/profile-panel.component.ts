@@ -37,7 +37,9 @@ export class ProfilePanelComponent implements AfterViewInit {
   readonly avatarError = signal('');
   readonly savedMessage = signal('');
   readonly editForm = viewChild(ProfileEditFormComponent);
+  readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
   readonly closeButton = viewChild<ElementRef<HTMLButtonElement>>('closeButton');
+  readonly editButton = viewChild<ElementRef<HTMLButtonElement>>('editButton');
   readonly availabilityLabel = computed(() => {
     switch (this.user().availability ?? 'AVAILABLE') {
       case 'BUSY':
@@ -63,15 +65,23 @@ export class ProfilePanelComponent implements AfterViewInit {
     }
   });
   private readonly profile = inject(ProfileService);
+  private returnFocusElement: HTMLElement | null = null;
 
   ngAfterViewInit(): void {
+    const activeElement = document.activeElement;
+    this.returnFocusElement = activeElement instanceof HTMLElement ? activeElement : null;
     queueMicrotask(() => this.closeButton()?.nativeElement.focus());
   }
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    if (this.mode() === 'edit') this.returnToProfile();
-    else this.requestClose();
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      if (this.mode() === 'edit') this.returnToProfile();
+      else this.requestClose();
+      return;
+    }
+    if (event.key === 'Tab') this.keepFocusInside(event);
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -82,16 +92,18 @@ export class ProfilePanelComponent implements AfterViewInit {
   }
 
   openEdit(): void {
+    if (this.uploading() || this.removing()) return;
     this.avatarError.set('');
     this.savedMessage.set('');
     this.mode.set('edit');
   }
 
   returnToProfile(): void {
+    if (this.editForm()?.busy()) return;
     if (!this.confirmDiscard()) return;
     this.editForm()?.markDiscarded();
     this.mode.set('profile');
-    queueMicrotask(() => this.closeButton()?.nativeElement.focus());
+    queueMicrotask(() => this.editButton()?.nativeElement.focus());
   }
 
   requestClose(): void {
@@ -100,6 +112,9 @@ export class ProfilePanelComponent implements AfterViewInit {
     this.editForm()?.markDiscarded();
     this.mode.set('profile');
     this.closed.emit();
+    queueMicrotask(() => {
+      if (this.returnFocusElement?.isConnected) this.returnFocusElement.focus();
+    });
   }
 
   confirmNavigation(): boolean {
@@ -111,6 +126,7 @@ export class ProfilePanelComponent implements AfterViewInit {
     this.userChange.emit(user);
     this.savedMessage.set('Cambios guardados correctamente.');
     this.mode.set('profile');
+    queueMicrotask(() => this.editButton()?.nativeElement.focus());
   }
 
   async uploadAvatar(event: Event): Promise<void> {
@@ -163,6 +179,28 @@ export class ProfilePanelComponent implements AfterViewInit {
       !this.hasUnsavedChanges() ||
       window.confirm('Tienes cambios sin guardar. ¿Quieres descartarlos?')
     );
+  }
+
+  private keepFocusInside(event: KeyboardEvent): void {
+    const panel = this.panel()?.nativeElement;
+    if (!panel) return;
+    const focusable = [
+      ...panel.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+      ),
+    ].filter((element) => !element.hasAttribute('hidden'));
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable.at(-1)!;
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !panel.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (active === last || !panel.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   private avatarMessage(error: unknown): string {
