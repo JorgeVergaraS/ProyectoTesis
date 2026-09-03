@@ -45,8 +45,9 @@
 
 Nexo organiza la experiencia alrededor de personas, conversaciones y comunidades
 universitarias. Usa navegación con nombres, bandeja de conversaciones, burbujas de
-mensajes y panel contextual. La identidad visual combina fondos oscuros, violeta
-y azul; la interfaz admite teclado y adapta su disposición a móvil.
+mensajes y panel contextual. La identidad visual ofrece temas predeterminado, OLED y
+claro, con botones de cristal mate y textura turbulenta. La interfaz admite teclado,
+conserva la preferencia visual y adapta su disposición a móvil.
 
 ### Mensajería
 
@@ -87,6 +88,7 @@ las imágenes no importan esos datos a una instalación nueva.
 | Canales | Descubrir, unirse, salir, ver participantes y conversar | Cuatro canales predefinidos; sin creación desde UI |
 | Directos | Conversaciones entre dos perfiles con autorización backend | Sin grupos privados ni confirmaciones de lectura |
 | Historial | PostgreSQL; envío idempotente, edición/borrado del autor, copiar, responder y reenviar | Últimos 100 mensajes; respuestas y reenvíos se representan como texto, sin hilos |
+| Apariencia | Temas predeterminado, OLED y claro persistentes; configuración junto al nombre de usuario | Preferencia local de cada navegador, sin sincronización entre dispositivos |
 | Enlaces | Reconoce `http://`, `https://` y `www.` | Sin previews ni verificación de reputación |
 | Perfil | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada | Sin campos institucionales ni configuración de privacidad |
 | Llamadas | Voz WebRTC, aceptar/rechazar, mute y finalizar | Dos usuarios; mismo equipo; sin video ni STUN/TURN |
@@ -591,7 +593,7 @@ Servicios iniciados, desde la raíz en PowerShell:
 | Comprobación | Resultado registrado |
 | --- | --- |
 | Backend | 36 pruebas aprobadas, incluidas autenticación, perfil, mensajería, CORS y Testcontainers |
-| Frontend | 46 pruebas aprobadas en diecisiete archivos |
+| Frontend | 51 pruebas aprobadas en diecinueve archivos |
 | Build Angular | Compilación de producción correcta |
 | Formato | Prettier correcto |
 | Integración | Health, readiness DB, proxy, CORS y OpenAPI correctos |
@@ -689,6 +691,7 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Perfil y avatar autenticados para cuentas locales y Microsoft, con compatibilidad demo.
 - [x] Panel Angular de perfil reutilizable, edición persistente y navegación adaptable.
 - [x] Acciones seguras de mensaje: editar, borrar, copiar, responder y reenviar.
+- [x] Configuración visual persistente con temas predeterminado, OLED y claro.
 - [ ] Validación interactiva del login/logout Microsoft real en Brave.
 - [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.

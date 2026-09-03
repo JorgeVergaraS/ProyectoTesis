@@ -1540,6 +1540,12 @@
   .profile-backdrop {
     display: none;
   }
+  .profile-backdrop.settings-backdrop {
+    display: flex;
+  }
+  .settings-drawer {
+    width: 100%;
+  }
 }
 .authenticated-home .brand {
   color: #eef2ff;

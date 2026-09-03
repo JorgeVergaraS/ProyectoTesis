@@ -17,6 +17,7 @@ export class WorkspaceNavigationComponent {
   readonly busy = input(false);
   readonly navigate = output<WorkspaceView>();
   readonly profileOpen = output<void>();
+  readonly settingsOpen = output<void>();
   readonly signOut = output<void>();
   readonly sessionLabel = computed(() => {
     switch (this.sessionKind()) {

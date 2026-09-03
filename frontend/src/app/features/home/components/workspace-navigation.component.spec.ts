@@ -27,9 +27,29 @@ describe('WorkspaceNavigationComponent', () => {
     fixture.componentInstance.profileOpen.subscribe(opened);
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('.account-card').click();
+    fixture.nativeElement.querySelector('.account-profile').click();
 
     expect(opened).toHaveBeenCalledOnce();
     expect(fixture.nativeElement.textContent).toContain('Cuenta Nexo');
+  });
+
+  it('opens settings from the gear beside the user name', () => {
+    const fixture = TestBed.createComponent(WorkspaceNavigationComponent);
+    fixture.componentRef.setInput('view', 'chat');
+    fixture.componentRef.setInput('user', {
+      id: '1',
+      username: 'jean',
+      displayName: 'Jean',
+      color: '#8B5CF6',
+      bio: '',
+      online: true,
+    });
+    const opened = vi.fn();
+    fixture.componentInstance.settingsOpen.subscribe(opened);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.settings-button').click();
+
+    expect(opened).toHaveBeenCalledOnce();
   });
 });

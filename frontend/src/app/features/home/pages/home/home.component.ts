@@ -38,6 +38,7 @@ import {
   InboxFilter,
 } from '../../components/conversation-inbox.component';
 import { ProfilePanelComponent } from '../../components/profile-panel.component';
+import { SettingsPanelComponent } from '../../components/settings-panel.component';
 
 type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
 
@@ -52,6 +53,7 @@ type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
     WorkspaceNavigationComponent,
     ConversationInboxComponent,
     ProfilePanelComponent,
+    SettingsPanelComponent,
     RouterLink,
   ],
   templateUrl: './home.component.html',
@@ -98,6 +100,7 @@ export class HomeComponent {
   readonly actionError = signal('');
   readonly actionBusy = signal(false);
   readonly profileOpen = signal(false);
+  readonly settingsOpen = signal(false);
   readonly sending = signal(false);
   readonly messageActionBusy = signal('');
   readonly messageActionNotice = signal('');
@@ -247,11 +250,16 @@ export class HomeComponent {
     this.actionError.set('');
   }
   openOwnProfile(): void {
+    this.settingsOpen.set(false);
     if (window.matchMedia('(max-width: 760px)').matches) {
       void this.router.navigate(['/profile']);
       return;
     }
     this.profileOpen.set(true);
+  }
+  openSettings(): void {
+    this.profileOpen.set(false);
+    this.settingsOpen.set(true);
   }
   requestProfileClose(): void {
     this.profilePanel()?.requestClose();

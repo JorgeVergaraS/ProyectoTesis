@@ -3,6 +3,7 @@ import { Router, RouterOutlet } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
 import { DemoSessionStore } from './core/auth/demo-session.store';
 import { AuthService } from './core/auth/auth.service';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ export class App {
   private readonly router = inject(Router);
 
   constructor() {
+    inject(ThemeService);
     this.msal.handleRedirectObservable().subscribe({
       next: (result) => {
         void this.auth.completeRedirect(result).then((authenticated) => {

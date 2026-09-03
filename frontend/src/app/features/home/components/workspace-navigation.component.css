@@ -100,24 +100,33 @@
   width: 14px;
 }
 .account-card {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
   align-items: center;
-  gap: 10px;
-  text-decoration: none;
+  gap: 3px;
   border: 1px solid #252938;
   border-radius: 12px;
-  padding: 12px 10px;
+  padding: 5px;
   background: #0b101b;
   width: 100%;
   color: inherit;
-  text-align: left;
-  cursor: pointer;
 }
 .account-card:hover {
   border-color: #594184;
   background: #131526;
 }
-.account-card > span {
+.account-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 7px 5px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+.account-profile > span {
   flex: 1;
   min-width: 0;
 }
@@ -132,10 +141,25 @@
   font-size: 10px;
   margin-top: 4px;
 }
-.account-card > nexo-icon {
-  width: 14px;
-  transform: rotate(-90deg);
-  color: #9299ac;
+.settings-button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #87dff22e;
+  border-radius: 10px;
+  background: #a9eff40d;
+  color: #91a8b5;
+}
+.settings-button:hover {
+  border-color: #76dce85e;
+  background: #65d8df20;
+  color: #d9faff;
+}
+.settings-button nexo-icon {
+  width: 16px;
+  height: 16px;
 }
 .session-footer {
   display: flex;

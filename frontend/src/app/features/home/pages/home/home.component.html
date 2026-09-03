@@ -7,6 +7,7 @@
       [busy]="actionBusy()"
       (navigate)="navigate($event)"
       (profileOpen)="openOwnProfile()"
+      (settingsOpen)="openSettings()"
       (signOut)="logout()"
     />
 
@@ -663,6 +664,13 @@
           (closed)="profileOpen.set(false)"
           (signOut)="logout()"
         />
+      </div>
+    </div>
+  }
+  @if (settingsOpen()) {
+    <div class="profile-backdrop settings-backdrop" (click)="settingsOpen.set(false)">
+      <div class="profile-drawer settings-drawer" (click)="$event.stopPropagation()">
+        <nexo-settings-panel (closed)="settingsOpen.set(false)" />
       </div>
     </div>
   }

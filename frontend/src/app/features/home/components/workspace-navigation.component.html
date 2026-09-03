@@ -48,23 +48,33 @@
         Encuentra tu comunidad <nexo-icon name="arrow" />
       </button>
     </div>
-    <button
-      class="account-card"
-      type="button"
-      aria-label="Abrir mi perfil"
-      (click)="profileOpen.emit()"
-    >
-      <nexo-avatar
-        [src]="user()?.avatarUrl"
-        [name]="user()?.displayName || ''"
-        [color]="user()?.color || '#8b5cf6'"
-      />
-      <span
-        ><strong>{{ user()?.displayName }}</strong
-        ><small>{{ handle() }}</small></span
+    <div class="account-card">
+      <button
+        class="account-profile"
+        type="button"
+        aria-label="Abrir mi perfil"
+        (click)="profileOpen.emit()"
       >
-      <nexo-icon name="chevron" />
-    </button>
+        <nexo-avatar
+          [src]="user()?.avatarUrl"
+          [name]="user()?.displayName || ''"
+          [color]="user()?.color || '#8b5cf6'"
+        />
+        <span
+          ><strong>{{ user()?.displayName }}</strong
+          ><small>{{ handle() }}</small></span
+        >
+      </button>
+      <button
+        class="settings-button"
+        type="button"
+        aria-label="Abrir configuración"
+        title="Configuración"
+        (click)="settingsOpen.emit()"
+      >
+        <nexo-icon name="settings" />
+      </button>
+    </div>
     <div class="session-footer">
       <span class="demo-pill">{{ sessionLabel() }}</span
       ><button

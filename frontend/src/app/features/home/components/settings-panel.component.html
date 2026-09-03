@@ -1,0 +1,58 @@
+<section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <header class="settings-header">
+    <div>
+      <span class="eyebrow">TU EXPERIENCIA</span>
+      <h2 id="settings-title">Configuración</h2>
+    </div>
+    <button
+      #closeButton
+      class="icon-button close-settings"
+      type="button"
+      aria-label="Cerrar configuración"
+      title="Cerrar"
+      (click)="close()"
+    >
+      <nexo-icon name="close" />
+    </button>
+  </header>
+
+  <div class="settings-content">
+    <div class="section-heading">
+      <span class="section-icon" aria-hidden="true"><nexo-icon name="palette" /></span>
+      <div>
+        <h3>Apariencia</h3>
+        <p>Elige cómo quieres ver Nexo. El cambio se aplica al instante.</p>
+      </div>
+    </div>
+
+    <div class="theme-options" role="radiogroup" aria-label="Tema de colores">
+      @for (option of options; track option.id) {
+        <button
+          class="theme-option"
+          type="button"
+          role="radio"
+          [class.selected]="theme.current() === option.id"
+          [attr.aria-checked]="theme.current() === option.id"
+          (click)="select(option.id)"
+        >
+          <span class="theme-preview" [attr.data-preview]="option.id" aria-hidden="true">
+            <i></i><i></i><i></i>
+          </span>
+          <span class="theme-copy">
+            <strong>{{ option.name }}</strong>
+            <small>{{ option.description }}</small>
+          </span>
+          <span class="theme-check" aria-hidden="true"><nexo-icon name="check" /></span>
+        </button>
+      }
+    </div>
+
+    <aside class="matte-note">
+      <nexo-icon name="sparkle" />
+      <p>
+        Los botones usan un cristal mate con textura turbulenta sutil para conservar la profundidad
+        sin reflejos intensos.
+      </p>
+    </aside>
+  </div>
+</section>
