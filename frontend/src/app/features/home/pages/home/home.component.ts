@@ -39,6 +39,8 @@ import {
 } from '../../components/conversation-inbox.component';
 import { ProfilePanelComponent } from '../../components/profile-panel.component';
 
+type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
+
 @Component({
   selector: 'app-home',
   imports: [
@@ -97,6 +99,11 @@ export class HomeComponent {
   readonly actionBusy = signal(false);
   readonly profileOpen = signal(false);
   readonly sending = signal(false);
+  readonly messageActionBusy = signal('');
+  readonly messageActionNotice = signal('');
+  readonly copiedMessageId = signal('');
+  readonly composerContext = signal<ComposerContext | null>(null);
+  readonly forwardingMessage = signal<Message | null>(null);
   readonly messages = signal<Message[]>([]);
   readonly members = signal<DemoUser[]>([]);
   readonly filter = new FormControl('', { nonNullable: true });
@@ -118,12 +125,18 @@ export class HomeComponent {
   readonly joinedCount = computed(() => this.workspace().channels.filter((c) => c.joined).length);
   readonly inboxChannels = computed(() => this.channels().filter((c) => c.joined));
   readonly onlineCount = computed(() => this.workspace().people.filter((p) => p.online).length);
+  readonly forwardTargets = computed(() =>
+    [...this.workspace().channels, ...this.workspace().directs].filter(
+      (conversation) => conversation.joined && conversation.id !== this.activeId(),
+    ),
+  );
   readonly messageList = viewChild<ElementRef<HTMLElement>>('messageList');
   readonly profilePanel = viewChild(ProfilePanelComponent);
   private readonly refreshWorkspace = new Subject<void>();
   private readonly refreshMessages = new Subject<void>();
   private readonly drafts = new Map<string, string>();
   private pendingSend: { conversation: string; body: string; clientId: string } | null = null;
+  private draftBeforeEdit = '';
   private readonly selected = computed(() => {
     const c = this.active();
     return c?.joined ? c.id : '';
@@ -212,6 +225,8 @@ export class HomeComponent {
     return value.toLowerCase().includes(this.filterValue().trim().toLowerCase());
   }
   select(conversation: Conversation): void {
+    this.cancelComposerContext();
+    this.forwardingMessage.set(null);
     this.drafts.set(this.activeId(), this.draft.value);
     this.activeId.set(conversation.id);
     this.draft.setValue(this.drafts.get(conversation.id) ?? '');
@@ -309,12 +324,41 @@ export class HomeComponent {
     if (!conversation?.joined || !body || this.draft.invalid || this.sending()) return;
     this.sending.set(true);
     this.actionError.set('');
+    const context = this.composerContext();
+    if (context?.kind === 'edit') {
+      try {
+        const updated = await firstValueFrom(
+          this.chat.edit(conversation.id, context.message.id, body),
+        );
+        this.messages.update((messages) =>
+          messages.map((message) => (message.id === updated.id ? updated : message)),
+        );
+        this.draft.setValue(this.draftBeforeEdit);
+        this.composerContext.set(null);
+        this.notifyMessageAction('Mensaje editado correctamente.');
+      } catch {
+        this.actionError.set('No pudimos editar el mensaje. El texto permanece en el editor.');
+      } finally {
+        this.sending.set(false);
+      }
+      return;
+    }
+    const outgoingBody = context?.kind === 'reply' ? this.replyBody(context.message, body) : body;
+    if (outgoingBody.length > 2000) {
+      this.actionError.set('La respuesta supera el máximo de 2000 caracteres. Acorta el texto.');
+      this.sending.set(false);
+      return;
+    }
     if (
       !this.pendingSend ||
       this.pendingSend.conversation !== conversation.id ||
-      this.pendingSend.body !== body
+      this.pendingSend.body !== outgoingBody
     ) {
-      this.pendingSend = { conversation: conversation.id, body, clientId: crypto.randomUUID() };
+      this.pendingSend = {
+        conversation: conversation.id,
+        body: outgoingBody,
+        clientId: crypto.randomUUID(),
+      };
     }
     const pending = this.pendingSend;
     try {
@@ -322,6 +366,7 @@ export class HomeComponent {
       this.drafts.delete(conversation.id);
       if (this.activeId() === conversation.id && this.draft.value.trim() === body)
         this.draft.setValue('');
+      this.composerContext.set(null);
       this.pendingSend = null;
       this.refreshMessages.next();
       requestAnimationFrame(() => this.scrollBottom());
@@ -337,6 +382,76 @@ export class HomeComponent {
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
       event.preventDefault();
       void this.send();
+    }
+  }
+  startEdit(message: Message): void {
+    if (message.senderId !== this.auth.session.user()?.id || this.messageActionBusy()) return;
+    this.cancelComposerContext();
+    this.draftBeforeEdit = this.draft.value;
+    this.composerContext.set({ kind: 'edit', message });
+    this.forwardingMessage.set(null);
+    this.draft.setValue(message.body);
+    this.focusComposer();
+  }
+  startReply(message: Message): void {
+    if (this.messageActionBusy()) return;
+    this.cancelComposerContext();
+    this.composerContext.set({ kind: 'reply', message });
+    this.forwardingMessage.set(null);
+    this.focusComposer();
+  }
+  cancelComposerContext(): void {
+    const context = this.composerContext();
+    if (context?.kind === 'edit') this.draft.setValue(this.draftBeforeEdit);
+    this.composerContext.set(null);
+  }
+  toggleForward(message: Message): void {
+    this.cancelComposerContext();
+    this.forwardingMessage.update((current) => (current?.id === message.id ? null : message));
+  }
+  async copyMessage(message: Message): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(message.body);
+      this.copiedMessageId.set(message.id);
+      this.notifyMessageAction('Mensaje copiado al portapapeles.');
+      window.setTimeout(() => {
+        if (this.copiedMessageId() === message.id) this.copiedMessageId.set('');
+      }, 1800);
+    } catch {
+      this.actionError.set('El navegador no permitió copiar el mensaje.');
+    }
+  }
+  async deleteMessage(message: Message): Promise<void> {
+    if (message.senderId !== this.auth.session.user()?.id || this.messageActionBusy()) return;
+    if (!window.confirm('¿Quieres borrar este mensaje? Esta acción no se puede deshacer.')) return;
+    this.messageActionBusy.set('delete:' + message.id);
+    this.actionError.set('');
+    try {
+      await firstValueFrom(this.chat.deleteMessage(message.conversationId, message.id));
+      this.messages.update((messages) => messages.filter((current) => current.id !== message.id));
+      if (this.composerContext()?.message.id === message.id) this.cancelComposerContext();
+      this.notifyMessageAction('Mensaje eliminado.');
+    } catch {
+      this.actionError.set('No pudimos borrar el mensaje. Inténtalo nuevamente.');
+    } finally {
+      this.messageActionBusy.set('');
+    }
+  }
+  async forwardTo(conversation: Conversation): Promise<void> {
+    const message = this.forwardingMessage();
+    if (!message || this.messageActionBusy() || !conversation.joined) return;
+    this.messageActionBusy.set('forward:' + message.id);
+    this.actionError.set('');
+    const body = `Reenviado de ${message.senderName}:\n${message.body}`.slice(0, 2000);
+    try {
+      await firstValueFrom(this.chat.send(conversation.id, body, crypto.randomUUID()));
+      this.forwardingMessage.set(null);
+      this.notifyMessageAction(`Mensaje reenviado a ${conversation.title}.`);
+      if (conversation.id === this.activeId()) this.refreshMessages.next();
+    } catch {
+      this.actionError.set('No pudimos reenviar el mensaje. Inténtalo nuevamente.');
+    } finally {
+      this.messageActionBusy.set('');
     }
   }
   async logout(): Promise<void> {
@@ -372,6 +487,19 @@ export class HomeComponent {
       new Date(this.messages()[index].sentAt).toDateString() !==
         new Date(this.messages()[index - 1].sentAt).toDateString()
     );
+  }
+  private replyBody(message: Message, body: string): string {
+    const excerpt = message.body.replace(/\s+/g, ' ').trim().slice(0, 240);
+    return `Respuesta a ${message.senderName}: “${excerpt}${message.body.length > 240 ? '…' : ''}”\n\n${body}`;
+  }
+  private focusComposer(): void {
+    queueMicrotask(() => document.getElementById('message-input')?.focus());
+  }
+  private notifyMessageAction(message: string): void {
+    this.messageActionNotice.set(message);
+    window.setTimeout(() => {
+      if (this.messageActionNotice() === message) this.messageActionNotice.set('');
+    }, 2600);
   }
   private scrollBottom(): void {
     const element = this.messageList()?.nativeElement;

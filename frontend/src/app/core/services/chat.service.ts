@@ -35,4 +35,15 @@ export class ChatService {
       clientId,
     });
   }
+  edit(conversationId: string, messageId: string, body: string) {
+    return this.http.patch<Message>(
+      this.base + '/conversations/' + conversationId + '/messages/' + messageId,
+      { body },
+    );
+  }
+  deleteMessage(conversationId: string, messageId: string) {
+    return this.http.delete<void>(
+      this.base + '/conversations/' + conversationId + '/messages/' + messageId,
+    );
+  }
 }

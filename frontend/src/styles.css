@@ -9,14 +9,13 @@
 :root {
   color-scheme: dark;
   font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  background: #080d1a;
+    Gotham, 'Gotham SSm', Montserrat, 'Avenir Next', 'Century Gothic', 'Segoe UI', sans-serif;
+  --aero-sky: #38bdf8;
+  --aero-water: #0ea5e9;
+  --aero-leaf: #5ee6a8;
+  --aero-glass: #dff8ff1c;
+  --aero-border: #bdefff4a;
+  background: #06111f;
   color: #e7ecf6;
   font-synthesis: none;
 }
@@ -24,24 +23,95 @@
   box-sizing: border-box;
 }
 body {
+  position: relative;
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 0 30%, #23154435, transparent 55%), #080d1a;
+  background:
+    radial-gradient(circle at 14% 8%, #52d8ff35, transparent 27%),
+    radial-gradient(circle at 88% 16%, #67efa923, transparent 25%),
+    radial-gradient(ellipse at 48% 100%, #235fcd2e, transparent 55%),
+    linear-gradient(155deg, #07111e 0%, #09182a 48%, #071321 100%);
+  background-attachment: fixed;
+}
+body::before,
+body::after {
+  position: fixed;
+  z-index: -1;
+  content: '';
+  pointer-events: none;
+  filter: blur(2px);
+}
+body::before {
+  top: 7vh;
+  right: 6vw;
+  width: 180px;
+  height: 180px;
+  border: 1px solid #d5f9ff24;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 25%, #ffffff65, #45cfff24 32%, transparent 68%);
+  box-shadow: inset 0 0 35px #bcefff1c;
+}
+body::after {
+  bottom: 5vh;
+  left: 3vw;
+  width: 260px;
+  height: 95px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #45db9270, #13866f19 57%, transparent 72%);
 }
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 button,
 a,
 input,
-textarea {
+textarea,
+select {
   -webkit-tap-highlight-color: transparent;
 }
 button {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--aero-border);
+  box-shadow:
+    inset 0 1px 0 #ffffff30,
+    0 7px 18px #00121f24;
+  backdrop-filter: blur(14px) saturate(135%);
   cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+button::after,
+a.primary-button::after,
+a.secondary-button::after {
+  position: absolute;
+  inset: 1px 7% auto;
+  height: 42%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, #ffffff35, #ffffff05);
+  content: '';
+  pointer-events: none;
+}
+button:hover:not(:disabled),
+a.primary-button:hover,
+a.secondary-button:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.12) brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 #ffffff48,
+    0 10px 24px #031f3540,
+    0 0 18px #38bdf81c;
+}
+button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
 }
 button:disabled {
   cursor: not-allowed;
@@ -53,7 +123,8 @@ a {
 button,
 a,
 input,
-textarea {
+textarea,
+select {
   outline-offset: 4px;
 }
 :focus-visible {
@@ -163,22 +234,32 @@ textarea {
     border-color 0.15s;
 }
 .primary-button {
-  border: 1px solid #9466f4;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #a6eeff73;
   color: white;
-  background: linear-gradient(110deg, #8352e2, #7443d3);
-  box-shadow: 0 3px 15px #7c3aed1f;
+  background: linear-gradient(135deg, #258ee8e8, #23b9cbd9 52%, #4cca9bcf);
+  box-shadow:
+    inset 0 1px 0 #ffffff57,
+    inset 0 -12px 24px #075eb735,
+    0 7px 20px #0d9ac538;
 }
 .primary-button:hover:not(:disabled) {
-  background: #9162eb;
+  background: linear-gradient(135deg, #3da8f5, #31c9d9 52%, #5cdaa9);
 }
 .secondary-button {
-  border: 1px solid #35405a;
-  background: #1a2337;
-  color: #c9d3e8;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #b8efff3b;
+  background: linear-gradient(145deg, #d9f7ff16, #6dc9ff0d);
+  color: #d9f5ff;
+  box-shadow:
+    inset 0 1px 0 #ffffff2e,
+    0 6px 18px #0016292e;
 }
 .secondary-button:hover:not(:disabled) {
-  background: #242d45;
-  border-color: #526183;
+  background: linear-gradient(145deg, #d9f7ff28, #5dd9bf19);
+  border-color: #85e4ee73;
 }
 .primary-button nexo-icon,
 .secondary-button nexo-icon {
@@ -191,14 +272,27 @@ textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 7px;
   background: transparent;
   color: #9ba7be;
 }
 .icon-button:hover {
-  background: #212a3e;
+  border-color: #c6f4ff38;
+  background: linear-gradient(145deg, #d9f8ff1f, #75e3c514);
   color: white;
+}
+.mode-link,
+.text-link,
+.sign-out {
+  overflow: visible;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.mode-link::after,
+.text-link::after,
+.sign-out::after {
+  display: none;
 }
 .error-note {
   font-size: 12px;
@@ -220,6 +314,168 @@ textarea {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+.message-actions {
+  display: grid;
+  grid-template-columns: repeat(5, 28px);
+  justify-content: end;
+  gap: 5px;
+  margin: 8px -4px -4px;
+  padding-top: 7px;
+  border-top: 1px solid #bceeff12;
+}
+.message-actions button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 27px;
+  padding: 0;
+  border: 1px solid #afeaff20;
+  border-radius: 9px;
+  background: linear-gradient(145deg, #e7fbff13, #64cff708);
+  color: #849bae;
+  box-shadow: inset 0 1px 0 #ffffff1f;
+}
+.message-actions button:hover:not(:disabled),
+.message-actions button.action-selected {
+  border-color: #9ceeff68;
+  background: linear-gradient(145deg, #9be9ff38, #4be3b820);
+  color: #ddfaff;
+  box-shadow:
+    inset 0 1px 0 #ffffff42,
+    0 4px 13px #10a7c12e;
+}
+.message-actions button.action-success {
+  border-color: #7ef0bd78;
+  color: #7ef0bd;
+}
+.message-actions button:disabled {
+  opacity: 0.3;
+}
+.message-actions nexo-icon,
+.forward-menu > button nexo-icon,
+.forward-close nexo-icon,
+.message-action-notice nexo-icon {
+  width: 13px;
+  height: 13px;
+}
+.forward-menu {
+  display: grid;
+  gap: 6px;
+  margin-top: 9px;
+  padding: 9px;
+  border: 1px solid #9deafa38;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #18384de8, #10283de8);
+  box-shadow:
+    inset 0 1px 0 #ffffff2b,
+    0 12px 28px #00081366;
+  backdrop-filter: blur(18px) saturate(145%);
+}
+.forward-menu > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #c9eff7;
+  font-size: 10px;
+}
+.forward-menu > button:not(.forward-close) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid #a9ecfa24;
+  border-radius: 8px;
+  background: #e8fbff0d;
+  color: #d8eef3;
+  font-size: 10px;
+  text-align: left;
+}
+.forward-menu > button:not(.forward-close):hover:not(:disabled) {
+  background: linear-gradient(120deg, #4dbbf83d, #4ce5ad1f);
+}
+.forward-menu > button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.forward-menu p {
+  margin: 0;
+  color: #8ba5b2;
+  font-size: 9px;
+}
+.forward-close {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #91aab7;
+}
+.message-action-notice {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin: 0 0 8px auto;
+  padding: 7px 10px;
+  border: 1px solid #75e9bb45;
+  border-radius: 999px;
+  background: #2bc99118;
+  color: #9af3cd;
+  font-size: 9px;
+  box-shadow: inset 0 1px 0 #ffffff1c;
+}
+.composer-context {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 9px;
+  border: 1px solid #85dff34d;
+  border-radius: 12px;
+  background: linear-gradient(120deg, #239bc52b, #37cba21a);
+  box-shadow: inset 0 1px 0 #ffffff24;
+}
+.composer-context.edit-context {
+  border-color: #a6b7ff45;
+  background: linear-gradient(120deg, #5574d82b, #35aac51a);
+}
+.composer-context > nexo-icon {
+  width: 16px;
+  height: 16px;
+  margin: auto;
+  color: #8debf2;
+}
+.composer-context p {
+  min-width: 0;
+  margin: 0;
+}
+.composer-context strong,
+.composer-context span {
+  display: block;
+}
+.composer-context strong {
+  color: #caf5f6;
+  font-size: 9px;
+}
+.composer-context span {
+  overflow: hidden;
+  margin-top: 3px;
+  color: #8faab5;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.composer-context .icon-button {
+  width: 28px;
+  height: 28px;
 }
 @media (prefers-reduced-motion: reduce) {
   *,

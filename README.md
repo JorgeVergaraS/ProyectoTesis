@@ -86,7 +86,7 @@ las imágenes no importan esos datos a una instalación nueva.
 | Navegación | Login, Inicio, Comunidades, Mensajes, Personas, Perfil y diagnóstico | Sin administración institucional |
 | Canales | Descubrir, unirse, salir, ver participantes y conversar | Cuatro canales predefinidos; sin creación desde UI |
 | Directos | Conversaciones entre dos perfiles con autorización backend | Sin grupos privados ni confirmaciones de lectura |
-| Historial | PostgreSQL; envío idempotente mediante `clientId` | Últimos 100 mensajes, sin paginación |
+| Historial | PostgreSQL; envío idempotente, edición/borrado del autor, copiar, responder y reenviar | Últimos 100 mensajes; respuestas y reenvíos se representan como texto, sin hilos |
 | Enlaces | Reconoce `http://`, `https://` y `www.` | Sin previews ni verificación de reputación |
 | Perfil | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada | Sin campos institucionales ni configuración de privacidad |
 | Llamadas | Voz WebRTC, aceptar/rechazar, mute y finalizar | Dos usuarios; mismo equipo; sin video ni STUN/TURN |
@@ -590,8 +590,8 @@ Servicios iniciados, desde la raíz en PowerShell:
 
 | Comprobación | Resultado registrado |
 | --- | --- |
-| Backend | 35 pruebas aprobadas, incluidas autenticación, perfil, avatares, CORS y Testcontainers |
-| Frontend | 43 pruebas aprobadas en diecisiete archivos |
+| Backend | 36 pruebas aprobadas, incluidas autenticación, perfil, mensajería, CORS y Testcontainers |
+| Frontend | 46 pruebas aprobadas en diecisiete archivos |
 | Build Angular | Compilación de producción correcta |
 | Formato | Prettier correcto |
 | Integración | Health, readiness DB, proxy, CORS y OpenAPI correctos |
@@ -688,6 +688,7 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Identidad del mensaje y autorización de membresía controladas por el backend.
 - [x] Perfil y avatar autenticados para cuentas locales y Microsoft, con compatibilidad demo.
 - [x] Panel Angular de perfil reutilizable, edición persistente y navegación adaptable.
+- [x] Acciones seguras de mensaje: editar, borrar, copiar, responder y reenviar.
 - [ ] Validación interactiva del login/logout Microsoft real en Brave.
 - [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.

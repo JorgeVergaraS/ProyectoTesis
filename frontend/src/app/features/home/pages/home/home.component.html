@@ -335,6 +335,111 @@
                             message.sentAt | date: 'HH:mm'
                           }}</time>
                         </div>
+                        <div class="message-actions" aria-label="Acciones del mensaje">
+                          <button
+                            type="button"
+                            [disabled]="
+                              message.senderId !== auth.session.user()?.id || !!messageActionBusy()
+                            "
+                            [attr.aria-label]="
+                              message.senderId === auth.session.user()?.id
+                                ? 'Borrar mensaje'
+                                : 'Solo el autor puede borrar este mensaje'
+                            "
+                            [title]="
+                              message.senderId === auth.session.user()?.id
+                                ? 'Borrar'
+                                : 'Solo puedes borrar tus mensajes'
+                            "
+                            (click)="deleteMessage(message)"
+                          >
+                            <nexo-icon name="trash" /><span class="sr-only">Borrar</span>
+                          </button>
+                          <button
+                            type="button"
+                            [disabled]="
+                              message.senderId !== auth.session.user()?.id || !!messageActionBusy()
+                            "
+                            [attr.aria-label]="
+                              message.senderId === auth.session.user()?.id
+                                ? 'Editar mensaje'
+                                : 'Solo el autor puede editar este mensaje'
+                            "
+                            [title]="
+                              message.senderId === auth.session.user()?.id
+                                ? 'Editar'
+                                : 'Solo puedes editar tus mensajes'
+                            "
+                            (click)="startEdit(message)"
+                          >
+                            <nexo-icon name="edit" /><span class="sr-only">Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            [disabled]="!!messageActionBusy()"
+                            [attr.aria-label]="
+                              copiedMessageId() === message.id
+                                ? 'Mensaje copiado'
+                                : 'Copiar mensaje'
+                            "
+                            [title]="copiedMessageId() === message.id ? 'Copiado' : 'Copiar'"
+                            [class.action-success]="copiedMessageId() === message.id"
+                            (click)="copyMessage(message)"
+                          >
+                            <nexo-icon
+                              [name]="copiedMessageId() === message.id ? 'check' : 'copy'"
+                            /><span class="sr-only">Copiar</span>
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Responder mensaje"
+                            title="Responder"
+                            [disabled]="!!messageActionBusy()"
+                            (click)="startReply(message)"
+                          >
+                            <nexo-icon name="reply" /><span class="sr-only">Responder</span>
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Reenviar mensaje"
+                            title="Reenviar"
+                            [disabled]="!!messageActionBusy()"
+                            [class.action-selected]="forwardingMessage()?.id === message.id"
+                            (click)="toggleForward(message)"
+                          >
+                            <nexo-icon name="forward" /><span class="sr-only">Reenviar</span>
+                          </button>
+                        </div>
+                        @if (forwardingMessage()?.id === message.id) {
+                          <div class="forward-menu">
+                            <div>
+                              <strong>Reenviar a…</strong>
+                              <button
+                                class="forward-close"
+                                type="button"
+                                aria-label="Cerrar destinos"
+                                title="Cerrar"
+                                (click)="forwardingMessage.set(null)"
+                              >
+                                <nexo-icon name="close" />
+                              </button>
+                            </div>
+                            @for (target of forwardTargets(); track target.id) {
+                              <button
+                                type="button"
+                                [disabled]="!!messageActionBusy()"
+                                (click)="forwardTo(target)"
+                              >
+                                <nexo-icon
+                                  [name]="target.kind === 'CHANNEL' ? 'hash' : 'profile'"
+                                />
+                                <span>{{ target.title }}</span>
+                              </button>
+                            } @empty {
+                              <p>No hay otra conversación disponible.</p>
+                            }
+                          </div>
+                        }
                       </div>
                     </article>
                   } @empty {
@@ -356,6 +461,33 @@
                   }
                 </div>
                 <form class="composer-area" [formGroup]="composer" (ngSubmit)="send()">
+                  @if (messageActionNotice()) {
+                    <p class="message-action-notice" role="status">
+                      <nexo-icon name="check" />{{ messageActionNotice() }}
+                    </p>
+                  }
+                  @if (composerContext(); as context) {
+                    <div class="composer-context" [class.edit-context]="context.kind === 'edit'">
+                      <nexo-icon [name]="context.kind === 'edit' ? 'edit' : 'reply'" />
+                      <p>
+                        <strong>{{
+                          context.kind === 'edit'
+                            ? 'Editando tu mensaje'
+                            : 'Respondiendo a ' + context.message.senderName
+                        }}</strong>
+                        <span>{{ context.message.body }}</span>
+                      </p>
+                      <button
+                        class="icon-button"
+                        type="button"
+                        aria-label="Cancelar acción"
+                        title="Cancelar"
+                        (click)="cancelComposerContext()"
+                      >
+                        <nexo-icon name="close" />
+                      </button>
+                    </div>
+                  }
                   <div class="composer-box">
                     <label class="sr-only" for="message-input"
                       >Mensaje para {{ conversation.title }}</label
@@ -365,7 +497,13 @@
                       [formControl]="draft"
                       rows="2"
                       maxlength="2000"
-                      placeholder="Escribe un mensaje…"
+                      [placeholder]="
+                        composerContext()?.kind === 'edit'
+                          ? 'Edita tu mensaje…'
+                          : composerContext()?.kind === 'reply'
+                            ? 'Escribe tu respuesta…'
+                            : 'Escribe un mensaje…'
+                      "
                       (keydown)="onComposerKey($event)"
                     ></textarea>
                     <div class="composer-actions">

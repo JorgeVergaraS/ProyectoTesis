@@ -21,12 +21,17 @@ Requiere Node 24/npm 11 y Spring Boot con `local-demo`. Abrir
 - `shared/components`: avatares, iconos, enlaces seguros y panel de voz.
 - `features/auth`: selector visual de perfiles.
 - `features/home`: inicio, comunidades, bandeja, mensajes, personas y panel de perfil
-  reutilizable con edición persistente.
+  reutilizable con edición persistente. Los mensajes ofrecen acciones para editar, borrar,
+  copiar, responder y reenviar.
 - `features/status`: diagnóstico técnico.
 
 Rutas: `/login`, `/home`, `/profile` y `/status`. Crear pestañas nuevas sin
 duplicarlas para usar perfiles locales independientes. MSAL delega el login
 Microsoft a Entra ID y solicita el scope público configurado para la API Nexo.
+
+El tema usa una jerarquía tipográfica Gotham y alternativas geométricas del sistema.
+Para reproducir Gotham exactamente se deben aportar archivos de fuente con licencia;
+el repositorio no distribuye tipografías propietarias.
 
 ## Pruebas y build
 
@@ -36,7 +41,7 @@ npm run test:ci
 npm run build
 ```
 
-43 pruebas en diecisiete archivos. Los tests unitarios de voz simulan medios;
+46 pruebas en diecisiete archivos. Los tests unitarios de voz simulan medios;
 la conectividad WebRTC real se verifica por separado. `npm run format` aplica
 Prettier. El build de producción genera `dist/nexo`, que no se versiona.
 

@@ -271,19 +271,38 @@ class AuthIntegrationTests {
                 .andExpect(jsonPath("$.channels[0].joined").value(true));
 
         UUID clientId = UUID.randomUUID();
-        mvc.perform(post("/api/conversations/" + general + "/messages")
+        JsonNode sent = responseJson(mvc.perform(post("/api/conversations/" + general + "/messages")
                         .header("Authorization", "Bearer " + firstToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(Map.of(
                                 "clientId", clientId,
                                 "body", "Mensaje desde una cuenta local"))))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.senderId").value(first.get("user").get("id").asText()));
+                .andExpect(jsonPath("$.senderId").value(first.get("user").get("id").asText()))
+                .andReturn().getResponse().getContentAsString());
 
         mvc.perform(get("/api/conversations/" + general + "/messages")
                         .header("Authorization", "Bearer " + secondToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].body").value("Mensaje desde una cuenta local"));
+
+        String messagePath = "/api/conversations/" + general + "/messages/" + sent.get("id").asText();
+        String edit = json.writeValueAsString(Map.of("body", "Mensaje local editado"));
+        mvc.perform(patch(messagePath)
+                        .header("Authorization", "Bearer " + secondToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(edit))
+                .andExpect(status().isForbidden());
+        mvc.perform(patch(messagePath)
+                        .header("Authorization", "Bearer " + firstToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(edit))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.body").value("Mensaje local editado"));
+        mvc.perform(delete(messagePath).header("Authorization", "Bearer " + secondToken))
+                .andExpect(status().isForbidden());
+        mvc.perform(delete(messagePath).header("Authorization", "Bearer " + firstToken))
+                .andExpect(status().isNoContent());
     }
 
     @Test

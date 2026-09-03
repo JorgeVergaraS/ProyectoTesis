@@ -25,6 +25,7 @@ public class ChatController {
     public ChatController(ChatService chat) { this.chat = chat; }
     public record DirectRequest(@NotNull UUID userId) {}
     public record SendRequest(@NotNull UUID clientId, @NotBlank @Size(max = 2000) String body) {}
+    public record EditRequest(@NotBlank @Size(max = 2000) String body) {}
 
     @GetMapping("/workspace")
     public ChatService.Workspace workspace(@AuthenticationPrincipal DemoPrincipal me) { return chat.workspace(me.userId()); }
@@ -52,5 +53,23 @@ public class ChatController {
     @ResponseStatus(HttpStatus.CREATED)
     public MessageView send(@AuthenticationPrincipal DemoPrincipal me, @PathVariable UUID id, @Valid @RequestBody SendRequest request) {
         return chat.send(id, me.userId(), request.clientId(), request.body());
+    }
+
+    @PatchMapping("/conversations/{conversationId}/messages/{messageId}")
+    public MessageView edit(
+            @AuthenticationPrincipal DemoPrincipal me,
+            @PathVariable UUID conversationId,
+            @PathVariable UUID messageId,
+            @Valid @RequestBody EditRequest request) {
+        return chat.edit(conversationId, messageId, me.userId(), request.body());
+    }
+
+    @DeleteMapping("/conversations/{conversationId}/messages/{messageId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
+            @AuthenticationPrincipal DemoPrincipal me,
+            @PathVariable UUID conversationId,
+            @PathVariable UUID messageId) {
+        chat.delete(conversationId, messageId, me.userId());
     }
 }

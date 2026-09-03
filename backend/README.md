@@ -64,6 +64,8 @@ La imagen Docker omite tests al construir. Ejecutarlos antes mediante verify/CI.
 - `GET /api/workspace`: canales, conversaciones directas y directorio para la identidad autenticada.
 - `POST /api/directs`: crea o recupera una conversación privada canónica.
 - `GET|POST /api/conversations/{id}/messages`: exige membresía y deriva el remitente del token.
+- `PATCH|DELETE /api/conversations/{conversationId}/messages/{messageId}`: permite modificar
+  únicamente mensajes propios y rechaza a cualquier otro miembro con 403.
 - Sin credencial válida, las rutas privadas responden 401; sin permisos, 403.
 
 El decoder de Entra valida firma, issuer, audience y expiración mediante las claves

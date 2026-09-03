@@ -81,6 +81,29 @@ public class ChatService {
         return chat.send(conversation, user, clientId, body.strip());
     }
 
+    @Transactional
+    public MessageView edit(UUID conversation, UUID message, UUID user, String body) {
+        chat.kind(conversation, true);
+        chat.requireMember(conversation, user);
+        requireAuthor(conversation, message, user);
+        return chat.edit(conversation, message, body.strip());
+    }
+
+    @Transactional
+    public void delete(UUID conversation, UUID message, UUID user) {
+        chat.kind(conversation, true);
+        chat.requireMember(conversation, user);
+        requireAuthor(conversation, message, user);
+        chat.delete(conversation, message);
+    }
+
+    private void requireAuthor(UUID conversation, UUID message, UUID user) {
+        if (!chat.messageAuthor(conversation, message).equals(user)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Only the author can modify this message");
+        }
+    }
+
     private Set<UUID> onlineUsers(UUID currentUser) {
         Set<UUID> online = new HashSet<>();
         online.add(currentUser);

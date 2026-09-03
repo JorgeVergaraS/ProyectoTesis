@@ -108,6 +108,45 @@ public class ChatRepository {
                 .query(this::message).single();
     }
 
+    public UUID messageAuthor(UUID conversation, UUID message) {
+        return jdbc.sql("""
+                SELECT sender_id FROM nexo.messages
+                WHERE conversation_id=:conversation AND id=:message
+                """)
+                .param("conversation", conversation)
+                .param("message", message)
+                .query(UUID.class)
+                .optional()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    public MessageView edit(UUID conversation, UUID message, String body) {
+        jdbc.sql("""
+                UPDATE nexo.messages SET body=:body
+                WHERE conversation_id=:conversation AND id=:message
+                """)
+                .param("body", body)
+                .param("conversation", conversation)
+                .param("message", message)
+                .update();
+        return jdbc.sql("""
+                SELECT m.*,u.display_name,u.color,u.avatar_version
+                FROM nexo.messages m JOIN nexo.users u ON u.id=m.sender_id
+                WHERE m.conversation_id=:conversation AND m.id=:message
+                """)
+                .param("conversation", conversation)
+                .param("message", message)
+                .query(this::message)
+                .single();
+    }
+
+    public void delete(UUID conversation, UUID message) {
+        jdbc.sql("DELETE FROM nexo.messages WHERE conversation_id=:conversation AND id=:message")
+                .param("conversation", conversation)
+                .param("message", message)
+                .update();
+    }
+
     private MessageView message(ResultSet rs, int row) throws SQLException {
         return new MessageView(rs.getObject("id", UUID.class), rs.getObject("conversation_id", UUID.class),
                 rs.getObject("sender_id", UUID.class), rs.getString("display_name"), rs.getString("color"),

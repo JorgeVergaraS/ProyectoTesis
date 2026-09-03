@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +38,7 @@ public class AuthenticatedChatController {
 
     public record DirectRequest(@NotNull UUID userId) {}
     public record SendRequest(@NotNull UUID clientId, @NotBlank @Size(max = 2000) String body) {}
+    public record EditRequest(@NotBlank @Size(max = 2000) String body) {}
 
     @GetMapping("/workspace")
     public ChatService.Workspace workspace(Authentication authentication) {
@@ -78,6 +80,25 @@ public class AuthenticatedChatController {
             @PathVariable UUID id,
             @Valid @RequestBody SendRequest request) {
         return chat.send(id, principal(authentication).userId(), request.clientId(), request.body());
+    }
+
+    @PatchMapping("/conversations/{conversationId}/messages/{messageId}")
+    public MessageView edit(
+            Authentication authentication,
+            @PathVariable UUID conversationId,
+            @PathVariable UUID messageId,
+            @Valid @RequestBody EditRequest request) {
+        return chat.edit(
+                conversationId, messageId, principal(authentication).userId(), request.body());
+    }
+
+    @DeleteMapping("/conversations/{conversationId}/messages/{messageId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
+            Authentication authentication,
+            @PathVariable UUID conversationId,
+            @PathVariable UUID messageId) {
+        chat.delete(conversationId, messageId, principal(authentication).userId());
     }
 
     private NexoPrincipal principal(Authentication authentication) {

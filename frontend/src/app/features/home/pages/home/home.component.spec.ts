@@ -29,11 +29,41 @@ describe('HomeComponent', () => {
         memberCount: 1,
         peerId: null,
       },
+      {
+        id: 'development-id',
+        kind: 'CHANNEL',
+        title: 'desarrollo',
+        description: 'Proyectos y código',
+        slug: 'desarrollo',
+        joined: true,
+        memberCount: 1,
+        peerId: null,
+      },
     ],
     directs: [],
     people: [user],
   };
-  beforeEach(() =>
+  const ownMessage = {
+    id: 'message-id',
+    conversationId: 'general-id',
+    senderId: '1',
+    senderName: 'Jorge',
+    senderColor: '#8b5cf6',
+    body: 'Mensaje original',
+    sentAt: '2026-09-03T00:00:00Z',
+  };
+  const chat = {
+    workspace: vi.fn(() => of(workspace)),
+    messages: vi.fn(() => of([])),
+    members: vi.fn(() => of([user])),
+    send: vi.fn(() => of({ ...ownMessage, id: 'sent-id' })),
+    edit: vi.fn((_conversation: string, _message: string, body: string) =>
+      of({ ...ownMessage, body }),
+    ),
+    deleteMessage: vi.fn(() => of(undefined)),
+  };
+  beforeEach(() => {
+    Object.values(chat).forEach((mock) => mock.mockClear());
     TestBed.configureTestingModule({
       imports: [HomeComponent],
       providers: [
@@ -47,19 +77,15 @@ describe('HomeComponent', () => {
         },
         {
           provide: ChatService,
-          useValue: {
-            workspace: vi.fn(() => of(workspace)),
-            messages: vi.fn(() => of([])),
-            members: vi.fn(() => of([user])),
-          },
+          useValue: chat,
         },
         {
           provide: VoiceCallService,
           useValue: { occupied: signal(false), hangUp: vi.fn() },
         },
       ],
-    }),
-  );
+    });
+  });
   it('loads the real workspace for an authenticated Microsoft user', async () => {
     vi.useFakeTimers();
     const fixture = TestBed.createComponent(HomeComponent);
@@ -70,6 +96,59 @@ describe('HomeComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Jorge');
     expect(fixture.nativeElement.textContent).toContain('Microsoft Entra ID');
     expect(fixture.nativeElement.textContent).toContain('general');
+    fixture.destroy();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  it('edits and deletes only the current user message', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(HomeComponent);
+    await vi.advanceTimersByTimeAsync(0);
+    const component = fixture.componentInstance;
+    component.messages.set([ownMessage]);
+    component.startEdit(ownMessage);
+    component.draft.setValue('Mensaje editado');
+
+    await component.send();
+
+    expect(chat.edit).toHaveBeenCalledWith('general-id', 'message-id', 'Mensaje editado');
+    expect(component.messages()[0].body).toBe('Mensaje editado');
+
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await component.deleteMessage(component.messages()[0]);
+
+    expect(chat.deleteMessage).toHaveBeenCalledWith('general-id', 'message-id');
+    expect(component.messages()).toEqual([]);
+    fixture.destroy();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  it('creates contextual replies and forwards to another joined conversation', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(HomeComponent);
+    await vi.advanceTimersByTimeAsync(0);
+    const component = fixture.componentInstance;
+    component.startReply(ownMessage);
+    component.draft.setValue('Esta es mi respuesta');
+
+    await component.send();
+
+    expect(chat.send).toHaveBeenCalledWith(
+      'general-id',
+      expect.stringContaining('Respuesta a Jorge: “Mensaje original”'),
+      expect.any(String),
+    );
+
+    component.toggleForward(ownMessage);
+    await component.forwardTo(workspace.channels[1]);
+
+    expect(chat.send).toHaveBeenLastCalledWith(
+      'development-id',
+      'Reenviado de Jorge:\nMensaje original',
+      expect.any(String),
+    );
     fixture.destroy();
     vi.clearAllTimers();
     vi.useRealTimers();

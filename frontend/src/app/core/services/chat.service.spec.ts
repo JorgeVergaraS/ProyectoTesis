@@ -35,4 +35,19 @@ describe('ChatService', () => {
     chat.workspace().subscribe();
     http.expectOne('/api/demo/workspace').flush({ channels: [], directs: [], people: [] });
   });
+
+  it('edits and deletes messages through the active session route', () => {
+    session.kind.set('local');
+    chat.edit('conversation-id', 'message-id', 'Texto editado').subscribe();
+    const edit = http.expectOne('/api/conversations/conversation-id/messages/message-id');
+    expect(edit.request.method).toBe('PATCH');
+    expect(edit.request.body).toEqual({ body: 'Texto editado' });
+    edit.flush({});
+
+    session.kind.set('demo');
+    chat.deleteMessage('conversation-id', 'message-id').subscribe();
+    const remove = http.expectOne('/api/demo/conversations/conversation-id/messages/message-id');
+    expect(remove.request.method).toBe('DELETE');
+    remove.flush(null);
+  });
 });

@@ -133,10 +133,16 @@
 .message-bubble {
   max-width: min(84%, 540px);
   min-width: 72px;
-  padding: 12px 13px 8px;
-  border: 1px solid #1b2332;
+  padding: 12px 13px 9px;
+  border: 1px solid #a4e8ff1f;
   border-radius: 3px 13px 13px;
-  background: linear-gradient(120deg, #0e1521, #0b111c);
+  background:
+    linear-gradient(180deg, #dcf8ff0d, transparent 34%),
+    linear-gradient(120deg, #0e1a28eb, #091522f2);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 8px 22px #0209142e;
+  backdrop-filter: blur(16px) saturate(130%);
 }
 .sender-name {
   display: block;
@@ -164,9 +170,14 @@
   padding-left: 20px;
 }
 .own-message .message-bubble {
-  background: linear-gradient(120deg, #19122d, #1d1434);
-  border-color: #3b295c;
+  background:
+    linear-gradient(180deg, #ffffff14, transparent 38%),
+    linear-gradient(125deg, #1a4e72e8, #163e62e8 55%, #174a4ee8);
+  border-color: #7fdff046;
   border-radius: 13px 3px 13px 13px;
+  box-shadow:
+    inset 0 1px 0 #ffffff26,
+    0 8px 24px #06324b38;
 }
 .own-message .message-meta {
   color: #b39ad9;
@@ -175,9 +186,15 @@
   padding: 10px 20px 15px;
 }
 .composer-box {
-  border: 1px solid #252d3d;
+  border: 1px solid #9de8f42e;
   border-radius: 17px;
-  background: linear-gradient(120deg, #0b1420, #0d1320);
+  background:
+    linear-gradient(180deg, #ffffff0f, transparent 32%),
+    linear-gradient(120deg, #0c1d2be8, #0b1827ed);
+  box-shadow:
+    inset 0 1px 0 #ffffff17,
+    0 9px 25px #000a1433;
+  backdrop-filter: blur(18px) saturate(130%);
   padding: 13px 14px 10px;
 }
 .composer-box:focus-within {
@@ -223,17 +240,21 @@
   height: 33px;
   display: grid;
   place-items: center;
-  border: 1px solid #966dcf;
+  border: 1px solid #b7f5ff78;
   border-radius: 10px;
   color: #f2eaff;
-  background: linear-gradient(135deg, #8652c6, #513183);
+  background: linear-gradient(135deg, #218ee7, #22bfc5 55%, #43c990);
+  box-shadow:
+    inset 0 1px 0 #ffffff5c,
+    inset 0 -8px 15px #075b9c40,
+    0 6px 16px #0aa3c142;
 }
 .send-button nexo-icon {
   width: 16px;
   height: 16px;
 }
 .send-button:hover:not(:disabled) {
-  background: #8352d3;
+  background: linear-gradient(135deg, #38a8f4, #31d1d0 55%, #5ce1a6);
 }
 .composer-hint {
   display: flex;

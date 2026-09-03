@@ -93,6 +93,10 @@ class LocalDemoTests {
         String jorge = login(JORGE);
         String jean = login(JEAN);
         String path = "/api/demo/conversations/" + DEVELOPMENT;
+        mvc.perform(delete(path + "/membership").header("Authorization", "Bearer " + jorge))
+                .andExpect(status().isNoContent());
+        mvc.perform(delete(path + "/membership").header("Authorization", "Bearer " + jean))
+                .andExpect(status().isNoContent());
         mvc.perform(get(path + "/messages").header("Authorization", "Bearer " + jorge)).andExpect(status().isForbidden());
         mvc.perform(post(path + "/membership").header("Authorization", "Bearer " + jorge)).andExpect(status().isNoContent());
         mvc.perform(post(path + "/membership").header("Authorization", "Bearer " + jean)).andExpect(status().isNoContent());
@@ -107,6 +111,45 @@ class LocalDemoTests {
         mvc.perform(post(path + "/messages").header("Authorization", "Bearer " + jorge)
                 .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(Map.of("clientId", UUID.randomUUID(), "body", "denied"))))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void authorsCanEditAndDeleteTheirOwnMessages() throws Exception {
+        String jorge = login(JORGE);
+        String jean = login(JEAN);
+        String path = "/api/demo/conversations/" + DEVELOPMENT;
+        mvc.perform(post(path + "/membership").header("Authorization", "Bearer " + jorge))
+                .andExpect(status().isNoContent());
+        mvc.perform(post(path + "/membership").header("Authorization", "Bearer " + jean))
+                .andExpect(status().isNoContent());
+        JsonNode sent = send(jorge, DEVELOPMENT, UUID.randomUUID(), "Mensaje por editar");
+        String messagePath = path + "/messages/" + sent.get("id").asText();
+        String edit = json.writeValueAsString(Map.of("body", "Mensaje editado"));
+
+        mvc.perform(patch(messagePath)
+                        .header("Authorization", "Bearer " + jean)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(edit))
+                .andExpect(status().isForbidden());
+        mvc.perform(patch(messagePath)
+                        .header("Authorization", "Bearer " + jorge)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(edit))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.body").value("Mensaje editado"));
+        mvc.perform(delete(messagePath).header("Authorization", "Bearer " + jean))
+                .andExpect(status().isForbidden());
+        mvc.perform(delete(messagePath).header("Authorization", "Bearer " + jorge))
+                .andExpect(status().isNoContent());
+        assertThat(jdbc.queryForObject(
+                        "SELECT count(*) FROM nexo.messages WHERE id=?",
+                        Integer.class,
+                        UUID.fromString(sent.get("id").asText())))
+                .isZero();
+        mvc.perform(delete(path + "/membership").header("Authorization", "Bearer " + jorge))
+                .andExpect(status().isNoContent());
+        mvc.perform(delete(path + "/membership").header("Authorization", "Bearer " + jean))
+                .andExpect(status().isNoContent());
     }
 
     @Test
