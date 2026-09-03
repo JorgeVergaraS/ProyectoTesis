@@ -47,12 +47,38 @@
       }
     </div>
 
-    <aside class="matte-note">
-      <nexo-icon name="sparkle" />
-      <p>
-        Los botones usan un cristal mate con textura turbulenta sutil para conservar la profundidad
-        sin reflejos intensos.
-      </p>
-    </aside>
+    <div class="section-heading button-style-heading">
+      <span class="section-icon" aria-hidden="true"><nexo-icon name="sparkle" /></span>
+      <div>
+        <h3>Estilo de los botones</h3>
+        <p>Personaliza su textura, brillo y geometría sin cambiar el tema de colores.</p>
+      </div>
+    </div>
+
+    <div class="button-style-options" role="radiogroup" aria-label="Estilo de los botones">
+      @for (style of buttonStyles; track style.id) {
+        <button
+          class="button-style-option"
+          type="button"
+          role="radio"
+          [class.selected]="theme.buttonStyle() === style.id"
+          [attr.aria-checked]="theme.buttonStyle() === style.id"
+          (click)="selectButtonStyle(style.id)"
+        >
+          <span
+            class="button-style-preview"
+            [attr.data-style-preview]="style.id"
+            aria-hidden="true"
+          >
+            <i>Botón</i>
+          </span>
+          <span class="theme-copy">
+            <strong>{{ style.name }}</strong>
+            <small>{{ style.description }}</small>
+          </span>
+          <span class="theme-check" aria-hidden="true"><nexo-icon name="check" /></span>
+        </button>
+      }
+    </div>
   </div>
 </section>

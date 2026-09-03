@@ -24,16 +24,17 @@ Requiere Node 24/npm 11 y Spring Boot con `local-demo`. Abrir
 - `features/home`: inicio, comunidades, bandeja, mensajes, personas y panel de perfil
   reutilizable con edición persistente. Los mensajes ofrecen acciones para editar, borrar,
   copiar, responder y reenviar. La tuerca junto al usuario abre la configuración con temas
-  predeterminado, OLED y claro.
+  predeterminado, OLED y claro, además de acabados Mate, Style SkayGlass y Y2K 2000 para
+  los botones.
 - `features/status`: diagnóstico técnico.
 
 Rutas: `/login`, `/home`, `/profile` y `/status`. Crear pestañas nuevas sin
 duplicarlas para usar perfiles locales independientes. MSAL delega el login
 Microsoft a Entra ID y solicita el scope público configurado para la API Nexo.
 
-Los tres temas usan botones de cristal mate con textura turbulenta y una jerarquía
-tipográfica Gotham con alternativas geométricas del sistema. La preferencia se conserva en
-el navegador.
+Los tres temas pueden combinarse con botones Mate, Style SkayGlass —inspirado en Frutiger
+Aero e iOS 4— o Y2K 2000. La interfaz usa una jerarquía tipográfica Gotham con alternativas
+geométricas del sistema. Ambas preferencias se conservan en el navegador.
 Para reproducir Gotham exactamente se deben aportar archivos de fuente con licencia;
 el repositorio no distribuye tipografías propietarias.
 
@@ -45,7 +46,7 @@ npm run test:ci
 npm run build
 ```
 
-51 pruebas en diecinueve archivos. Los tests unitarios de voz simulan medios;
+53 pruebas en diecinueve archivos. Los tests unitarios de voz simulan medios;
 la conectividad WebRTC real se verifica por separado. `npm run format` aplica
 Prettier. El build de producción genera `dist/nexo`, que no se versiona.
 

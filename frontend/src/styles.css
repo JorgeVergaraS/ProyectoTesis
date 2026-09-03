@@ -699,3 +699,112 @@ html[data-theme='light'] .campus-note p {
 html[data-theme='light'] .profile-backdrop {
   background: #17364255;
 }
+
+/* Button finishes are independent from the selected color theme. */
+html[data-button-style='sky-glass'] button,
+html[data-button-style='sky-glass'] a.primary-button,
+html[data-button-style='sky-glass'] a.secondary-button {
+  backdrop-filter: blur(16px) saturate(155%);
+  box-shadow:
+    inset 0 1px 0 #ffffff8a,
+    inset 0 -8px 15px #075b9c2e,
+    0 7px 18px #0b72923d;
+}
+html[data-button-style='sky-glass'] button::after,
+html[data-button-style='sky-glass'] a.primary-button::after,
+html[data-button-style='sky-glass'] a.secondary-button::after {
+  background-image:
+    linear-gradient(180deg, #ffffffa8 0, #ffffff30 28%, transparent 52%), var(--matte-turbulence);
+  background-repeat: no-repeat, repeat;
+  background-size:
+    100% 100%,
+    150px 90px;
+  mix-blend-mode: screen;
+  opacity: 0.62;
+}
+html[data-button-style='sky-glass']
+  button[class]:not(.text-link):not(.mode-link):not(.sign-out):not(.account-profile),
+html[data-button-style='sky-glass'] a.primary-button,
+html[data-button-style='sky-glass'] a.secondary-button {
+  border-color: #c7f8ff75;
+}
+html[data-button-style='sky-glass'] .primary-button,
+html[data-button-style='sky-glass'] .send-button {
+  background: linear-gradient(180deg, #7ee7f4, #219cc9 48%, #1373a7 52%, #42b886);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -8px 14px #07568955,
+    0 7px 18px #087da752;
+  text-shadow: 0 1px 1px #064765;
+}
+html[data-button-style='sky-glass'] .secondary-button {
+  background: linear-gradient(180deg, #d9faff5c, #5ab7cc38 49%, #20789440 52%, #c5ffff2e);
+}
+html[data-button-style='sky-glass'] button:hover:not(:disabled),
+html[data-button-style='sky-glass'] a.primary-button:hover,
+html[data-button-style='sky-glass'] a.secondary-button:hover {
+  filter: saturate(1.18) brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 10px 24px #0a789757,
+    0 0 18px #62e8ff40;
+}
+
+html[data-button-style='y2k'] button,
+html[data-button-style='y2k'] a.primary-button,
+html[data-button-style='y2k'] a.secondary-button {
+  backdrop-filter: none;
+  transition-duration: 0.06s;
+}
+html[data-button-style='y2k'] button::after,
+html[data-button-style='y2k'] a.primary-button::after,
+html[data-button-style='y2k'] a.secondary-button::after {
+  background-image:
+    repeating-linear-gradient(90deg, #ffffff16 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(0deg, #00000010 0 1px, transparent 1px 3px);
+  background-size: auto;
+  mix-blend-mode: overlay;
+  opacity: 0.52;
+}
+html[data-button-style='y2k']
+  button[class]:not(.text-link):not(.mode-link):not(.sign-out):not(.account-profile):not(
+    .settings-button
+  ),
+html[data-button-style='y2k'] a.primary-button,
+html[data-button-style='y2k'] a.secondary-button {
+  border-color: #9bb0c5;
+  border-radius: 4px;
+  box-shadow:
+    inset 1px 1px 0 #edf9ff87,
+    inset -1px -1px 0 #06101d80,
+    3px 3px 0 #07101d;
+}
+html[data-button-style='y2k'] .primary-button,
+html[data-button-style='y2k'] .send-button {
+  background: linear-gradient(180deg, #e7f4ff, #718aa3 46%, #293b50 51%, #87c7e3);
+  color: #07111d;
+  text-shadow: 0 1px #fff;
+}
+html[data-button-style='y2k'] .secondary-button,
+html[data-button-style='y2k'] .icon-button,
+html[data-button-style='y2k'] .message-actions button {
+  background: linear-gradient(180deg, #d9e5edb8, #5f738999 48%, #26364b99 52%, #91a8ba99);
+  color: #f2f8ff;
+  text-shadow: 0 1px #06101a;
+}
+html[data-button-style='y2k'] button:hover:not(:disabled),
+html[data-button-style='y2k'] a.primary-button:hover,
+html[data-button-style='y2k'] a.secondary-button:hover {
+  filter: brightness(1.12) contrast(1.06);
+  transform: translate(-1px, -1px);
+  box-shadow:
+    inset 1px 1px 0 #fff,
+    inset -1px -1px 0 #07101d,
+    4px 4px 0 #07101d;
+}
+html[data-button-style='y2k'] button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow:
+    inset 1px 1px 2px #07101d,
+    1px 1px 0 #07101d;
+}

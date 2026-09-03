@@ -7,11 +7,17 @@ import {
   output,
   viewChild,
 } from '@angular/core';
-import { NexoTheme, ThemeService } from '../../../core/services/theme.service';
+import { NexoButtonStyle, NexoTheme, ThemeService } from '../../../core/services/theme.service';
 import { IconComponent } from '../../../shared/components/icon.component';
 
 type ThemeOption = {
   id: NexoTheme;
+  name: string;
+  description: string;
+};
+
+type ButtonStyleOption = {
+  id: NexoButtonStyle;
   name: string;
   description: string;
 };
@@ -43,6 +49,23 @@ export class SettingsPanelComponent implements AfterViewInit {
       description: 'Superficies luminosas con texto azul profundo.',
     },
   ];
+  readonly buttonStyles: readonly ButtonStyleOption[] = [
+    {
+      id: 'matte',
+      name: 'Mate',
+      description: 'Cristal sobrio con grano turbulento y reflejo mínimo.',
+    },
+    {
+      id: 'sky-glass',
+      name: 'Style SkayGlass',
+      description: 'Brillo acuático inspirado en Frutiger Aero e iOS 4.',
+    },
+    {
+      id: 'y2k',
+      name: 'Y2K 2000',
+      description: 'Cromo digital, bordes compactos y trama retro tecnológica.',
+    },
+  ];
 
   ngAfterViewInit(): void {
     queueMicrotask(() => this.closeButton()?.nativeElement.focus());
@@ -55,5 +78,9 @@ export class SettingsPanelComponent implements AfterViewInit {
 
   select(theme: NexoTheme): void {
     this.theme.select(theme);
+  }
+
+  selectButtonStyle(style: NexoButtonStyle): void {
+    this.theme.selectButtonStyle(style);
   }
 }

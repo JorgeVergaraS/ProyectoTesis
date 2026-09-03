@@ -12,7 +12,9 @@ describe('ThemeService', () => {
     const service = TestBed.inject(ThemeService);
 
     expect(service.current()).toBe('default');
+    expect(service.buttonStyle()).toBe('matte');
     expect(document.documentElement.dataset['theme']).toBe('default');
+    expect(document.documentElement.dataset['buttonStyle']).toBe('matte');
   });
 
   it('applies and persists the selected theme', () => {
@@ -23,5 +25,15 @@ describe('ThemeService', () => {
     expect(service.current()).toBe('oled');
     expect(document.documentElement.dataset['theme']).toBe('oled');
     expect(localStorage.getItem('nexo-theme')).toBe('oled');
+  });
+
+  it('applies and persists the selected button style', () => {
+    const service = TestBed.inject(ThemeService);
+
+    service.selectButtonStyle('sky-glass');
+
+    expect(service.buttonStyle()).toBe('sky-glass');
+    expect(document.documentElement.dataset['buttonStyle']).toBe('sky-glass');
+    expect(localStorage.getItem('nexo-button-style')).toBe('sky-glass');
   });
 });

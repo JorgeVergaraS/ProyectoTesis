@@ -101,12 +101,13 @@
 }
 .account-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px;
-  align-items: center;
-  gap: 3px;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
   border: 1px solid #252938;
   border-radius: 12px;
-  padding: 5px;
+  padding: 0;
   background: #0b101b;
   width: 100%;
   color: inherit;
@@ -120,11 +121,17 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
-  padding: 7px 5px;
+  min-height: 56px;
+  padding: 10px;
   border: 0;
   background: transparent;
   color: inherit;
+  box-shadow: none;
+  backdrop-filter: none;
   text-align: left;
+}
+.account-profile::after {
+  display: none;
 }
 .account-profile > span {
   flex: 1;
@@ -144,11 +151,12 @@
 .settings-button {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 42px;
+  height: 100%;
   padding: 0;
-  border: 1px solid #87dff22e;
-  border-radius: 10px;
+  border: 0;
+  border-left: 1px solid #87dff22e;
+  border-radius: 0;
   background: #a9eff40d;
   color: #91a8b5;
 }

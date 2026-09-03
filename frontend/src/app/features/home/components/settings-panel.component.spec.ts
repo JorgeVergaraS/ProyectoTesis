@@ -33,4 +33,19 @@ describe('SettingsPanelComponent', () => {
 
     expect(closed).toHaveBeenCalledOnce();
   });
+
+  it('offers and applies the three button styles', () => {
+    const fixture = TestBed.createComponent(SettingsPanelComponent);
+    const theme = TestBed.inject(ThemeService);
+    fixture.detectChanges();
+
+    const options = fixture.nativeElement.querySelectorAll('.button-style-option');
+    expect(options).toHaveLength(3);
+
+    options[2].click();
+    fixture.detectChanges();
+
+    expect(theme.buttonStyle()).toBe('y2k');
+    expect(options[2].getAttribute('aria-checked')).toBe('true');
+  });
 });
