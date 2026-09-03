@@ -700,6 +700,7 @@ Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilic
 - [Matriz de cumplimiento cloud-native](docs/cloud-native-compliance-matrix.md).
 - [Contribución](CONTRIBUTING.md) y [seguridad](SECURITY.md).
 - [Verificación actual de fotos y voz](docs/photos-and-calls-verification.md).
+- [Mockup interactivo de perfil, edición y transmisión](docs/nexo-profile-streaming-mockup.html).
 - Evidencia histórica: [fundación](docs/verification.md),
   [demo multiusuario](docs/local-demo-verification.md) y
   [rediseño](docs/visual-redesign-verification.md). Cada informe refleja su etapa.

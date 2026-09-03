@@ -1,0 +1,2231 @@
+<!doctype html>
+<html lang="es" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Nexo · Perfil y transmisión</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Nexo Profile Studio Mockup" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;es&quot; data-visualize-standalone&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Nexo · Perfil y transmisión&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --icon-size: 16px;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --corner-shape: round;
+  --radius: var(--border-radius-lg, 10px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: var(--visualize-paint-gutter, 0px);
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: var(--corner-shape);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+hr {
+  width: 100%;
+  height: 1px;
+  margin-block: 6px;
+  border: 0;
+  background: var(--border);
+}
+
+.nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress {
+  display: flex;
+  height: 8px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 8px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar:only-child {
+  border-radius: var(--radius-full);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.nav-link,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn,
+.nav-link {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover,
+.nav-link:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.nav-pills .nav-link {
+  min-width: 0;
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.nav-justified .nav-link {
+  flex: 1 1 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.nav-pills .nav-link.active {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.btn:disabled,
+.nav-link:disabled,
+.nav-link[aria-disabled=&quot;true&quot;] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: var(--corner-shape);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  .nav-link,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Keep small-screen WebKit from zooming when a text field receives focus. */
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type=&quot;file&quot;]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type=&quot;color&quot;] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;week&quot;]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: &quot;&quot;;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;nexo-profile-studio&quot; aria-label=&quot;Mockup interactivo del perfil y estudio de transmisión de Nexo&quot;&gt;
+  &lt;style&gt;
+    #nexo-profile-studio {
+      color-scheme: light dark;
+      --nx-page: light-dark(#eef0f5, #090b10);
+      --nx-window: light-dark(#ffffff, #11141b);
+      --nx-sidebar: light-dark(#f7f8fb, #171b23);
+      --nx-panel: light-dark(#ffffff, #151922);
+      --nx-panel-soft: light-dark(#f2f3f8, #202530);
+      --nx-panel-raised: light-dark(#ffffff, #242a36);
+      --nx-text: light-dark(#171923, #f2f4fa);
+      --nx-muted: light-dark(#696e7e, #a7adba);
+      --nx-border: light-dark(#dde0e8, #303644);
+      --nx-accent: light-dark(#6656d9, #9d90ff);
+      --nx-accent-strong: light-dark(#5142bf, #b1a8ff);
+      --nx-accent-soft: light-dark(#ece9ff, #2c2750);
+      --nx-positive: light-dark(#14845e, #55d8a8);
+      --nx-danger: light-dark(#c53d55, #ff7c91);
+      --nx-warning: light-dark(#a86613, #f2bd63);
+      --nx-shadow: light-dark(rgba(25, 31, 47, .13), rgba(0, 0, 0, .38));
+      --nx-panel-width: 342px;
+      width: 100%;
+      container-type: inline-size;
+      color: var(--nx-text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;
+    }
+
+    #nexo-profile-studio * { box-sizing: border-box; }
+    #nexo-profile-studio button,
+    #nexo-profile-studio input,
+    #nexo-profile-studio textarea,
+    #nexo-profile-studio select { font: inherit; }
+
+    #nexo-profile-studio .nx-window {
+      display: grid;
+      grid-template-columns: 72px 214px minmax(300px, 1fr) var(--nx-panel-width);
+      min-height: 720px;
+      overflow: hidden;
+      background: var(--nx-window);
+      border: 1px solid var(--nx-border);
+      border-radius: 24px;
+      box-shadow: 0 24px 70px var(--nx-shadow);
+    }
+
+    #nexo-profile-studio .nx-rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 10px;
+      background: light-dark(#28243f, #0c0e14);
+      color: light-dark(#f7f5ff, #f7f5ff);
+    }
+
+    #nexo-profile-studio .nx-logo,
+    #nexo-profile-studio .nx-rail-button,
+    #nexo-profile-studio .nx-icon-button,
+    #nexo-profile-studio .nx-avatar-button,
+    #nexo-profile-studio .nx-camera-edit {
+      display: inline-grid;
+      place-items: center;
+      border: 0;
+      cursor: pointer;
+    }
+
+    #nexo-profile-studio .nx-logo {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 6px;
+      border-radius: 14px;
+      background: light-dark(#8b7cff, #8b7cff);
+      color: light-dark(#ffffff, #ffffff);
+      font-weight: 500;
+      letter-spacing: -.04em;
+    }
+
+    #nexo-profile-studio .nx-rail-button {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: transparent;
+      color: light-dark(#cbc6df, #a7adba);
+    }
+
+    #nexo-profile-studio .nx-rail-button:hover,
+    #nexo-profile-studio .nx-rail-button.is-active {
+      background: light-dark(rgba(255,255,255,.15), #24293a);
+      color: light-dark(#ffffff, #ffffff);
+    }
+
+    #nexo-profile-studio .nx-rail-spacer { flex: 1; }
+
+    #nexo-profile-studio .nx-channel-sidebar {
+      padding: 22px 16px;
+      background: var(--nx-sidebar);
+      border-right: 1px solid var(--nx-border);
+    }
+
+    #nexo-profile-studio .nx-workspace-title,
+    #nexo-profile-studio .nx-topbar-title,
+    #nexo-profile-studio .nx-panel-title,
+    #nexo-profile-studio .nx-profile-name,
+    #nexo-profile-studio .nx-form-title {
+      margin: 0;
+      font-weight: 500;
+    }
+
+    #nexo-profile-studio .nx-workspace-title { font-size: 16px; }
+    #nexo-profile-studio .nx-workspace-subtitle,
+    #nexo-profile-studio .nx-meta,
+    #nexo-profile-studio .nx-handle,
+    #nexo-profile-studio .nx-label-hint,
+    #nexo-profile-studio .nx-toast { color: var(--nx-muted); }
+    #nexo-profile-studio .nx-workspace-subtitle { margin: 4px 0 24px; font-size: 12px; }
+
+    #nexo-profile-studio .nx-section-label {
+      margin: 22px 8px 8px;
+      color: var(--nx-muted);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    #nexo-profile-studio .nx-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 40px;
+      padding: 9px 10px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--nx-muted);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    #nexo-profile-studio .nx-nav-item.is-active {
+      background: var(--nx-accent-soft);
+      color: var(--nx-text);
+    }
+
+    #nexo-profile-studio .nx-live-dot,
+    #nexo-profile-studio .nx-online-dot {
+      display: inline-block;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: var(--nx-positive);
+    }
+    #nexo-profile-studio .nx-live-dot { width: 8px; height: 8px; }
+    #nexo-profile-studio .nx-online-dot { width: 10px; height: 10px; border: 2px solid var(--nx-panel); }
+
+    #nexo-profile-studio .nx-main {
+      min-width: 0;
+      background: var(--nx-window);
+    }
+
+    #nexo-profile-studio .nx-topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 72px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--nx-border);
+    }
+
+    #nexo-profile-studio .nx-topbar-copy { min-width: 0; }
+    #nexo-profile-studio .nx-topbar-title { font-size: 16px; }
+    #nexo-profile-studio .nx-meta { margin: 3px 0 0; font-size: 12px; }
+    #nexo-profile-studio .nx-topbar-spacer { flex: 1; }
+
+    #nexo-profile-studio .nx-icon-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--nx-panel-soft);
+      color: var(--nx-text);
+    }
+
+    #nexo-profile-studio .nx-avatar-button {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(145deg, var(--nx-accent), var(--nx-accent-strong));
+      color: light-dark(#ffffff, #ffffff);
+      font-weight: 500;
+    }
+
+    #nexo-profile-studio .nx-avatar-button .nx-online-dot {
+      position: absolute;
+      right: -1px;
+      bottom: -1px;
+    }
+
+    #nexo-profile-studio .nx-conversation {
+      display: grid;
+      gap: 18px;
+      padding: 24px;
+    }
+
+    #nexo-profile-studio .nx-welcome {
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--nx-border);
+    }
+
+    #nexo-profile-studio .nx-welcome h2 { margin: 0 0 6px; font-size: 22px; font-weight: 500; }
+    #nexo-profile-studio .nx-welcome p { margin: 0; color: var(--nx-muted); }
+
+    #nexo-profile-studio .nx-message {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    #nexo-profile-studio .nx-message-avatar {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: var(--nx-panel-soft);
+      color: var(--nx-accent-strong);
+      font-weight: 500;
+    }
+
+    #nexo-profile-studio .nx-message-head { display: flex; align-items: baseline; gap: 8px; }
+    #nexo-profile-studio .nx-message-author { font-weight: 500; }
+    #nexo-profile-studio .nx-message-time { color: var(--nx-muted); font-size: 11px; }
+    #nexo-profile-studio .nx-message p { margin: 5px 0 0; color: var(--nx-text); }
+
+    #nexo-profile-studio .nx-stream-card {
+      display: grid;
+      grid-template-columns: 1fr;
+      overflow: hidden;
+      background: var(--nx-panel-soft);
+      border: 1px solid var(--nx-border);
+      border-radius: 16px;
+    }
+
+    #nexo-profile-studio .nx-stream-thumb {
+      display: grid;
+      place-items: center;
+      min-height: 142px;
+      background:
+        radial-gradient(circle at 30% 30%, light-dark(rgba(102,86,217,.45), rgba(157,144,255,.4)), transparent 46%),
+        light-dark(#d9d7eb, #1b1d2a);
+      color: var(--nx-text);
+    }
+
+    #nexo-profile-studio .nx-stream-card-copy { align-self: center; padding: 20px; }
+    #nexo-profile-studio .nx-stream-card-copy h3 { margin: 0 0 7px; font-size: 15px; font-weight: 500; }
+    #nexo-profile-studio .nx-stream-card-copy p { margin: 0 0 14px; color: var(--nx-muted); font-size: 13px; }
+
+    #nexo-profile-studio .nx-primary,
+    #nexo-profile-studio .nx-secondary,
+    #nexo-profile-studio .nx-quiet,
+    #nexo-profile-studio .nx-device,
+    #nexo-profile-studio .nx-source-option {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 9px 14px;
+      border-radius: 11px;
+      cursor: pointer;
+    }
+
+    #nexo-profile-studio .nx-primary {
+      border: 1px solid var(--nx-accent);
+      background: var(--nx-accent);
+      color: light-dark(#ffffff, #101119);
+    }
+
+    #nexo-profile-studio .nx-primary:hover { background: var(--nx-accent-strong); }
+
+    #nexo-profile-studio .nx-secondary,
+    #nexo-profile-studio .nx-device,
+    #nexo-profile-studio .nx-source-option {
+      border: 1px solid var(--nx-border);
+      background: var(--nx-panel-raised);
+      color: var(--nx-text);
+    }
+
+    #nexo-profile-studio .nx-secondary:hover,
+    #nexo-profile-studio .nx-source-option[aria-pressed=&quot;true&quot;] {
+      border-color: var(--nx-accent);
+      background: var(--nx-accent-soft);
+    }
+
+    #nexo-profile-studio .nx-quiet {
+      border: 0;
+      background: transparent;
+      color: var(--nx-muted);
+    }
+
+    #nexo-profile-studio .nx-profile-panel {
+      min-width: 0;
+      background: var(--nx-panel);
+      border-left: 1px solid var(--nx-border);
+    }
+
+    #nexo-profile-studio .nx-profile-panel-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 72px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--nx-border);
+    }
+
+    #nexo-profile-studio .nx-panel-title { font-size: 15px; }
+    #nexo-profile-studio .nx-panel-header-spacer { flex: 1; }
+    #nexo-profile-studio .nx-panel-view { padding: 22px; }
+    #nexo-profile-studio .nx-panel-view[hidden] { display: none; }
+
+    #nexo-profile-studio .nx-cover {
+      height: 96px;
+      margin: -22px -22px 0;
+      background:
+        radial-gradient(circle at 72% 35%, light-dark(rgba(255,255,255,.44), rgba(255,255,255,.16)), transparent 25%),
+        linear-gradient(135deg, var(--nx-accent), light-dark(#df71b8, #d06eb1));
+    }
+
+    #nexo-profile-studio .nx-profile-avatar-wrap {
+      position: relative;
+      width: 94px;
+      margin-top: -47px;
+    }
+
+    #nexo-profile-studio .nx-profile-avatar {
+      display: grid;
+      place-items: center;
+      width: 94px;
+      height: 94px;
+      border: 5px solid var(--nx-panel);
+      border-radius: 28px;
+      background: linear-gradient(145deg, var(--nx-accent), var(--nx-accent-strong));
+      color: light-dark(#ffffff, #ffffff);
+      font-size: 28px;
+      font-weight: 500;
+    }
+
+    #nexo-profile-studio .nx-camera-edit {
+      position: absolute;
+      right: -5px;
+      bottom: 2px;
+      width: 34px;
+      height: 34px;
+      border: 3px solid var(--nx-panel);
+      border-radius: 11px;
+      background: var(--nx-text);
+      color: var(--nx-panel);
+    }
+
+    #nexo-profile-studio .nx-profile-heading { margin-top: 16px; }
+    #nexo-profile-studio .nx-profile-name { font-size: 21px; }
+    #nexo-profile-studio .nx-handle { margin: 4px 0 0; font-size: 13px; }
+
+    #nexo-profile-studio .nx-status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: 13px;
+    }
+
+    #nexo-profile-studio .nx-bio {
+      margin: 18px 0;
+      color: var(--nx-text);
+      line-height: 1.55;
+    }
+
+    #nexo-profile-studio .nx-profile-facts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    #nexo-profile-studio .nx-fact {
+      padding: 13px;
+      border-radius: 12px;
+      background: var(--nx-panel-soft);
+    }
+
+    #nexo-profile-studio .nx-fact strong { display: block; font-weight: 500; }
+    #nexo-profile-studio .nx-fact span { color: var(--nx-muted); font-size: 11px; }
+
+    #nexo-profile-studio .nx-action-stack { display: grid; gap: 10px; }
+    #nexo-profile-studio .nx-action-stack &gt; * { width: 100%; }
+
+    #nexo-profile-studio .nx-divider { height: 1px; margin: 20px 0; background: var(--nx-border); }
+    #nexo-profile-studio .nx-form-title { margin-bottom: 16px; font-size: 19px; }
+
+    #nexo-profile-studio .nx-field { display: grid; gap: 7px; margin-bottom: 15px; }
+    #nexo-profile-studio .nx-field label,
+    #nexo-profile-studio .nx-group-label { font-size: 12px; font-weight: 500; }
+    #nexo-profile-studio .nx-label-hint { font-weight: 400; }
+
+    #nexo-profile-studio .nx-field input,
+    #nexo-profile-studio .nx-field textarea,
+    #nexo-profile-studio .nx-field select {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 11px;
+      border: 1px solid var(--nx-border);
+      border-radius: 10px;
+      outline: none;
+      background: var(--nx-panel-soft);
+      color: var(--nx-text);
+    }
+
+    #nexo-profile-studio .nx-field textarea { min-height: 88px; resize: vertical; }
+    #nexo-profile-studio .nx-field input:focus,
+    #nexo-profile-studio .nx-field textarea:focus,
+    #nexo-profile-studio .nx-field select:focus { border-color: var(--nx-accent); }
+
+    #nexo-profile-studio .nx-form-actions { display: flex; gap: 10px; margin-top: 20px; }
+    #nexo-profile-studio .nx-form-actions &gt; * { flex: 1; }
+
+    #nexo-profile-studio .nx-preview {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 184px;
+      overflow: hidden;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 35% 32%, light-dark(rgba(102,86,217,.46), rgba(157,144,255,.38)), transparent 40%),
+        linear-gradient(145deg, light-dark(#d8dbea, #212633), light-dark(#ebe4ef, #30283a));
+    }
+
+    #nexo-profile-studio .nx-preview-copy { text-align: center; }
+    #nexo-profile-studio .nx-preview-copy strong { display: block; margin-top: 8px; font-weight: 500; }
+    #nexo-profile-studio .nx-live-label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 8px;
+      background: var(--nx-danger);
+      color: light-dark(#ffffff, #11141b);
+      font-size: 11px;
+      font-weight: 500;
+    }
+    #nexo-profile-studio .nx-preview.is-live .nx-live-label { display: inline-flex; }
+
+    #nexo-profile-studio .nx-source-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 9px 0 17px;
+    }
+
+    #nexo-profile-studio .nx-source-option { min-width: 0; padding-inline: 8px; }
+    #nexo-profile-studio .nx-audio-block { margin: 17px 0; }
+    #nexo-profile-studio .nx-audio-row { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
+    #nexo-profile-studio .nx-device { flex: 1; min-width: 0; justify-content: flex-start; overflow: hidden; }
+    #nexo-profile-studio .nx-device span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    #nexo-profile-studio .nx-mic-button {
+      display: inline-grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      border: 1px solid var(--nx-positive);
+      border-radius: 13px;
+      background: light-dark(rgba(20,132,94,.12), rgba(85,216,168,.12));
+      color: var(--nx-positive);
+      cursor: pointer;
+    }
+
+    #nexo-profile-studio .nx-mic-button.is-muted {
+      border-color: var(--nx-danger);
+      background: light-dark(rgba(197,61,85,.11), rgba(255,124,145,.12));
+      color: var(--nx-danger);
+    }
+
+    #nexo-profile-studio .nx-levels {
+      display: flex;
+      align-items: end;
+      gap: 3px;
+      height: 19px;
+      margin-top: 10px;
+    }
+    #nexo-profile-studio .nx-levels span { width: 5px; border-radius: 4px; background: var(--nx-positive); }
+    #nexo-profile-studio .nx-levels span:nth-child(1) { height: 6px; }
+    #nexo-profile-studio .nx-levels span:nth-child(2) { height: 11px; }
+    #nexo-profile-studio .nx-levels span:nth-child(3) { height: 17px; }
+    #nexo-profile-studio .nx-levels span:nth-child(4) { height: 13px; }
+    #nexo-profile-studio .nx-levels span:nth-child(5) { height: 8px; }
+    #nexo-profile-studio .nx-levels.is-muted span { background: var(--nx-border); }
+
+    #nexo-profile-studio .nx-permission {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin: 13px 0 18px;
+      padding: 11px;
+      border-radius: 10px;
+      background: var(--nx-accent-soft);
+      color: var(--nx-muted);
+      font-size: 12px;
+    }
+
+    #nexo-profile-studio .nx-stream-action { width: 100%; }
+    #nexo-profile-studio .nx-stream-action.is-live { border-color: var(--nx-danger); background: var(--nx-danger); }
+
+    #nexo-profile-studio .nx-toast {
+      min-height: 24px;
+      margin-top: 12px;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    #nexo-profile-studio[data-density=&quot;compact&quot;] .nx-conversation { gap: 12px; padding: 18px; }
+    #nexo-profile-studio[data-density=&quot;compact&quot;] .nx-panel-view { padding: 17px; }
+    #nexo-profile-studio[data-density=&quot;compact&quot;] .nx-cover { margin: -17px -17px 0; height: 80px; }
+
+    #nexo-profile-studio.profile-hidden .nx-window { grid-template-columns: 72px 214px minmax(300px, 1fr); }
+    #nexo-profile-studio.profile-hidden .nx-profile-panel { display: none; }
+
+    @media (max-width: 1100px) {
+      #nexo-profile-studio .nx-stream-card { grid-template-columns: 1fr; }
+      #nexo-profile-studio .nx-stream-thumb { min-height: 112px; }
+    }
+
+    @media (max-width: 900px) {
+      #nexo-profile-studio .nx-window { grid-template-columns: 66px minmax(280px, 1fr) var(--nx-panel-width); }
+      #nexo-profile-studio .nx-channel-sidebar { display: none; }
+      #nexo-profile-studio.profile-hidden .nx-window { grid-template-columns: 66px minmax(280px, 1fr); }
+    }
+
+    @media (max-width: 660px) {
+      #nexo-profile-studio .nx-window,
+      #nexo-profile-studio.profile-hidden .nx-window { display: block; border-radius: 18px; }
+      #nexo-profile-studio .nx-rail,
+      #nexo-profile-studio .nx-channel-sidebar { display: none; }
+      #nexo-profile-studio .nx-main { display: none; }
+      #nexo-profile-studio.profile-hidden .nx-main { display: block; }
+      #nexo-profile-studio .nx-profile-panel { border-top: 1px solid var(--nx-border); border-left: 0; }
+      #nexo-profile-studio .nx-stream-card { grid-template-columns: 1fr; }
+      #nexo-profile-studio .nx-conversation { padding: 18px; }
+      #nexo-profile-studio .nx-topbar { padding-inline: 14px; }
+    }
+
+    @container (max-width: 900px) {
+      #nexo-profile-studio .nx-window { grid-template-columns: 66px minmax(280px, 1fr) var(--nx-panel-width); }
+      #nexo-profile-studio .nx-channel-sidebar { display: none; }
+      #nexo-profile-studio.profile-hidden .nx-window { grid-template-columns: 66px minmax(280px, 1fr); }
+    }
+
+    @container (max-width: 660px) {
+      #nexo-profile-studio .nx-window,
+      #nexo-profile-studio.profile-hidden .nx-window { display: block; border-radius: 18px; }
+      #nexo-profile-studio .nx-rail,
+      #nexo-profile-studio .nx-channel-sidebar { display: none; }
+      #nexo-profile-studio .nx-main { display: none; }
+      #nexo-profile-studio.profile-hidden .nx-main { display: block; }
+      #nexo-profile-studio .nx-profile-panel { border-top: 1px solid var(--nx-border); border-left: 0; }
+      #nexo-profile-studio .nx-stream-card { grid-template-columns: 1fr; }
+      #nexo-profile-studio .nx-conversation { padding: 18px; }
+      #nexo-profile-studio .nx-topbar { padding-inline: 14px; }
+    }
+  &lt;/style&gt;
+
+  &lt;div class=&quot;nx-window&quot;&gt;
+    &lt;aside class=&quot;nx-rail&quot; aria-label=&quot;Navegación principal&quot;&gt;
+      &lt;div class=&quot;nx-logo&quot; aria-label=&quot;Nexo&quot;&gt;N&lt;/div&gt;
+      &lt;button class=&quot;nx-rail-button is-active&quot; type=&quot;button&quot; aria-label=&quot;Conversaciones&quot;&gt;&lt;i data-lucide=&quot;message-circle&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+      &lt;button class=&quot;nx-rail-button&quot; type=&quot;button&quot; aria-label=&quot;Contactos&quot;&gt;&lt;i data-lucide=&quot;users&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+      &lt;button class=&quot;nx-rail-button&quot; type=&quot;button&quot; aria-label=&quot;Transmisiones&quot;&gt;&lt;i data-lucide=&quot;radio&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+      &lt;div class=&quot;nx-rail-spacer&quot;&gt;&lt;/div&gt;
+      &lt;button class=&quot;nx-rail-button&quot; type=&quot;button&quot; aria-label=&quot;Configuración&quot;&gt;&lt;i data-lucide=&quot;settings&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+    &lt;/aside&gt;
+
+    &lt;aside class=&quot;nx-channel-sidebar&quot; aria-label=&quot;Canales del espacio de trabajo&quot;&gt;
+      &lt;h1 class=&quot;nx-workspace-title&quot;&gt;Nexo&lt;/h1&gt;
+      &lt;p class=&quot;nx-workspace-subtitle&quot;&gt;Espacio de trabajo&lt;/p&gt;
+
+      &lt;div class=&quot;nx-section-label&quot;&gt;Conversaciones&lt;/div&gt;
+      &lt;button class=&quot;nx-nav-item is-active&quot; type=&quot;button&quot;&gt;&lt;i data-lucide=&quot;hash&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;span&gt;general&lt;/span&gt;&lt;/button&gt;
+      &lt;button class=&quot;nx-nav-item&quot; type=&quot;button&quot;&gt;&lt;i data-lucide=&quot;hash&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;span&gt;proyecto-tesis&lt;/span&gt;&lt;/button&gt;
+      &lt;button class=&quot;nx-nav-item&quot; type=&quot;button&quot;&gt;&lt;i data-lucide=&quot;messages-square&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;span&gt;Mensajes directos&lt;/span&gt;&lt;/button&gt;
+
+      &lt;div class=&quot;nx-section-label&quot;&gt;En vivo&lt;/div&gt;
+      &lt;button class=&quot;nx-nav-item&quot; type=&quot;button&quot;&gt;&lt;span class=&quot;nx-live-dot&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;&lt;span&gt;Demo semanal&lt;/span&gt;&lt;/button&gt;
+    &lt;/aside&gt;
+
+    &lt;main class=&quot;nx-main&quot;&gt;
+      &lt;header class=&quot;nx-topbar&quot;&gt;
+        &lt;div class=&quot;nx-topbar-copy&quot;&gt;
+          &lt;h2 class=&quot;nx-topbar-title&quot;&gt;# general&lt;/h2&gt;
+          &lt;p class=&quot;nx-meta&quot;&gt;Conversación de todo el equipo&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;nx-topbar-spacer&quot;&gt;&lt;/div&gt;
+        &lt;button class=&quot;nx-icon-button&quot; type=&quot;button&quot; aria-label=&quot;Buscar&quot;&gt;&lt;i data-lucide=&quot;search&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+        &lt;button class=&quot;nx-icon-button&quot; type=&quot;button&quot; aria-label=&quot;Notificaciones&quot;&gt;&lt;i data-lucide=&quot;bell&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+        &lt;button class=&quot;nx-avatar-button&quot; id=&quot;nx-open-profile&quot; type=&quot;button&quot; aria-label=&quot;Abrir mi perfil&quot;&gt;
+          JV&lt;span class=&quot;nx-online-dot&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+        &lt;/button&gt;
+      &lt;/header&gt;
+
+      &lt;section class=&quot;nx-conversation&quot; aria-label=&quot;Conversación general&quot;&gt;
+        &lt;div class=&quot;nx-welcome&quot;&gt;
+          &lt;h2&gt;Bienvenido a #general&lt;/h2&gt;
+          &lt;p&gt;Comparte avances, preguntas y transmisiones con tu equipo.&lt;/p&gt;
+        &lt;/div&gt;
+
+        &lt;article class=&quot;nx-message&quot;&gt;
+          &lt;div class=&quot;nx-message-avatar&quot; aria-hidden=&quot;true&quot;&gt;CV&lt;/div&gt;
+          &lt;div&gt;
+            &lt;div class=&quot;nx-message-head&quot;&gt;&lt;span class=&quot;nx-message-author&quot;&gt;Camila Vega&lt;/span&gt;&lt;span class=&quot;nx-message-time&quot;&gt;10:24&lt;/span&gt;&lt;/div&gt;
+            &lt;p&gt;¿Revisamos el prototipo después del almuerzo?&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;nx-message&quot;&gt;
+          &lt;div class=&quot;nx-message-avatar&quot; aria-hidden=&quot;true&quot;&gt;JV&lt;/div&gt;
+          &lt;div&gt;
+            &lt;div class=&quot;nx-message-head&quot;&gt;&lt;span class=&quot;nx-message-author&quot;&gt;Jean Valenzuela&lt;/span&gt;&lt;span class=&quot;nx-message-time&quot;&gt;10:31&lt;/span&gt;&lt;/div&gt;
+            &lt;p&gt;Sí, puedo transmitir mi pantalla y mostrar el flujo completo.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;nx-stream-card&quot; aria-label=&quot;Invitación a transmisión&quot;&gt;
+          &lt;div class=&quot;nx-stream-thumb&quot;&gt;&lt;i data-lucide=&quot;monitor-play&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/div&gt;
+          &lt;div class=&quot;nx-stream-card-copy&quot;&gt;
+            &lt;h3&gt;Comparte avances en vivo&lt;/h3&gt;
+            &lt;p&gt;Configura cámara, pantalla y micrófono antes de comenzar.&lt;/p&gt;
+            &lt;button class=&quot;nx-secondary&quot; type=&quot;button&quot; data-open-panel=&quot;stream&quot;&gt;&lt;i data-lucide=&quot;radio&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;Preparar transmisión&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+      &lt;/section&gt;
+    &lt;/main&gt;
+
+    &lt;aside class=&quot;nx-profile-panel&quot; aria-label=&quot;Mi perfil&quot;&gt;
+      &lt;header class=&quot;nx-profile-panel-header&quot;&gt;
+        &lt;button class=&quot;nx-icon-button&quot; id=&quot;nx-panel-back&quot; type=&quot;button&quot; aria-label=&quot;Volver al perfil&quot; hidden&gt;&lt;i data-lucide=&quot;arrow-left&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+        &lt;h2 class=&quot;nx-panel-title&quot; id=&quot;nx-panel-title&quot;&gt;Mi perfil&lt;/h2&gt;
+        &lt;div class=&quot;nx-panel-header-spacer&quot;&gt;&lt;/div&gt;
+        &lt;button class=&quot;nx-quiet&quot; id=&quot;nx-close-profile&quot; type=&quot;button&quot; aria-label=&quot;Cerrar panel de perfil&quot;&gt;&lt;i data-lucide=&quot;x&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+      &lt;/header&gt;
+
+      &lt;section class=&quot;nx-panel-view&quot; id=&quot;nx-profile-view&quot; data-panel=&quot;profile&quot;&gt;
+        &lt;div class=&quot;nx-cover&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;nx-profile-avatar-wrap&quot;&gt;
+          &lt;div class=&quot;nx-profile-avatar&quot; aria-label=&quot;Avatar de Jean Valenzuela&quot;&gt;JV&lt;/div&gt;
+          &lt;button class=&quot;nx-camera-edit&quot; type=&quot;button&quot; aria-label=&quot;Cambiar foto de perfil&quot; data-open-panel=&quot;edit&quot;&gt;&lt;i data-lucide=&quot;camera&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;nx-profile-heading&quot;&gt;
+          &lt;h3 class=&quot;nx-profile-name&quot; id=&quot;nx-profile-name&quot;&gt;Jean Valenzuela&lt;/h3&gt;
+          &lt;p class=&quot;nx-handle&quot;&gt;@jean.valenzuela&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;nx-status-row&quot;&gt;&lt;span class=&quot;nx-online-dot&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;&lt;span&gt;Disponible&lt;/span&gt;&lt;/div&gt;
+        &lt;p class=&quot;nx-bio&quot; id=&quot;nx-profile-bio&quot;&gt;Construyendo experiencias simples para conectar equipos y compartir conocimiento.&lt;/p&gt;
+
+        &lt;div class=&quot;nx-profile-facts&quot;&gt;
+          &lt;div class=&quot;nx-fact&quot;&gt;&lt;strong&gt;12&lt;/strong&gt;&lt;span&gt;contactos&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;nx-fact&quot;&gt;&lt;strong&gt;3&lt;/strong&gt;&lt;span&gt;proyectos&lt;/span&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;nx-action-stack&quot;&gt;
+          &lt;button class=&quot;nx-primary&quot; type=&quot;button&quot; data-open-panel=&quot;edit&quot;&gt;&lt;i data-lucide=&quot;pencil&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;Editar mi perfil&lt;/button&gt;
+          &lt;button class=&quot;nx-secondary&quot; type=&quot;button&quot; data-open-panel=&quot;stream&quot;&gt;&lt;i data-lucide=&quot;radio&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;Iniciar transmisión&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;nx-panel-view&quot; id=&quot;nx-edit-view&quot; data-panel=&quot;edit&quot; hidden&gt;
+        &lt;h3 class=&quot;nx-form-title&quot;&gt;Editar perfil&lt;/h3&gt;
+        &lt;div class=&quot;nx-field&quot;&gt;
+          &lt;label for=&quot;nx-display-name&quot;&gt;Nombre visible&lt;/label&gt;
+          &lt;input id=&quot;nx-display-name&quot; type=&quot;text&quot; value=&quot;Jean Valenzuela&quot; autocomplete=&quot;name&quot;&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;nx-field&quot;&gt;
+          &lt;label for=&quot;nx-user-name&quot;&gt;Nombre de usuario&lt;/label&gt;
+          &lt;input id=&quot;nx-user-name&quot; type=&quot;text&quot; value=&quot;jean.valenzuela&quot; autocomplete=&quot;username&quot;&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;nx-field&quot;&gt;
+          &lt;label for=&quot;nx-bio-input&quot;&gt;Biografía &lt;span class=&quot;nx-label-hint&quot;&gt;· hasta 250 caracteres&lt;/span&gt;&lt;/label&gt;
+          &lt;textarea id=&quot;nx-bio-input&quot; maxlength=&quot;250&quot;&gt;Construyendo experiencias simples para conectar equipos y compartir conocimiento.&lt;/textarea&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;nx-field&quot;&gt;
+          &lt;label for=&quot;nx-status-select&quot;&gt;Estado&lt;/label&gt;
+          &lt;select id=&quot;nx-status-select&quot;&gt;
+            &lt;option&gt;Disponible&lt;/option&gt;
+            &lt;option&gt;Ocupado&lt;/option&gt;
+            &lt;option&gt;Ausente&lt;/option&gt;
+          &lt;/select&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;nx-form-actions&quot;&gt;
+          &lt;button class=&quot;nx-secondary&quot; type=&quot;button&quot; data-open-panel=&quot;profile&quot;&gt;Cancelar&lt;/button&gt;
+          &lt;button class=&quot;nx-primary&quot; id=&quot;nx-save-profile&quot; type=&quot;button&quot;&gt;Guardar cambios&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;nx-toast&quot; id=&quot;nx-edit-toast&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;nx-panel-view&quot; id=&quot;nx-stream-view&quot; data-panel=&quot;stream&quot; hidden&gt;
+        &lt;div class=&quot;nx-preview&quot; id=&quot;nx-stream-preview&quot;&gt;
+          &lt;span class=&quot;nx-live-label&quot;&gt;&lt;span class=&quot;nx-live-dot&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;EN VIVO&lt;/span&gt;
+          &lt;div class=&quot;nx-preview-copy&quot;&gt;&lt;i data-lucide=&quot;monitor-up&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;strong&gt;Vista previa&lt;/strong&gt;&lt;span class=&quot;nx-meta&quot;&gt;Solo tú puedes verla&lt;/span&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;nx-divider&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;nx-field&quot;&gt;
+          &lt;label for=&quot;nx-stream-title&quot;&gt;Título de la transmisión&lt;/label&gt;
+          &lt;input id=&quot;nx-stream-title&quot; type=&quot;text&quot; value=&quot;Avances del prototipo&quot;&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;nx-field&quot;&gt;
+          &lt;label for=&quot;nx-audience&quot;&gt;Compartir en&lt;/label&gt;
+          &lt;select id=&quot;nx-audience&quot;&gt;
+            &lt;option&gt;# general&lt;/option&gt;
+            &lt;option&gt;# proyecto-tesis&lt;/option&gt;
+            &lt;option&gt;Solo invitados&lt;/option&gt;
+          &lt;/select&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;nx-group-label&quot;&gt;Fuente de video&lt;/div&gt;
+        &lt;div class=&quot;nx-source-grid&quot; role=&quot;group&quot; aria-label=&quot;Fuente de video&quot;&gt;
+          &lt;button class=&quot;nx-source-option&quot; type=&quot;button&quot; aria-pressed=&quot;true&quot;&gt;&lt;i data-lucide=&quot;monitor&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;Pantalla&lt;/button&gt;
+          &lt;button class=&quot;nx-source-option&quot; type=&quot;button&quot; aria-pressed=&quot;false&quot;&gt;&lt;i data-lucide=&quot;video&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;Cámara&lt;/button&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;nx-audio-block&quot;&gt;
+          &lt;div class=&quot;nx-group-label&quot;&gt;Micrófono&lt;/div&gt;
+          &lt;div class=&quot;nx-audio-row&quot;&gt;
+            &lt;button class=&quot;nx-mic-button&quot; id=&quot;nx-mic-toggle&quot; type=&quot;button&quot; aria-label=&quot;Silenciar micrófono&quot; aria-pressed=&quot;true&quot;&gt;&lt;i class=&quot;nx-mic-on&quot; data-lucide=&quot;mic&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;i class=&quot;nx-mic-off&quot; data-lucide=&quot;mic-off&quot; aria-hidden=&quot;true&quot; hidden&gt;&lt;/i&gt;&lt;/button&gt;
+            &lt;button class=&quot;nx-device&quot; type=&quot;button&quot;&gt;&lt;i data-lucide=&quot;chevron-down&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;span&gt;Micrófono predeterminado&lt;/span&gt;&lt;/button&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;nx-levels&quot; id=&quot;nx-audio-levels&quot; aria-label=&quot;Nivel de entrada del micrófono&quot;&gt;
+            &lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;nx-permission&quot;&gt;&lt;i data-lucide=&quot;shield-check&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;span&gt;La cámara y el micrófono se activan solo después de tu confirmación.&lt;/span&gt;&lt;/div&gt;
+        &lt;button class=&quot;nx-primary nx-stream-action&quot; id=&quot;nx-start-stream&quot; type=&quot;button&quot;&gt;&lt;i data-lucide=&quot;radio&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;span&gt;Iniciar transmisión&lt;/span&gt;&lt;/button&gt;
+        &lt;div class=&quot;nx-toast&quot; id=&quot;nx-stream-toast&quot; aria-live=&quot;polite&quot;&gt;Revisa tu imagen y audio antes de comenzar.&lt;/div&gt;
+      &lt;/section&gt;
+    &lt;/aside&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    (() =&gt; {
+      const root = document.getElementById(&#x27;nexo-profile-studio&#x27;);
+      const panelTitle = document.getElementById(&#x27;nx-panel-title&#x27;);
+      const backButton = document.getElementById(&#x27;nx-panel-back&#x27;);
+      const views = Array.from(root.querySelectorAll(&#x27;[data-panel]&#x27;));
+      const titles = { profile: &#x27;Mi perfil&#x27;, edit: &#x27;Editar perfil&#x27;, stream: &#x27;Preparar transmisión&#x27; };
+      let currentPanel = &#x27;profile&#x27;;
+
+      function showPanel(name) {
+        currentPanel = name;
+        root.classList.remove(&#x27;profile-hidden&#x27;);
+        views.forEach((view) =&gt; { view.hidden = view.dataset.panel !== name; });
+        panelTitle.textContent = titles[name];
+        backButton.hidden = name === &#x27;profile&#x27;;
+      }
+
+      root.querySelectorAll(&#x27;[data-open-panel]&#x27;).forEach((button) =&gt; {
+        button.addEventListener(&#x27;click&#x27;, () =&gt; showPanel(button.dataset.openPanel));
+      });
+
+      backButton.addEventListener(&#x27;click&#x27;, () =&gt; showPanel(&#x27;profile&#x27;));
+      document.getElementById(&#x27;nx-open-profile&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; showPanel(&#x27;profile&#x27;));
+      document.getElementById(&#x27;nx-close-profile&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; root.classList.add(&#x27;profile-hidden&#x27;));
+
+      document.getElementById(&#x27;nx-save-profile&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
+        const name = document.getElementById(&#x27;nx-display-name&#x27;).value.trim();
+        const bio = document.getElementById(&#x27;nx-bio-input&#x27;).value.trim();
+        if (name) document.getElementById(&#x27;nx-profile-name&#x27;).textContent = name;
+        document.getElementById(&#x27;nx-profile-bio&#x27;).textContent = bio || &#x27;Sin biografía todavía.&#x27;;
+        document.getElementById(&#x27;nx-edit-toast&#x27;).textContent = &#x27;Cambios guardados&#x27;;
+        window.setTimeout(() =&gt; showPanel(&#x27;profile&#x27;), 650);
+      });
+
+      const micButton = document.getElementById(&#x27;nx-mic-toggle&#x27;);
+      const audioLevels = document.getElementById(&#x27;nx-audio-levels&#x27;);
+      let micEnabled = true;
+      micButton.addEventListener(&#x27;click&#x27;, () =&gt; {
+        micEnabled = !micEnabled;
+        micButton.classList.toggle(&#x27;is-muted&#x27;, !micEnabled);
+        audioLevels.classList.toggle(&#x27;is-muted&#x27;, !micEnabled);
+        micButton.setAttribute(&#x27;aria-pressed&#x27;, String(micEnabled));
+        micButton.setAttribute(&#x27;aria-label&#x27;, micEnabled ? &#x27;Silenciar micrófono&#x27; : &#x27;Activar micrófono&#x27;);
+        micButton.querySelector(&#x27;.nx-mic-on&#x27;).hidden = !micEnabled;
+        micButton.querySelector(&#x27;.nx-mic-off&#x27;).hidden = micEnabled;
+      });
+
+      const sourceButtons = Array.from(root.querySelectorAll(&#x27;.nx-source-option&#x27;));
+      sourceButtons.forEach((button) =&gt; {
+        button.addEventListener(&#x27;click&#x27;, () =&gt; sourceButtons.forEach((item) =&gt; item.setAttribute(&#x27;aria-pressed&#x27;, String(item === button))));
+      });
+
+      const streamButton = document.getElementById(&#x27;nx-start-stream&#x27;);
+      const streamPreview = document.getElementById(&#x27;nx-stream-preview&#x27;);
+      const streamToast = document.getElementById(&#x27;nx-stream-toast&#x27;);
+      let isLive = false;
+      streamButton.addEventListener(&#x27;click&#x27;, () =&gt; {
+        isLive = !isLive;
+        streamPreview.classList.toggle(&#x27;is-live&#x27;, isLive);
+        streamButton.classList.toggle(&#x27;is-live&#x27;, isLive);
+        streamButton.querySelector(&#x27;span&#x27;).textContent = isLive ? &#x27;Finalizar transmisión&#x27; : &#x27;Iniciar transmisión&#x27;;
+        streamToast.textContent = isLive ? &#x27;Transmitiendo ahora en #general&#x27; : &#x27;Transmisión finalizada&#x27;;
+      });
+
+      const design = { panelWidth: 342, density: &#x27;comfortable&#x27;, showChannels: true };
+      function renderDesign() {
+        root.style.setProperty(&#x27;--nx-panel-width&#x27;, `${design.panelWidth}px`);
+        root.dataset.density = design.density;
+        const sidebar = root.querySelector(&#x27;.nx-channel-sidebar&#x27;);
+        sidebar.style.display = design.showChannels ? &#x27;&#x27; : &#x27;none&#x27;;
+        const windowGrid = root.querySelector(&#x27;.nx-window&#x27;);
+        if (window.innerWidth &gt; 900) {
+          windowGrid.style.gridTemplateColumns = design.showChannels
+            ? `72px 214px minmax(300px, 1fr) ${design.panelWidth}px`
+            : `72px minmax(300px, 1fr) ${design.panelWidth}px`;
+        }
+      }
+      renderDesign();
+
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({ container: root, onChange: renderDesign });
+        tweak.addSlider(design, &#x27;panelWidth&#x27;, { label: &#x27;Ancho del perfil&#x27;, min: 310, max: 410, unit: &#x27;px&#x27;, reference: &#x27;--nx-panel-width&#x27; });
+        tweak.addSelect(design, &#x27;density&#x27;, { label: &#x27;Densidad&#x27;, options: [{ label: &#x27;Cómoda&#x27;, value: &#x27;comfortable&#x27; }, { label: &#x27;Compacta&#x27;, value: &#x27;compact&#x27; }], reference: &#x27;profile.density&#x27; });
+        tweak.addToggle(design, &#x27;showChannels&#x27;, { label: &#x27;Mostrar canales&#x27;, reference: &#x27;layout.channels&#x27; });
+      }
+    })();
+  &lt;/script&gt;
+&lt;/div&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) =&gt; {
+    lastPointerWasTouch =
+      event.type === &quot;pointerdown&quot; &amp;&amp; event.pointerType === &quot;touch&quot;;
+  };
+  const handleTouchClick = (event) =&gt; {
+    const isTouch = event.pointerType === &quot;touch&quot; || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch &amp;&amp; activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() =&gt; {
+      if (activeTrigger === trigger &amp;&amp; !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) =&gt; {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerdown&quot;, handlePointer);
+    document.removeEventListener(&quot;pointercancel&quot;, handlePointer);
+    document.removeEventListener(&quot;click&quot;, handleTouchClick);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerdown&quot;, handlePointer);
+  document.addEventListener(&quot;pointercancel&quot;, handlePointer);
+  document.addEventListener(&quot;click&quot;, handleTouchClick);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-tabs&quot;&gt;
+(() =&gt; {
+  const selector = &#x27;.nav[role=&quot;tablist&quot;] [role=&quot;tab&quot;]&#x27;;
+  const disabled = &#x27;:disabled,[aria-disabled=&quot;true&quot;]&#x27;;
+  const selectTab = (selected) =&gt; {
+    const panelId = selected.getAttribute(&quot;aria-controls&quot;);
+    for (const tab of selected.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;)) {
+      const active = tab === selected;
+      tab.classList.toggle(&quot;active&quot;, active);
+      tab.setAttribute(&quot;aria-selected&quot;, String(active));
+      const id = tab.getAttribute(&quot;aria-controls&quot;);
+      const panel = id &amp;&amp; document.getElementById(id);
+      if (panel != null) {
+        panel.hidden = id !== panelId;
+        if (!panel.hidden &amp;&amp; selected.id) {
+          panel.setAttribute(&quot;aria-labelledby&quot;, selected.id);
+        }
+      }
+    }
+  };
+  const interact = (event) =&gt; {
+    const tab = event.target?.closest?.(selector);
+    if (event.defaultPrevented || tab == null || tab.matches(disabled)) {
+      return;
+    }
+    if (event.type === &quot;click&quot;) {
+      selectTab(tab);
+      return;
+    }
+    const tabs = Array.from(
+      tab.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;),
+    ).filter((candidate) =&gt; !candidate.matches(disabled));
+    const current = tabs.indexOf(tab);
+    let next;
+    if (event.key === &quot;ArrowRight&quot; || event.key === &quot;ArrowDown&quot;) {
+      next = (current + 1) % tabs.length;
+    } else if (event.key === &quot;ArrowLeft&quot; || event.key === &quot;ArrowUp&quot;) {
+      next = (current + tabs.length - 1) % tabs.length;
+    } else if (event.key === &quot;Home&quot;) {
+      next = 0;
+    } else if (event.key === &quot;End&quot;) {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    tabs[next].focus();
+    selectTab(tabs[next]);
+  };
+
+  for (const list of document.querySelectorAll(&#x27;.nav[role=&quot;tablist&quot;]&#x27;)) {
+    const selected =
+      list.querySelector(&#x27;[role=&quot;tab&quot;][aria-selected=&quot;true&quot;]&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;].active&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;]&#x27;);
+    if (selected != null) {
+      selectTab(selected);
+    }
+  }
+  document.addEventListener(&quot;click&quot;, interact);
+  document.addEventListener(&quot;keydown&quot;, interact);
+  window.addEventListener(&quot;pagehide&quot;, () =&gt; {
+    document.removeEventListener(&quot;click&quot;, interact);
+    document.removeEventListener(&quot;keydown&quot;, interact);
+  }, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
