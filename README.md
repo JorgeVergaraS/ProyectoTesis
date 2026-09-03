@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="#producto">Producto</a> ·
+  <a href="profile-streaming-implementation-plan.md">Plan a seguir</a> ·
   <a href="#arquitectura">Arquitectura</a> ·
   <a href="#instalacion">Instalación</a> ·
   <a href="#api">API</a> ·
@@ -25,6 +26,7 @@
 ## Índice
 
 - [Producto y capturas](#producto)
+- [Plan a seguir](profile-streaming-implementation-plan.md)
 - [Alcance implementado](#alcance)
 - [Stack y requisitos](#stack)
 - [Arquitectura](#arquitectura)
