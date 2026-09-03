@@ -723,7 +723,7 @@ Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilic
 - [Contribución](CONTRIBUTING.md) y [seguridad](SECURITY.md).
 - [Verificación actual de fotos y voz](docs/photos-and-calls-verification.md).
 - [Mockup interactivo de perfil, edición y transmisión](docs/nexo-profile-streaming-mockup.html).
-- [Plan de implementación de perfil y transmisiones](docs/profile-streaming-implementation-plan.md).
+- [Plan de implementación de perfil y transmisiones](profile-streaming-implementation-plan.md).
 - Evidencia histórica: [fundación](docs/verification.md),
   [demo multiusuario](docs/local-demo-verification.md) y
   [rediseño](docs/visual-redesign-verification.md). Cada informe refleja su etapa.

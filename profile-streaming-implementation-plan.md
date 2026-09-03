@@ -172,7 +172,7 @@ participantes o grabaciones se añadirá solo si el alcance académico lo exige.
 
 ### Fase 1 — Perfil autenticado en backend
 
-**Estado:** completada en `codex/authenticated-workspace`. La migración V9, los contratos
+**Estado:** completada en `feature/authenticated-workspace`. La migración V9, los contratos
 autenticados, los adaptadores demo y las pruebas de integración están implementados.
 
 1. Crear DTOs de actualización y validaciones.
@@ -189,7 +189,7 @@ subir/quitar avatar y ver el cambio en perfil, mensajes y participantes.
 
 ### Fase 2 — Perfil y edición en Angular
 
-**Estado:** completada en `codex/authenticated-workspace`. El panel y el formulario son
+**Estado:** completada en `feature/authenticated-workspace`. El panel y el formulario son
 reutilizables, se adaptan a escritorio/móvil y conservan compatibilidad con demo, cuenta local
 y Microsoft. La persistencia y la recarga se validaron desde la interfaz real.
 
