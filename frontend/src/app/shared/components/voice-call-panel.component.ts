@@ -192,7 +192,7 @@ export class VoiceCallPanelComponent {
       element.srcObject = stream;
       if (stream) void this.playAudio();
       else {
-        element.pause();
+        if (!element.paused) element.pause();
         this.audioBlocked.set(false);
       }
     });

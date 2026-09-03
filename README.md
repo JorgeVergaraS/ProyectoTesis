@@ -43,6 +43,7 @@
 - [Documentación y licencia](#documentacion)
 
 <a id="producto"></a>
+
 ## Producto y capturas
 
 Nexo organiza la experiencia alrededor de personas, conversaciones y comunidades
@@ -91,37 +92,39 @@ instalación nueva.
 [Origen de las capturas](docs/images/README.md).
 
 <a id="alcance"></a>
+
 ## Alcance implementado
 
-| Área | Disponible | Límite actual |
-| --- | --- | --- |
-| Acceso | Demo, registro/login local y Microsoft Entra ID mediante MSAL | Login Microsoft real pendiente de evidencia interactiva |
-| Navegación | Login, Inicio, Comunidades, Mensajes, Personas, Perfil y diagnóstico | Sin administración institucional |
-| Canales | Descubrir, unirse, salir, ver participantes y conversar | Cuatro canales predefinidos; sin creación desde UI |
-| Directos | Conversaciones entre dos perfiles con autorización backend | Sin grupos privados ni confirmaciones de lectura |
-| Historial | PostgreSQL; envío idempotente, edición/borrado del autor, copiar, responder y reenviar | Últimos 100 mensajes; respuestas y reenvíos se representan como texto, sin hilos |
-| Apariencia | Temas predeterminado, OLED y claro; botones Mate, Style SkayGlass y Y2K 2000; configuración junto al nombre | Preferencias locales de cada navegador, sin sincronización entre dispositivos |
-| Enlaces | Reconoce `http://`, `https://` y `www.` | Sin previews ni verificación de reputación |
-| Perfil | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada | Sin campos institucionales ni configuración de privacidad |
-| Llamadas | Voz WebRTC, aceptar/rechazar, mute y finalizar | Dos usuarios; mismo equipo; sin video ni STUN/TURN |
-| Presencia | Actividad reciente de sesiones | Polling HTTP; no hay WebSocket |
-| Operación | Docker Compose, Flyway, health, Actuator y Swagger | Solo local, sin despliegue público |
+| Área       | Disponible                                                                                                  | Límite actual                                                                    |
+| ---------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Acceso     | Demo, registro/login local y Microsoft Entra ID mediante MSAL                                               | Login Microsoft real pendiente de evidencia interactiva                          |
+| Navegación | Login, Inicio, Comunidades, Mensajes, Personas, Perfil y diagnóstico                                        | Sin administración institucional                                                 |
+| Canales    | Descubrir, unirse, salir, ver participantes y conversar                                                     | Cuatro canales predefinidos; sin creación desde UI                               |
+| Directos   | Conversaciones entre dos perfiles con autorización backend                                                  | Sin grupos privados ni confirmaciones de lectura                                 |
+| Historial  | PostgreSQL; envío idempotente, edición/borrado del autor, copiar, responder y reenviar                      | Últimos 100 mensajes; respuestas y reenvíos se representan como texto, sin hilos |
+| Apariencia | Temas predeterminado, OLED y claro; botones Mate, Style SkayGlass y Y2K 2000; configuración junto al nombre | Preferencias locales de cada navegador, sin sincronización entre dispositivos    |
+| Enlaces    | Reconoce `http://`, `https://` y `www.`                                                                     | Sin previews ni verificación de reputación                                       |
+| Perfil     | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada                         | Sin campos institucionales ni configuración de privacidad                        |
+| Llamadas   | Voz WebRTC, aceptar/rechazar, mute y finalizar                                                              | Dos usuarios; mismo equipo; sin video ni STUN/TURN                               |
+| Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
+| Operación  | Docker Compose, Flyway, health, Actuator y Swagger                                                          | Solo local, sin despliegue público                                               |
 
 <a id="stack"></a>
+
 ## Stack y requisitos
 
-| Capa | Tecnología utilizada |
-| --- | --- |
-| Frontend | Angular 21.2, TypeScript 5.9, Tailwind CSS 4, RxJS 7.8 |
-| Diseño Angular | Standalone Components, signals, Reactive Forms y rutas lazy |
-| Voz | WebRTC del navegador y `getUserMedia` |
-| Backend | Java 21, Spring Boot 3.5.16, Maven Wrapper 3.9.16 |
-| API | Spring Web, Bean Validation, DTOs y errores uniformes |
-| Seguridad | Spring Security, JWT local/Entra, scopes/roles y bearer demo aislado |
-| Persistencia | PostgreSQL 17.10, JPA/Hibernate, JdbcClient y Flyway |
-| Observabilidad | Actuator y springdoc OpenAPI 2.8.17 |
-| Pruebas | JUnit 5, Spring Security Test, Testcontainers, Vitest y jsdom |
-| Infraestructura | Docker Compose; backend Docker opcional |
+| Capa            | Tecnología utilizada                                                 |
+| --------------- | -------------------------------------------------------------------- |
+| Frontend        | Angular 21.2, TypeScript 5.9, Tailwind CSS 4, RxJS 7.8               |
+| Diseño Angular  | Standalone Components, signals, Reactive Forms y rutas lazy          |
+| Voz             | WebRTC del navegador y `getUserMedia`                                |
+| Backend         | Java 21, Spring Boot 3.5.16, Maven Wrapper 3.9.16                    |
+| API             | Spring Web, Bean Validation, DTOs y errores uniformes                |
+| Seguridad       | Spring Security, JWT local/Entra, scopes/roles y bearer demo aislado |
+| Persistencia    | PostgreSQL 17.10, JPA/Hibernate, JdbcClient y Flyway                 |
+| Observabilidad  | Actuator y springdoc OpenAPI 2.8.17                                  |
+| Pruebas         | JUnit 5, Spring Security Test, Testcontainers, Vitest y jsdom        |
+| Infraestructura | Docker Compose; backend Docker opcional                              |
 
 Instalar **Node.js 24**, **npm 11**, **JDK 21** y **Docker Desktop con motor Linux**
 o Docker Engine con Compose. Configurar `JAVA_HOME`. Angular CLI está incluido en
@@ -133,6 +136,7 @@ Usar `npm ci` para reproducirlas. La primera ejecución requiere Internet para
 dependencias e imágenes; no necesita credenciales Microsoft.
 
 <a id="arquitectura"></a>
+
 ## Arquitectura
 
 **Monorepo y monolito modular:** una SPA Angular, una sola aplicación Spring Boot
@@ -188,7 +192,7 @@ sequenceDiagram
     actor Jean
     Jorge->>A: Llamar
     A->>A: Micrófono y oferta SDP/ICE
-    A->>API: Crear llamada con sesión demo
+    A->>API: Crear llamada con la identidad autenticada
     B->>API: Consultar llamada actual
     API-->>B: Invitación y oferta
     Jean->>B: Aceptar
@@ -211,6 +215,7 @@ la ausencia de actividad también vence a los 45 s. La limpieza se evalúa al
 atender peticiones. El permiso de micrófono pendiente tiene un límite de 30 s.
 
 <a id="estructura"></a>
+
 ## Estructura del repositorio
 
 ```text
@@ -272,6 +277,7 @@ Los tests Angular viven junto al código. No se versionan `.env`, dependencias
 descargadas, volúmenes PostgreSQL, `target`, `dist` ni caches.
 
 <a id="datos"></a>
+
 ## Modelo de datos
 
 ```mermaid
@@ -326,16 +332,16 @@ Los IDs son UUID. La pareja de usuarios de un directo se normaliza para impedir
 duplicados. La clave única `(conversation_id, sender_id, client_id)` impide
 duplicar un mensaje al reintentarlo.
 
-| Migración | Propósito |
-| --- | --- |
-| V0 | Crear schema `nexo` |
-| V1 | Usuarios locales, proveedor y campos preparados para Entra |
-| V2 | Sesiones, conversaciones, miembros, mensajes e índices |
-| V3 | Tres perfiles, cuatro canales y mensajes ficticios; solo `local-demo` |
-| V4 | Fotos `bytea` y versión UUID |
-| V5–V7 | Identidad local, contraseñas BCrypt y nombres de usuario Entra |
-| V8 | Canal `general` común y membresía inicial para usuarios activos |
-| V9 | Disponibilidad, protección de personalizaciones e identificador público único sin distinguir mayúsculas |
+| Migración | Propósito                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------- |
+| V0        | Crear schema `nexo`                                                                                     |
+| V1        | Usuarios locales, proveedor y campos preparados para Entra                                              |
+| V2        | Sesiones, conversaciones, miembros, mensajes e índices                                                  |
+| V3        | Tres perfiles, cuatro canales y mensajes ficticios; solo `local-demo`                                   |
+| V4        | Fotos `bytea` y versión UUID                                                                            |
+| V5–V7     | Identidad local, contraseñas BCrypt y nombres de usuario Entra                                          |
+| V8        | Canal `general` común y membresía inicial para usuarios activos                                         |
+| V9        | Disponibilidad, protección de personalizaciones e identificador público único sin distinguir mayúsculas |
 
 Flyway guarda su historial en `public`; Hibernate usa `ddl-auto=validate`.
 No editar migraciones aplicadas: agregar una nueva. Desactivar `local-demo` no
@@ -343,6 +349,7 @@ borra datos ya sembrados. La futura instalación real necesita una base limpia
 y una transición de identidad revisada.
 
 <a id="instalacion"></a>
+
 ## Ejecución local
 
 ### 1. Clonar y configurar
@@ -360,17 +367,17 @@ por una contraseña local y usar el mismo valor en `POSTGRES_PASSWORD` y
 SPRING_PROFILES_ACTIVE=local-demo
 ```
 
-| Variable | Uso |
-| --- | --- |
-| `POSTGRES_DB`, `POSTGRES_USER` | Base y usuario; ejemplo `nexo` |
-| `POSTGRES_PASSWORD` | Contraseña del contenedor; obligatoria, no versionada |
-| `POSTGRES_PORT` | Puerto host de PostgreSQL; 5432 |
-| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/nexo` |
-| `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | Acceso JDBC del backend |
-| `SPRING_PROFILES_ACTIVE` | `local-demo` habilita perfiles de prueba |
-| `SERVER_PORT` | Puerto del backend local; 8080 |
-| `CORS_ALLOWED_ORIGINS` | Origen permitido; `http://localhost:4200` |
-| `AZURE_*` | Tenant, audience, JWK Set URI y scope públicos; nunca Client Secrets |
+| Variable                                                   | Uso                                                                  |
+| ---------------------------------------------------------- | -------------------------------------------------------------------- |
+| `POSTGRES_DB`, `POSTGRES_USER`                             | Base y usuario; ejemplo `nexo`                                       |
+| `POSTGRES_PASSWORD`                                        | Contraseña del contenedor; obligatoria, no versionada                |
+| `POSTGRES_PORT`                                            | Puerto host de PostgreSQL; 5432                                      |
+| `SPRING_DATASOURCE_URL`                                    | `jdbc:postgresql://localhost:5432/nexo`                              |
+| `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | Acceso JDBC del backend                                              |
+| `SPRING_PROFILES_ACTIVE`                                   | `local-demo` habilita perfiles de prueba                             |
+| `SERVER_PORT`                                              | Puerto del backend local; 8080                                       |
+| `CORS_ALLOWED_ORIGINS`                                     | Origen permitido; `http://localhost:4200`                            |
+| `AZURE_*`                                                  | Tenant, audience, JWK Set URI y scope públicos; nunca Client Secrets |
 
 Spring importa `.env` desde la raíz al iniciar en `backend/`; las variables del
 proceso tienen precedencia. Usar valores sin comillas compatibles con Java
@@ -418,15 +425,15 @@ hosting deberá configurarlos.
 
 ### URLs
 
-| Recurso | URL |
-| --- | --- |
-| Acceso | [localhost:4200/login](http://localhost:4200/login) |
-| Comunidad | [localhost:4200/home](http://localhost:4200/home) |
-| Perfil | [localhost:4200/profile](http://localhost:4200/profile) |
-| Diagnóstico | [localhost:4200/status](http://localhost:4200/status) |
-| Health | [localhost:8080/api/public/health](http://localhost:8080/api/public/health) |
+| Recurso        | URL                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| Acceso         | [localhost:4200/login](http://localhost:4200/login)                                         |
+| Comunidad      | [localhost:4200/home](http://localhost:4200/home)                                           |
+| Perfil         | [localhost:4200/profile](http://localhost:4200/profile)                                     |
+| Diagnóstico    | [localhost:4200/status](http://localhost:4200/status)                                       |
+| Health         | [localhost:8080/api/public/health](http://localhost:8080/api/public/health)                 |
 | Readiness + DB | [localhost:8080/actuator/health/readiness](http://localhost:8080/actuator/health/readiness) |
-| Swagger | [localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html) |
+| Swagger        | [localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)         |
 
 ### Backend en Docker, opcional
 
@@ -440,6 +447,7 @@ construirse: se ejecutan por separado con Maven/CI. Angular sigue con `ng serve`
 La verificación reciente de voz se hizo con Spring local, no con el contenedor backend.
 
 <a id="demo"></a>
+
 ## Guion de demostración
 
 1. Entrar como **Jorge**; abrir otra pestaña nueva en `/login` como **Jean**.
@@ -467,49 +475,58 @@ por HTTP no es equivalente. Referencias:
 y [conectividad WebRTC](https://webrtc.org/getting-started/peer-connections).
 
 <a id="api"></a>
+
 ## API y errores
 
 Base local: `http://localhost:8080`. Swagger documenta los contratos. Las rutas
 autenticadas aceptan un JWT local con `ROLE_USER` o un Access Token Entra válido
 con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 
-| Método | Ruta | Acceso / comportamiento |
-| --- | --- | --- |
-| GET | `/api/public/health` | Público; estado básico |
-| POST | `/api/auth/register` | Registro local; correo válido y contraseña de 8+ caracteres |
-| POST | `/api/auth/login` | Login local; entrega JWT con issuer/audience propios |
-| GET | `/api/users/me` | Perfil autenticado; exige `ROLE_USER` o `SCOPE_access_as_user` |
-| PATCH | `/api/users/me/profile` | Edita nombre, identificador público, biografía, color y disponibilidad propios |
-| POST / DELETE | `/api/users/me/avatar` | Multipart `file` / quitar la foto de la cuenta autenticada |
-| GET | `/api/avatars/{userId}/{version}` | PNG público normalizado; solo responde para la versión vigente de un usuario activo |
-| GET | `/api/workspace` | Canales, directos y personas para la cuenta autenticada |
-| POST | `/api/directs` | Abrir un directo con `userId`; impide hablar consigo mismo |
-| POST / DELETE | `/api/conversations/{id}/membership` | Unirse / salir de un canal |
-| GET | `/api/conversations/{id}/members` | Participantes; exige membresía |
-| GET / POST | `/api/conversations/{id}/messages` | Consultar / enviar; identidad derivada del token |
-| GET | `/api/demo/users` | Público con demo; selector |
-| POST | `/api/demo/sessions` | Público con demo; recibe `userId` |
-| GET | `/api/demo/me` | Perfil de la sesión |
-| PATCH | `/api/demo/me/profile` | Adaptador de compatibilidad para editar el perfil demo propio |
-| DELETE | `/api/demo/sessions/current` | Revocar sesión propia |
-| GET | `/api/demo/workspace` | Canales, directos y personas visibles |
-| POST | `/api/demo/directs` | Abrir directo con destinatario `userId` |
-| POST / DELETE | `/api/demo/conversations/{id}/membership` | Unirse / salir |
-| GET | `/api/demo/conversations/{id}/members` | Participantes |
-| GET / POST | `/api/demo/conversations/{id}/messages` | Consultar / enviar |
-| POST / DELETE | `/api/demo/me/avatar` | Multipart `file` / quitar foto propia |
-| GET | `/api/demo/avatars/{userId}/{version}` | PNG público de demo, versión vigente |
-| GET | `/api/demo/calls/current` | Llamada de sesión; cuerpo vacío si no existe |
-| POST | `/api/demo/calls` | Crear con `id`, `calleeId` y `offer` SDP |
-| POST | `/api/demo/calls/{id}/accept` | Reclamar llamada para esta sesión |
-| POST | `/api/demo/calls/{id}/answer` | Respuesta SDP del destinatario |
-| POST | `/api/demo/calls/{id}/reject` | Rechazar invitación |
-| POST | `/api/demo/calls/{id}/connected` | Informar conexión |
-| POST | `/api/demo/calls/{id}/end` | Finalizar llamada propia |
+| Método        | Ruta                                      | Acceso / comportamiento                                                             |
+| ------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| GET           | `/api/public/health`                      | Público; estado básico                                                              |
+| POST          | `/api/auth/register`                      | Registro local; correo válido y contraseña de 8+ caracteres                         |
+| POST          | `/api/auth/login`                         | Login local; entrega JWT con issuer/audience propios                                |
+| GET           | `/api/users/me`                           | Perfil autenticado; exige `ROLE_USER` o `SCOPE_access_as_user`                      |
+| PATCH         | `/api/users/me/profile`                   | Edita nombre, identificador público, biografía, color y disponibilidad propios      |
+| POST / DELETE | `/api/users/me/avatar`                    | Multipart `file` / quitar la foto de la cuenta autenticada                          |
+| GET           | `/api/avatars/{userId}/{version}`         | PNG público normalizado; solo responde para la versión vigente de un usuario activo |
+| GET           | `/api/workspace`                          | Canales, directos y personas para la cuenta autenticada                             |
+| POST          | `/api/directs`                            | Abrir un directo con `userId`; impide hablar consigo mismo                          |
+| POST / DELETE | `/api/conversations/{id}/membership`      | Unirse / salir de un canal                                                          |
+| GET           | `/api/conversations/{id}/members`         | Participantes; exige membresía                                                      |
+| GET / POST    | `/api/conversations/{id}/messages`        | Consultar / enviar; identidad derivada del token                                    |
+| GET           | `/api/calls/current`                      | Llamada de voz de esta pestaña autenticada; cuerpo vacío si no existe               |
+| POST          | `/api/calls`                              | Crear llamada con `id`, `calleeId` y oferta SDP de solo audio                       |
+| POST          | `/api/calls/{id}/accept`                  | Reclamar la llamada entrante desde esta pestaña                                     |
+| POST          | `/api/calls/{id}/answer`                  | Publicar la respuesta SDP del destinatario                                          |
+| POST          | `/api/calls/{id}/reject`                  | Rechazar la invitación propia                                                       |
+| POST          | `/api/calls/{id}/connected`               | Informar que el audio quedó conectado                                               |
+| POST          | `/api/calls/{id}/end`                     | Finalizar una llamada propia                                                        |
+| GET           | `/api/demo/users`                         | Público con demo; selector                                                          |
+| POST          | `/api/demo/sessions`                      | Público con demo; recibe `userId`                                                   |
+| GET           | `/api/demo/me`                            | Perfil de la sesión                                                                 |
+| PATCH         | `/api/demo/me/profile`                    | Adaptador de compatibilidad para editar el perfil demo propio                       |
+| DELETE        | `/api/demo/sessions/current`              | Revocar sesión propia                                                               |
+| GET           | `/api/demo/workspace`                     | Canales, directos y personas visibles                                               |
+| POST          | `/api/demo/directs`                       | Abrir directo con destinatario `userId`                                             |
+| POST / DELETE | `/api/demo/conversations/{id}/membership` | Unirse / salir                                                                      |
+| GET           | `/api/demo/conversations/{id}/members`    | Participantes                                                                       |
+| GET / POST    | `/api/demo/conversations/{id}/messages`   | Consultar / enviar                                                                  |
+| POST / DELETE | `/api/demo/me/avatar`                     | Multipart `file` / quitar foto propia                                               |
+| GET           | `/api/demo/avatars/{userId}/{version}`    | PNG público de demo, versión vigente                                                |
+| GET           | `/api/demo/calls/current`                 | Llamada de sesión; cuerpo vacío si no existe                                        |
+| POST          | `/api/demo/calls`                         | Crear con `id`, `calleeId` y `offer` SDP                                            |
+| POST          | `/api/demo/calls/{id}/accept`             | Reclamar llamada para esta sesión                                                   |
+| POST          | `/api/demo/calls/{id}/answer`             | Respuesta SDP del destinatario                                                      |
+| POST          | `/api/demo/calls/{id}/reject`             | Rechazar invitación                                                                 |
+| POST          | `/api/demo/calls/{id}/connected`          | Informar conexión                                                                   |
+| POST          | `/api/demo/calls/{id}/end`                | Finalizar llamada propia                                                            |
 
 Salvo las públicas, las rutas demo requieren `Authorization: Bearer <credencial_demo>`.
 El remitente y propietario salen del principal validado, nunca de un `senderId`
-elegido por el navegador.
+elegido por el navegador. Las rutas de llamada requieren además
+`X-Nexo-Call-Session: <UUID>`: identifica una pestaña, no reemplaza la autenticación.
 
 Ejemplo de mensaje; generar un UUID por intención de envío:
 
@@ -534,18 +551,19 @@ Ejemplo de error, sin credenciales ni stack trace:
 }
 ```
 
-| Código | Caso |
-| --- | --- |
-| 400 | Campos inválidos, texto vacío o SDP no admitido |
-| 401 | Credencial ausente, inválida, expirada o revocada |
-| 403 | Sesión válida sin permisos sobre el recurso |
-| 404 | Recurso inexistente o versión antigua de avatar |
-| 409 | Conflicto, por ejemplo participante ocupado |
+| Código    | Caso                                                      |
+| --------- | --------------------------------------------------------- |
+| 400       | Campos inválidos, texto vacío o SDP no admitido           |
+| 401       | Credencial ausente, inválida, expirada o revocada         |
+| 403       | Sesión válida sin permisos sobre el recurso               |
+| 404       | Recurso inexistente o versión antigua de avatar           |
+| 409       | Conflicto, por ejemplo participante ocupado               |
 | 413 / 415 | Imagen demasiado grande / formato o dimensiones inválidos |
-| 429 | Límite de llamadas temporales |
-| 503 | Base temporalmente no disponible |
+| 429       | Límite de llamadas temporales                             |
+| 503       | Base temporalmente no disponible                          |
 
 <a id="seguridad"></a>
+
 ## Seguridad y privacidad
 
 - Credenciales demo aleatorias de 256 bits, hash SHA-256 en PostgreSQL, expiración
@@ -574,6 +592,7 @@ Microsoft persiste `oid` sin guardar contraseña. La demo continúa separada med
 el perfil `local-demo`. Leer [SECURITY.md](SECURITY.md).
 
 <a id="pruebas"></a>
+
 ## Pruebas y CI
 
 ### Local
@@ -602,14 +621,14 @@ Servicios iniciados, desde la raíz en PowerShell:
 .\scripts\verify-local.ps1
 ```
 
-| Comprobación | Resultado registrado |
-| --- | --- |
-| Backend | 36 pruebas aprobadas, incluidas autenticación, perfil, mensajería, CORS y Testcontainers |
-| Frontend | 58 pruebas aprobadas en diecinueve archivos |
-| Build Angular | Compilación de producción correcta |
-| Formato | Prettier correcto |
-| Integración | Health, readiness DB, proxy, CORS y OpenAPI correctos |
-| WebRTC real | Jorge–Jean: conectados, reproducción activa, mute y cierre |
+| Comprobación  | Resultado registrado                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| Backend       | 38 pruebas aprobadas, incluidas llamadas autenticadas, perfil, mensajería, CORS y Testcontainers |
+| Frontend      | 60 pruebas aprobadas en diecinueve archivos                                                      |
+| Build Angular | Compilación de producción correcta                                                               |
+| Formato       | Prettier correcto                                                                                |
+| Integración   | Health, readiness DB, proxy, CORS y OpenAPI correctos                                            |
+| WebRTC real   | Jorge–Jean: conectados, reproducción activa, mute y cierre                                       |
 
 Testcontainers crea bases efímeras, sin tocar la demo. Los tests unitarios de voz
 usan dobles de medios; la conexión real se comprobó aparte. No se evaluó de oído
@@ -626,21 +645,22 @@ No despliega ni necesita secretos de aplicación. El resultado remoto se consult
 en Actions; las pruebas locales no sustituyen una ejecución en GitHub.
 
 <a id="git-pattern"></a>
+
 ## Git Pattern
 
 Convención: **GitHub Flow + Conventional Commits**. `main` permanece verificable;
 cada cambio se desarrolla en una rama corta, se revisa por pull request y se
 integra tras pasar CI.
 
-| Rama | Ejemplo / uso |
-| --- | --- |
-| `main` | Integración estable del prototipo |
-| `feat/<tema>` | `feat/entra-login` |
-| `fix/<tema>` | `fix/call-reconnection` |
-| `docs/<tema>` | `docs/architecture` |
-| `refactor/<tema>` | `refactor/messaging-service` |
-| `test/<tema>` | `test/avatar-validation` |
-| `chore/<tema>` | `chore/dependency-update` |
+| Rama              | Ejemplo / uso                     |
+| ----------------- | --------------------------------- |
+| `main`            | Integración estable del prototipo |
+| `feat/<tema>`     | `feat/entra-login`                |
+| `fix/<tema>`      | `fix/call-reconnection`           |
+| `docs/<tema>`     | `docs/architecture`               |
+| `refactor/<tema>` | `refactor/messaging-service`      |
+| `test/<tema>`     | `test/avatar-validation`          |
+| `chore/<tema>`    | `chore/dependency-update`         |
 
 ```text
 feat(profile): permitir foto opcional de usuario
@@ -659,22 +679,23 @@ Referencias: [GitHub Flow](https://docs.github.com/en/get-started/using-github/g
 y [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 <a id="operacion"></a>
+
 ## Operación y solución de problemas
 
-| Problema | Revisar |
-| --- | --- |
-| No aparecen perfiles | Activar `local-demo`, reiniciar Spring y consultar health |
-| Error PostgreSQL | Docker activo, contenedor healthy, contraseña y JDBC coincidentes |
-| Puerto ocupado | No duplicar backend en 8080; revisar 4200 y 5432 |
-| 401 después de varias horas | Sesión vencida; volver a seleccionar perfil |
-| No se ve un canal | El usuario debe unirse; permisos aplicados por servidor |
-| Mensajes no instantáneos | Polling de 2 s, conexión y membresía |
-| Sin micrófono | Permisos del navegador y localhost/HTTPS |
-| Conectado pero sin sonido | Dispositivo, mute, audífonos y activar audio recibido |
-| Falla entre dispositivos | Fuera del alcance verificado; falta STUN/TURN y hosting seguro |
-| Foto rechazada | JPG/PNG válido dentro de límites de tamaño y dimensiones |
-| `npm.ps1` bloqueado | Usar `npm.cmd`, no cambiar políticas del equipo |
-| Testcontainers no inicia | Motor Docker Linux activo y accesible |
+| Problema                    | Revisar                                                           |
+| --------------------------- | ----------------------------------------------------------------- |
+| No aparecen perfiles        | Activar `local-demo`, reiniciar Spring y consultar health         |
+| Error PostgreSQL            | Docker activo, contenedor healthy, contraseña y JDBC coincidentes |
+| Puerto ocupado              | No duplicar backend en 8080; revisar 4200 y 5432                  |
+| 401 después de varias horas | Sesión vencida; volver a seleccionar perfil                       |
+| No se ve un canal           | El usuario debe unirse; permisos aplicados por servidor           |
+| Mensajes no instantáneos    | Polling de 2 s, conexión y membresía                              |
+| Sin micrófono               | Permisos del navegador y localhost/HTTPS                          |
+| Conectado pero sin sonido   | Dispositivo, mute, audífonos y activar audio recibido             |
+| Falla entre dispositivos    | Fuera del alcance verificado; falta STUN/TURN y hosting seguro    |
+| Foto rechazada              | JPG/PNG válido dentro de límites de tamaño y dimensiones          |
+| `npm.ps1` bloqueado         | Usar `npm.cmd`, no cambiar políticas del equipo                   |
+| Testcontainers no inicia    | Motor Docker Linux activo y accesible                             |
 
 Detener Angular/Spring con Ctrl+C. `docker compose stop` detiene PostgreSQL.
 `docker compose down` conserva el volumen; **`down -v` borra la base** y no es
@@ -687,13 +708,14 @@ llega al servidor se elimina la sesión local y se informa que la credencial
 remota vencerá, como máximo, en ocho horas.
 
 <a id="roadmap"></a>
+
 ## Próximas etapas
 
 - [x] Angular → Spring Boot → PostgreSQL local.
 - [x] Monolito modular, Flyway, health y Swagger.
 - [x] Comunidad y mensajería con perfiles demo independientes.
 - [x] Diseño Nexo, rutas privadas, enlaces y foto de perfil.
-- [x] Voz WebRTC entre usuarios del mismo equipo.
+- [x] Voz WebRTC autenticada para cuentas demo, locales y Microsoft en el mismo equipo.
 - [x] Pruebas locales y definición del workflow CI.
 - [x] Microsoft Entra ID y MSAL implementados en código.
 - [x] Resource Server: firma, issuer, audience, expiración, scopes y roles JWT.
@@ -716,6 +738,7 @@ No hay fechas comprometidas ni se presentan estas etapas como disponibles.
 Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilicen.
 
 <a id="documentacion"></a>
+
 ## Documentación y licencia
 
 - [Backend](backend/README.md) y [frontend](frontend/README.md).

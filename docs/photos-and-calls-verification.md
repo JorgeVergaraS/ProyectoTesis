@@ -3,6 +3,15 @@
 Fecha: 27 de agosto de 2026. Aplicación ejecutada en localhost con el perfil
 `local-demo`, PostgreSQL en Docker y Angular mediante `ng serve`.
 
+## Actualización del 3 de septiembre de 2026
+
+La señalización dejó de ser exclusiva del modo demo. Ahora `/api/calls` deriva al usuario del
+JWT local o Microsoft y exige un UUID de pestaña en `X-Nexo-Call-Session`. El panel de llamada
+se monta en la aplicación autenticada y los botones están disponibles para cuentas demo,
+locales y Microsoft. Las pruebas de integración cubren el ciclo completo entre cuentas
+locales y el inicio con una identidad Entra; la comprobación manual de audio descrita abajo
+continúa correspondiendo a dos sesiones demo en el mismo equipo.
+
 ## Resultado en el navegador
 
 ### Foto de perfil

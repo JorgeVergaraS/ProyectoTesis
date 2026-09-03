@@ -25,16 +25,16 @@ Microsoft Entra ID y demostración local.
   normaliza a PNG.
 - El frontend ya tiene una ruta `/profile`, un `ProfileService`, un panel reutilizable,
   un formulario reactivo y el componente compartido `nexo-avatar`.
-- Existe una llamada WebRTC uno-a-uno con permiso de micrófono, mute, liberación de tracks y
-  pruebas automatizadas.
+- Existe una llamada WebRTC uno-a-uno para cuentas demo, locales y Microsoft, con permiso de
+  micrófono, mute, liberación de tracks y pruebas automatizadas.
 - La autorización de canales y conversaciones ya se controla en el backend por membresía.
 
 ### Brechas que deben resolverse
 
 - `status` representa el estado administrativo de la cuenta (`ACTIVE`), por lo que no debe
   reutilizarse como «Disponible/Ocupado/Ausente».
-- La llamada actual es exclusiva del modo demo, usa señalización HTTP por polling, vive en
-  memoria y rechaza explícitamente SDP con video.
+- La llamada autenticada usa señalización HTTP por polling, vive en memoria, está verificada
+  solo entre pestañas del mismo equipo y rechaza explícitamente SDP con video.
 - No hay modelo de transmisión, permisos publicador/espectador, descubrimiento de directos,
   servidor SFU, TURN ni pruebas entre redes.
 
@@ -44,13 +44,13 @@ Microsoft Entra ID y demostración local.
 
 Los campos deben tener un propietario claro:
 
-| Dato | Propietario | Editable en Nexo |
-| --- | --- | --- |
-| Correo y proveedor de acceso | Cuenta local o Entra ID | No |
-| Estado administrativo de cuenta | Backend Nexo | No |
-| Nombre visible, nombre público, biografía y color | Perfil Nexo | Sí |
-| Avatar | Perfil Nexo | Sí |
-| Disponibilidad | Usuario Nexo | Sí |
+| Dato                                              | Propietario             | Editable en Nexo |
+| ------------------------------------------------- | ----------------------- | ---------------- |
+| Correo y proveedor de acceso                      | Cuenta local o Entra ID | No               |
+| Estado administrativo de cuenta                   | Backend Nexo            | No               |
+| Nombre visible, nombre público, biografía y color | Perfil Nexo             | Sí               |
+| Avatar                                            | Perfil Nexo             | Sí               |
+| Disponibilidad                                    | Usuario Nexo            | Sí               |
 
 Para Entra ID, los claims deben inicializar correo y nombre al crear la cuenta, pero una
 sincronización posterior no debe borrar una personalización hecha en Nexo. La solución
@@ -205,6 +205,23 @@ del perfil y bloqueo de navegación durante operaciones pendientes.
 6. Gestionar foco, teclado, estados de carga, errores por campo y navegación sin perder cambios.
 
 **Criterio de salida:** el flujo del mockup funciona con datos persistentes y recarga correcta.
+
+### Entrega intermedia — Llamadas de voz autenticadas
+
+**Estado:** completada en `feature/authenticated-workspace`. Las cuentas demo, locales y
+Microsoft comparten el flujo de llamada de solo audio. La identidad se deriva de la sesión
+autenticada y un UUID por pestaña permite que solo la primera sesión que acepta reclame la
+llamada.
+
+1. Exponer la señalización en `/api/calls` para identidades locales y Microsoft.
+2. Conservar `/api/demo/calls` como adaptador del modo demo.
+3. Montar el panel global de llamada para que continúe visible al navegar.
+4. Habilitar los botones de llamada para cualquier cuenta autenticada.
+5. Incluir el identificador de pestaña en cada operación y permitirlo mediante CORS.
+6. Cubrir inicio, aceptación, respuesta, conexión y cierre en pruebas de integración.
+
+**Criterio de salida:** dos cuentas autenticadas pueden iniciar, aceptar, silenciar y finalizar
+una llamada de voz entre dos pestañas del mismo equipo.
 
 ### Fase 3 — Estudio multimedia local, sin emitir
 

@@ -108,6 +108,8 @@ public class SecurityConfig {
                                     "/api/users/me/**",
                                     "/api/workspace",
                                     "/api/directs",
+                                    "/api/calls",
+                                    "/api/calls/**",
                                     "/api/conversations/**")
                             .access((authentication, context) -> new AuthorizationDecision(
                                     hasAuthority(authentication.get(), "ROLE_USER")
@@ -286,6 +288,8 @@ public class SecurityConfig {
                 || path.startsWith("/api/users/me/")
                 || path.equals("/api/workspace")
                 || path.equals("/api/directs")
+                || path.equals("/api/calls")
+                || path.startsWith("/api/calls/")
                 || path.startsWith("/api/conversations/")
                 || path.startsWith("/api/admin/");
     }

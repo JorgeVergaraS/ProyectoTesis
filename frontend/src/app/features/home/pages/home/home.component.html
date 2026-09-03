@@ -196,15 +196,13 @@
                   <button class="primary-button" [disabled]="actionBusy()" (click)="direct(person)">
                     <nexo-icon name="chat" />Enviar mensaje
                   </button>
-                  @if (auth.session.kind() === 'demo') {
-                    <button
-                      class="secondary-button call-person-button"
-                      [disabled]="calls.occupied()"
-                      (click)="calls.start(person)"
-                    >
-                      <nexo-icon name="phone" />Llamar
-                    </button>
-                  }
+                  <button
+                    class="secondary-button call-person-button"
+                    [disabled]="calls.occupied()"
+                    (click)="calls.start(person)"
+                  >
+                    <nexo-icon name="phone" />Llamar
+                  </button>
                 </article>
               }
             </div>
@@ -252,7 +250,7 @@
             >
               <nexo-icon name="info" />
             </button>
-            @if (auth.session.kind() === 'demo' && peer(); as person) {
+            @if (peer(); as person) {
               <button
                 class="icon-button"
                 [attr.aria-label]="'Llamar a ' + person.displayName"
@@ -624,7 +622,7 @@
                     Llama a otra persona con el micrófono de tu equipo. En esta etapa, prueba entre
                     pestañas en localhost. El video queda pendiente.
                   </p>
-                  @if (auth.session.kind() === 'demo' && peer(); as person) {
+                  @if (peer(); as person) {
                     <button
                       class="primary-button call-person-button"
                       [disabled]="calls.occupied()"
@@ -638,8 +636,8 @@
                   <nexo-icon name="info" />
                   <p>
                     Sesión protegida con {{ providerLabel() }}. Los mensajes no tienen cifrado de
-                    extremo a extremo. Las llamadas WebRTC permanecen disponibles sólo en el modo
-                    demostración local.
+                    extremo a extremo. Las llamadas WebRTC son de voz, no se graban y en esta etapa
+                    están pensadas para pruebas en el mismo equipo.
                   </p>
                 </div>
               </aside>

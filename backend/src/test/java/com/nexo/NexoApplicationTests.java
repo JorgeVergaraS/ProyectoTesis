@@ -93,9 +93,14 @@ class NexoApplicationTests {
         mvc.perform(options("/api/users/me/profile")
                         .header("Origin", "http://127.0.0.1:4200")
                         .header("Access-Control-Request-Method", "PATCH")
-                        .header("Access-Control-Request-Headers", "authorization,content-type"))
+                        .header(
+                                "Access-Control-Request-Headers",
+                                "authorization,content-type,x-nexo-call-session"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://127.0.0.1:4200"))
+                .andExpect(header().string(
+                        "Access-Control-Allow-Headers",
+                        org.hamcrest.Matchers.containsStringIgnoringCase("x-nexo-call-session")))
                 .andExpect(header().string("Access-Control-Allow-Methods", org.hamcrest.Matchers.containsString("PATCH")));
     }
 

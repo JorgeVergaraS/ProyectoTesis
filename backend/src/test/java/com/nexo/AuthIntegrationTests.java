@@ -350,6 +350,100 @@ class AuthIntegrationTests {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void localAccountsCanCompleteAuthenticatedVoiceSignaling() throws Exception {
+        JsonNode caller = register("call-caller@nexo.cl", "valid-password-8", "Call Caller", 201);
+        JsonNode callee = register("call-callee@nexo.cl", "valid-password-8", "Call Callee", 201);
+        String callerToken = caller.get("accessToken").asText();
+        String calleeToken = callee.get("accessToken").asText();
+        String callerSession = UUID.randomUUID().toString();
+        String calleeSession = UUID.randomUUID().toString();
+        String sdp = "v=0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n";
+        UUID id = UUID.randomUUID();
+        String path = "/api/calls/" + id;
+        String invite = json.writeValueAsString(Map.of(
+                "id", id,
+                "calleeId", callee.get("user").get("id").asText(),
+                "offer", sdp));
+
+        mvc.perform(get("/api/calls/current")).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/calls")
+                        .header("Authorization", "Bearer " + callerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invite))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/calls")
+                        .header("Authorization", "Bearer " + callerToken)
+                        .header("X-Nexo-Call-Session", callerSession)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invite))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("RINGING"));
+        mvc.perform(get("/api/calls/current")
+                        .header("Authorization", "Bearer " + calleeToken)
+                        .header("X-Nexo-Call-Session", calleeSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.offer").value(sdp))
+                .andExpect(jsonPath("$.outgoing").value(false));
+        mvc.perform(post(path + "/accept")
+                        .header("Authorization", "Bearer " + calleeToken)
+                        .header("X-Nexo-Call-Session", calleeSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CONNECTING"));
+        mvc.perform(post(path + "/answer")
+                        .header("Authorization", "Bearer " + calleeToken)
+                        .header("X-Nexo-Call-Session", calleeSession)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("answer", sdp))))
+                .andExpect(status().isOk());
+        mvc.perform(post(path + "/connected")
+                        .header("Authorization", "Bearer " + callerToken)
+                        .header("X-Nexo-Call-Session", callerSession))
+                .andExpect(status().isOk());
+        mvc.perform(post(path + "/connected")
+                        .header("Authorization", "Bearer " + calleeToken)
+                        .header("X-Nexo-Call-Session", calleeSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+        mvc.perform(post(path + "/end")
+                        .header("Authorization", "Bearer " + callerToken)
+                        .header("X-Nexo-Call-Session", callerSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ENDED"));
+    }
+
+    @Test
+    void entraAccountCanStartAnAuthenticatedVoiceCall() throws Exception {
+        JsonNode callee = register(
+                "call-entra-callee@nexo.cl", "valid-password-8", "Entra Callee", 201);
+        var entra = jwt()
+                .jwt(token -> token
+                        .claim("oid", "entra-voice-caller")
+                        .claim("preferred_username", "entra-voice-caller@nexo.cl")
+                        .claim("name", "Entra Voice Caller"))
+                .authorities(new SimpleGrantedAuthority("SCOPE_access_as_user"));
+        UUID id = UUID.randomUUID();
+        String session = UUID.randomUUID().toString();
+        String sdp = "v=0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n";
+
+        mvc.perform(get("/api/users/me").with(entra)).andExpect(status().isOk());
+        mvc.perform(post("/api/calls")
+                        .with(entra)
+                        .header("X-Nexo-Call-Session", session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "id", id,
+                                "calleeId", callee.get("user").get("id").asText(),
+                                "offer", sdp))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("RINGING"));
+        mvc.perform(post("/api/calls/" + id + "/end")
+                        .with(entra)
+                        .header("X-Nexo-Call-Session", session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ENDED"));
+    }
+
     private JsonNode register(String email, String password, String displayName, int expectedStatus)
             throws Exception {
         String body = mvc.perform(post("/api/auth/register")

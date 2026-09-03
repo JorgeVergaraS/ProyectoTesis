@@ -1,29 +1,28 @@
 package com.nexo.realtime.service;
 
 import com.nexo.user.dto.UserView;
-import com.nexo.user.service.DemoUsers;
+import com.nexo.user.entity.UserEntity;
+import com.nexo.user.repository.UserRepository;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Ephemeral signaling for one local monolith. Media never traverses this service. */
 @Service
-@Profile("local-demo")
 public class CallService {
     public record Actor(UUID userId, String sessionKey) {}
     public record CallView(UUID id, UserView peer, boolean outgoing, String status, String reason,
                            String offer, String answer, Instant connectedAt) {}
-    private final DemoUsers users;
+    private final UserRepository users;
     private final Map<UUID, Call> calls = new HashMap<>();
 
-    public CallService(DemoUsers users) { this.users = users; }
+    public CallService(UserRepository users) { this.users = users; }
 
     private static final class Call {
         UUID id, caller, callee;
@@ -56,7 +55,7 @@ public class CallService {
             if (!existing.callee.equals(callee) || !Objects.equals(existing.offer, offer)) throw error(HttpStatus.CONFLICT);
             return view(existing, actor);
         }
-        users.require(callee);
+        requireUser(callee);
         boolean busy = calls.values().stream().anyMatch(c -> c.live() &&
                 (c.caller.equals(actor.userId()) || c.callee.equals(actor.userId()) || c.caller.equals(callee) || c.callee.equals(callee)));
         if (busy) throw error(HttpStatus.CONFLICT);
@@ -132,8 +131,12 @@ public class CallService {
     }
     private CallView view(Call call, Actor actor) {
         boolean outgoing = call.caller.equals(actor.userId());
-        return new CallView(call.id, users.require(outgoing ? call.callee : call.caller).toView(false), outgoing,
+        return new CallView(call.id, requireUser(outgoing ? call.callee : call.caller).toPublicView(false), outgoing,
                 call.status, call.reason, outgoing ? null : call.offer, outgoing ? call.answer : null, call.connectedAt);
+    }
+    private UserEntity requireUser(UUID id) {
+        return users.findById(id).filter(UserEntity::isActive)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
     private void validateSdp(String sdp) {
         if (sdp == null || sdp.length() > 64000 || !sdp.startsWith("v=0") || !sdp.contains("m=audio")

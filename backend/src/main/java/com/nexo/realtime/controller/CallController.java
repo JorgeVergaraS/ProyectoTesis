@@ -20,20 +20,38 @@ public class CallController {
     public CallController(CallService calls) { this.calls = calls; }
     public record StartRequest(@NotNull UUID id, @NotNull UUID calleeId, @NotBlank @Size(max=64000) String offer) {}
     public record AnswerRequest(@NotBlank @Size(max=64000) String answer) {}
-    private CallService.Actor actor(DemoPrincipal principal) { return new CallService.Actor(principal.userId(), principal.tokenHash()); }
+    private CallService.Actor actor(DemoPrincipal principal, UUID callSession) {
+        String sessionKey = principal.tokenHash() + ":" + (callSession == null ? "legacy" : callSession);
+        return new CallService.Actor(principal.userId(), sessionKey);
+    }
 
     @GetMapping("/current")
-    public CallService.CallView current(@AuthenticationPrincipal DemoPrincipal me) { return calls.current(actor(me)); }
+    public CallService.CallView current(
+            @AuthenticationPrincipal DemoPrincipal me,
+            @RequestHeader(value = "X-Nexo-Call-Session", required = false) UUID callSession) {
+        return calls.current(actor(me, callSession));
+    }
     @PostMapping
-    public CallService.CallView start(@AuthenticationPrincipal DemoPrincipal me, @Valid @RequestBody StartRequest request) {
-        return calls.start(actor(me), request.id(), request.calleeId(), request.offer());
+    public CallService.CallView start(
+            @AuthenticationPrincipal DemoPrincipal me,
+            @RequestHeader(value = "X-Nexo-Call-Session", required = false) UUID callSession,
+            @Valid @RequestBody StartRequest request) {
+        return calls.start(actor(me, callSession), request.id(), request.calleeId(), request.offer());
     }
     @PostMapping("/{id}/answer")
-    public CallService.CallView answer(@AuthenticationPrincipal DemoPrincipal me, @PathVariable UUID id, @Valid @RequestBody AnswerRequest request) {
-        return calls.answer(actor(me), id, request.answer());
+    public CallService.CallView answer(
+            @AuthenticationPrincipal DemoPrincipal me,
+            @RequestHeader(value = "X-Nexo-Call-Session", required = false) UUID callSession,
+            @PathVariable UUID id,
+            @Valid @RequestBody AnswerRequest request) {
+        return calls.answer(actor(me, callSession), id, request.answer());
     }
     @PostMapping("/{id}/{action:accept|reject|end|connected}")
-    public CallService.CallView action(@AuthenticationPrincipal DemoPrincipal me, @PathVariable UUID id, @PathVariable String action) {
-        return calls.action(actor(me), id, action);
+    public CallService.CallView action(
+            @AuthenticationPrincipal DemoPrincipal me,
+            @RequestHeader(value = "X-Nexo-Call-Session", required = false) UUID callSession,
+            @PathVariable UUID id,
+            @PathVariable String action) {
+        return calls.action(actor(me, callSession), id, action);
     }
 }

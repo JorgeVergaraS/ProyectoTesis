@@ -4,10 +4,11 @@ import { MsalService } from '@azure/msal-angular';
 import { DemoSessionStore } from './core/auth/demo-session.store';
 import { AuthService } from './core/auth/auth.service';
 import { ThemeService } from './core/services/theme.service';
+import { VoiceCallPanelComponent } from './shared/components/voice-call-panel.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, VoiceCallPanelComponent],
   templateUrl: './app.component.html',
 })
 export class App {

@@ -30,7 +30,7 @@ export interface VoiceCall {
 export class VoiceCallService {
   private readonly http = inject(HttpClient);
   private readonly session = inject(DemoSessionStore);
-  private readonly base = environment.apiUrl + '/demo/calls';
+  private readonly callSessionId = this.readCallSessionId();
   readonly call = signal<VoiceCall | null>(null);
   readonly target = signal<DemoUser | null>(null);
   readonly busy = signal(false);
@@ -44,9 +44,20 @@ export class VoiceCallService {
     typeof RTCPeerConnection !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
   readonly occupied = computed(() => this.busy() || !!this.call());
   readonly now = signal(Date.now());
-  private readonly demoToken = computed(() =>
-    this.session.kind() === 'demo' ? this.session.token() : null,
-  );
+  private readonly authenticatedSession = computed(() => {
+    const kind = this.session.kind();
+    const user = this.session.user();
+    if (!kind || !user) return null;
+    if (kind === 'microsoft') return `microsoft:${user.id}`;
+    const token = this.session.token();
+    return token ? `${kind}:${user.id}:${token}` : null;
+  });
+  private get base(): string {
+    return environment.apiUrl + (this.session.kind() === 'demo' ? '/demo' : '') + '/calls';
+  }
+  private get requestOptions() {
+    return { headers: { 'X-Nexo-Call-Session': this.callSessionId } };
+  }
   readonly duration = computed(() => {
     const started = this.call()?.connectedAt;
     const seconds = started
@@ -70,9 +81,9 @@ export class VoiceCallService {
 
   constructor() {
     const destroy = inject(DestroyRef);
-    toObservable(this.demoToken)
+    toObservable(this.authenticatedSession)
       .pipe(
-        switchMap((token) => {
+        switchMap((identity) => {
           this.generation++;
           this.releaseMedia();
           this.call.set(null);
@@ -82,11 +93,11 @@ export class VoiceCallService {
           this.dismissedId = null;
           this.notice.set('');
           this.error.set('');
-          if (!token) return EMPTY;
+          if (!identity) return EMPTY;
           this.lastContact = Date.now();
           return timer(0, 1500).pipe(
             exhaustMap(() =>
-              from(this.poll(token)).pipe(
+              from(this.poll(identity)).pipe(
                 catchError(() => {
                   if (this.call() && Date.now() - this.lastContact > 20000) {
                     void this.hangUp('Se perdió la conexión con Nexo. La llamada terminó.');
@@ -109,13 +120,15 @@ export class VoiceCallService {
     });
   }
 
-  private async poll(token: string): Promise<void> {
+  private async poll(identity: string): Promise<void> {
     const generation = this.generation;
     const wasBusy = this.busy();
     const next = await firstValueFrom(
-      this.http.get<VoiceCall | null>(this.base + '/current').pipe(timeout(8000)),
+      this.http
+        .get<VoiceCall | null>(this.base + '/current', this.requestOptions)
+        .pipe(timeout(8000)),
     );
-    if (token !== this.session.token()) return;
+    if (identity !== this.authenticatedSession()) return;
     this.lastContact = Date.now();
     if (wasBusy || this.busy() || generation !== this.generation) return;
     if (!next) {
@@ -177,7 +190,7 @@ export class VoiceCallService {
       this.assertCurrent(operation);
       const call = await firstValueFrom(
         this.http
-          .post<VoiceCall>(this.base, { id, calleeId: person.id, offer })
+          .post<VoiceCall>(this.base, { id, calleeId: person.id, offer }, this.requestOptions)
           .pipe(timeout(10000)),
       );
       if (operation !== this.generation) {
@@ -215,7 +228,9 @@ export class VoiceCallService {
     this.localCallId = call.id;
     try {
       const accepted = await firstValueFrom(
-        this.http.post<VoiceCall>(this.base + '/' + call.id + '/accept', {}).pipe(timeout(8000)),
+        this.http
+          .post<VoiceCall>(this.base + '/' + call.id + '/accept', {}, this.requestOptions)
+          .pipe(timeout(8000)),
       );
       if (operation !== this.generation) {
         await this.endRemote(call.id);
@@ -230,7 +245,7 @@ export class VoiceCallService {
       this.assertCurrent(operation);
       const updated = await firstValueFrom(
         this.http
-          .post<VoiceCall>(this.base + '/' + call.id + '/answer', { answer })
+          .post<VoiceCall>(this.base + '/' + call.id + '/answer', { answer }, this.requestOptions)
           .pipe(timeout(8000)),
       );
       if (operation === this.generation) this.call.set(updated);
@@ -248,7 +263,9 @@ export class VoiceCallService {
     this.busy.set(true);
     try {
       await firstValueFrom(
-        this.http.post(this.base + '/' + call.id + '/reject', {}).pipe(timeout(8000)),
+        this.http
+          .post(this.base + '/' + call.id + '/reject', {}, this.requestOptions)
+          .pipe(timeout(8000)),
       );
       this.dismissedId = call.id;
       this.call.set(null);
@@ -336,7 +353,9 @@ export class VoiceCallService {
         const id = this.localCallId;
         if (id)
           void firstValueFrom(
-            this.http.post(this.base + '/' + id + '/connected', {}).pipe(timeout(8000)),
+            this.http
+              .post(this.base + '/' + id + '/connected', {}, this.requestOptions)
+              .pipe(timeout(8000)),
           ).catch(() => {
             void this.hangUp('No se pudo confirmar la conexión.');
           });
@@ -385,7 +404,9 @@ export class VoiceCallService {
   }
   private async endRemote(id: string): Promise<void> {
     try {
-      await firstValueFrom(this.http.post(this.base + '/' + id + '/end', {}).pipe(timeout(5000)));
+      await firstValueFrom(
+        this.http.post(this.base + '/' + id + '/end', {}, this.requestOptions).pipe(timeout(5000)),
+      );
     } catch {
       /* Server expires abandoned calls via participant heartbeats. */
     }
@@ -412,5 +433,22 @@ export class VoiceCallService {
     if (error instanceof DOMException && error.name === 'NotFoundError')
       return 'No se encontró un micrófono.';
     return 'No se pudo iniciar el audio. Revisa tu micrófono, los permisos y la conexión local.';
+  }
+
+  private readCallSessionId(): string {
+    const key = 'nexo.call.session-id';
+    try {
+      const saved = sessionStorage.getItem(key);
+      if (
+        saved &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(saved)
+      )
+        return saved;
+      const created = crypto.randomUUID();
+      sessionStorage.setItem(key, created);
+      return created;
+    } catch {
+      return crypto.randomUUID();
+    }
   }
 }

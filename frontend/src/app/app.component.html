@@ -1,1 +1,4 @@
 <router-outlet />
+@defer (when session.user()) {
+  <nexo-voice-call-panel />
+}

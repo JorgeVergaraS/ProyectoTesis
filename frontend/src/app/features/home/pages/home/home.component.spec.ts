@@ -17,6 +17,14 @@ describe('HomeComponent', () => {
     bio: '',
     online: true,
   };
+  const otherUser: DemoUser = {
+    id: '2',
+    username: 'jean@universidad.cl',
+    displayName: 'Jean',
+    color: '#0ea5e9',
+    bio: 'Estudiante',
+    online: true,
+  };
   const workspace: Workspace = {
     channels: [
       {
@@ -41,7 +49,7 @@ describe('HomeComponent', () => {
       },
     ],
     directs: [],
-    people: [user],
+    people: [user, otherUser],
   };
   const ownMessage = {
     id: 'message-id',
@@ -62,8 +70,11 @@ describe('HomeComponent', () => {
     ),
     deleteMessage: vi.fn(() => of(undefined)),
   };
+  const calls = { occupied: signal(false), start: vi.fn(), hangUp: vi.fn() };
   beforeEach(() => {
     Object.values(chat).forEach((mock) => mock.mockClear());
+    calls.start.mockClear();
+    calls.hangUp.mockClear();
     TestBed.configureTestingModule({
       imports: [HomeComponent],
       providers: [
@@ -81,7 +92,7 @@ describe('HomeComponent', () => {
         },
         {
           provide: VoiceCallService,
-          useValue: { occupied: signal(false), hangUp: vi.fn() },
+          useValue: calls,
         },
       ],
     });
@@ -96,6 +107,27 @@ describe('HomeComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Jorge');
     expect(fixture.nativeElement.textContent).toContain('Microsoft Entra ID');
     expect(fixture.nativeElement.textContent).toContain('general');
+    fixture.destroy();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  it('offers voice calls to other authenticated users', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(HomeComponent);
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.componentInstance.navigate('people');
+    fixture.detectChanges();
+
+    const callButton = fixture.nativeElement.querySelector(
+      '.call-person-button',
+    ) as HTMLButtonElement;
+    expect(callButton).toBeTruthy();
+    expect(callButton.textContent).toContain('Llamar');
+
+    callButton.click();
+
+    expect(calls.start).toHaveBeenCalledWith(otherUser);
     fixture.destroy();
     vi.clearAllTimers();
     vi.useRealTimers();

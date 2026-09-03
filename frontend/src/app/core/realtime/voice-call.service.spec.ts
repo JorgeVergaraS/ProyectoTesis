@@ -41,6 +41,7 @@ describe('VoiceCallService', () => {
     bio: '',
     online: true,
   };
+  const currentUser = signal({ ...person, id: 'jorge' });
   const track = { enabled: true, stop: vi.fn() };
   const stream = {
     getTracks: () => [track],
@@ -54,6 +55,7 @@ describe('VoiceCallService', () => {
     FakePeer.instances = [];
     token.set('demo-token');
     kind.set('demo');
+    currentUser.set({ ...person, id: 'jorge' });
     track.enabled = true;
     track.stop.mockClear();
     server = null;
@@ -83,7 +85,7 @@ describe('VoiceCallService', () => {
       providers: [
         VoiceCallService,
         { provide: HttpClient, useValue: http },
-        { provide: DemoSessionStore, useValue: { token, kind } },
+        { provide: DemoSessionStore, useValue: { token, kind, user: currentUser } },
       ],
     });
     service = TestBed.inject(VoiceCallService);
@@ -229,12 +231,26 @@ describe('VoiceCallService', () => {
     expect(service.call()).toBeNull();
   });
 
-  it('does not poll demo call endpoints for a local JWT session', async () => {
+  it('uses authenticated call endpoints for a local JWT session', async () => {
     http.get.mockClear();
     kind.set('local');
     TestBed.tick();
     await vi.advanceTimersByTimeAsync(2000);
 
-    expect(http.get).not.toHaveBeenCalled();
+    expect(http.get.mock.calls.some(([url]) => url === '/api/calls/current')).toBe(true);
+    expect(http.get.mock.calls.some(([url]) => url === '/api/demo/calls/current')).toBe(false);
+    expect(http.get.mock.calls.at(-1)?.[1]).toEqual({
+      headers: { 'X-Nexo-Call-Session': expect.any(String) },
+    });
+  });
+
+  it('polls authenticated calls for a Microsoft session without a local token', async () => {
+    http.get.mockClear();
+    token.set(null);
+    kind.set('microsoft');
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(http.get.mock.calls.some(([url]) => url === '/api/calls/current')).toBe(true);
   });
 });
