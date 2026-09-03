@@ -46,7 +46,7 @@ npm run test:ci
 npm run build
 ```
 
-53 pruebas en diecinueve archivos. Los tests unitarios de voz simulan medios;
+54 pruebas en diecinueve archivos. Los tests unitarios de voz simulan medios;
 la conectividad WebRTC real se verifica por separado. `npm run format` aplica
 Prettier. El build de producción genera `dist/nexo`, que no se versiona.
 

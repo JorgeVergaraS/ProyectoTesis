@@ -52,4 +52,24 @@ describe('WorkspaceNavigationComponent', () => {
 
     expect(opened).toHaveBeenCalledOnce();
   });
+
+  it('keeps settings available from the compact mobile account control', () => {
+    const fixture = TestBed.createComponent(WorkspaceNavigationComponent);
+    fixture.componentRef.setInput('view', 'chat');
+    fixture.componentRef.setInput('user', {
+      id: '1',
+      username: 'jean',
+      displayName: 'Jean',
+      color: '#8B5CF6',
+      bio: '',
+      online: true,
+    });
+    const opened = vi.fn();
+    fixture.componentInstance.settingsOpen.subscribe(opened);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.mobile-account-card button').click();
+
+    expect(opened).toHaveBeenCalledOnce();
+  });
 });

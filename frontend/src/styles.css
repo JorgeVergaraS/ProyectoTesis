@@ -27,6 +27,17 @@
   --theme-accent: #58d4dc;
   --theme-accent-soft: #54d8dc20;
   --theme-accent-contrast: #031415;
+  --button-glass-top: #8eeeff;
+  --button-glass-mid: #2aa5d2;
+  --button-glass-bottom: #3466bd;
+  --button-glass-accent: #55c993;
+  --button-glass-border: #bdf7ff8c;
+  --button-glass-glow: #26bde64f;
+  --button-on-accent: #f7feff;
+  --button-chrome-light: #e0f5ff;
+  --button-chrome-mid: #7895ad;
+  --button-chrome-dark: #203149;
+  --button-chrome-shadow: #070f1c;
   --matte-turbulence: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='90' viewBox='0 0 160 90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.34'/%3E%3C/svg%3E");
   background: #06111f;
   color: #e7ecf6;
@@ -46,6 +57,17 @@ html[data-theme='oled'] {
   --theme-accent: #65dce4;
   --theme-accent-soft: #65dce418;
   --theme-accent-contrast: #001011;
+  --button-glass-top: #8fffee;
+  --button-glass-mid: #10aeb2;
+  --button-glass-bottom: #076477;
+  --button-glass-accent: #47df9a;
+  --button-glass-border: #bafff3a6;
+  --button-glass-glow: #33f4e34d;
+  --button-on-accent: #f4fffe;
+  --button-chrome-light: #d9fffb;
+  --button-chrome-mid: #4f8e91;
+  --button-chrome-dark: #102b30;
+  --button-chrome-shadow: #000;
   background: #000;
 }
 html[data-theme='light'] {
@@ -62,6 +84,17 @@ html[data-theme='light'] {
   --theme-accent: #177d91;
   --theme-accent-soft: #168da51c;
   --theme-accent-contrast: #f5ffff;
+  --button-glass-top: #e1fcff;
+  --button-glass-mid: #68cfdf;
+  --button-glass-bottom: #2789a6;
+  --button-glass-accent: #75cda4;
+  --button-glass-border: #ffffffd4;
+  --button-glass-glow: #328fa02e;
+  --button-on-accent: #073342;
+  --button-chrome-light: #fff;
+  --button-chrome-mid: #9bbbc8;
+  --button-chrome-dark: #507482;
+  --button-chrome-shadow: #7996a24d;
   background: #edf6f8;
   color: #102633;
 }
@@ -699,55 +732,124 @@ html[data-theme='light'] .campus-note p {
 html[data-theme='light'] .profile-backdrop {
   background: #17364255;
 }
+html[data-theme='oled'] .nav-item.selected,
+html[data-theme='oled'] .inbox-filters button.active,
+html[data-theme='oled'] .conversation-item.active {
+  border-color: var(--theme-accent);
+  background: color-mix(in srgb, var(--theme-accent) 14%, #000);
+  color: var(--theme-text);
+}
+html[data-theme='oled'] .conversation-item.active {
+  box-shadow: inset 3px 0 0 var(--theme-accent);
+}
+html[data-theme='light'] .inbox-filters button.active,
+html[data-theme='light'] .conversation-item.active {
+  border-color: var(--theme-accent);
+  background: color-mix(in srgb, var(--theme-accent) 12%, #fff);
+  color: #12323e;
+}
+html[data-theme='light'] .conversation-item.active {
+  box-shadow: inset 3px 0 0 var(--theme-accent);
+}
+html[data-theme='oled'] .compose-button,
+html[data-theme='light'] .compose-button {
+  border-color: var(--theme-border-strong);
+  background: var(--theme-accent-soft);
+  color: var(--theme-accent);
+}
+html[data-theme='oled'] .text-link,
+html[data-theme='oled'] .explore-link,
+html[data-theme='light'] .text-link,
+html[data-theme='light'] .explore-link {
+  color: var(--theme-accent);
+}
 
 /* Button finishes are independent from the selected color theme. */
-html[data-button-style='sky-glass'] button,
-html[data-button-style='sky-glass'] a.primary-button,
-html[data-button-style='sky-glass'] a.secondary-button {
-  backdrop-filter: blur(16px) saturate(155%);
+html[data-button-style='matte'] .primary-button,
+html[data-button-style='matte'] .send-button {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--button-glass-mid) 68%, #173544),
+    color-mix(in srgb, var(--button-glass-bottom) 62%, var(--button-glass-mid)) 54%,
+    color-mix(in srgb, var(--button-glass-accent) 64%, #17453d)
+  );
+  border-color: color-mix(in srgb, var(--button-glass-border) 62%, transparent);
+  color: var(--button-on-accent);
   box-shadow:
-    inset 0 1px 0 #ffffff8a,
-    inset 0 -8px 15px #075b9c2e,
-    0 7px 18px #0b72923d;
+    inset 0 1px 0 #ffffff26,
+    0 6px 17px color-mix(in srgb, var(--button-glass-glow) 54%, transparent);
+}
+html[data-button-style='matte'] .secondary-button {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--button-glass-top) 9%, var(--theme-surface)),
+    color-mix(in srgb, var(--button-glass-accent) 7%, var(--theme-surface-muted))
+  );
+  border-color: var(--theme-border-strong);
+  color: var(--theme-text);
 }
 html[data-button-style='sky-glass'] button::after,
 html[data-button-style='sky-glass'] a.primary-button::after,
 html[data-button-style='sky-glass'] a.secondary-button::after {
   background-image:
-    linear-gradient(180deg, #ffffffa8 0, #ffffff30 28%, transparent 52%), var(--matte-turbulence);
-  background-repeat: no-repeat, repeat;
+    linear-gradient(176deg, #ffffff9c 0, #ffffff38 22%, transparent 38%),
+    radial-gradient(ellipse at 24% 4%, #ffffff7d 0, transparent 45%), var(--matte-turbulence);
+  background-repeat: no-repeat, no-repeat, repeat;
   background-size:
     100% 100%,
+    65% 58%,
     150px 90px;
-  mix-blend-mode: screen;
-  opacity: 0.62;
+  mix-blend-mode: soft-light;
+  opacity: 0.46;
 }
 html[data-button-style='sky-glass']
   button[class]:not(.text-link):not(.mode-link):not(.sign-out):not(.account-profile),
 html[data-button-style='sky-glass'] a.primary-button,
 html[data-button-style='sky-glass'] a.secondary-button {
-  border-color: #c7f8ff75;
+  border-color: color-mix(in srgb, var(--button-glass-border) 64%, var(--theme-border));
+  backdrop-filter: blur(14px) saturate(128%);
+  box-shadow:
+    inset 0 1px 0 #ffffff73,
+    inset 0 -1px 0 color-mix(in srgb, var(--button-glass-bottom) 55%, transparent),
+    0 5px 14px color-mix(in srgb, var(--button-glass-glow) 58%, transparent);
 }
 html[data-button-style='sky-glass'] .primary-button,
 html[data-button-style='sky-glass'] .send-button {
-  background: linear-gradient(180deg, #7ee7f4, #219cc9 48%, #1373a7 52%, #42b886);
+  background:
+    radial-gradient(circle at 82% 115%, var(--button-glass-accent), transparent 42%),
+    linear-gradient(
+      180deg,
+      var(--button-glass-top),
+      var(--button-glass-mid) 46%,
+      var(--button-glass-bottom) 52%,
+      color-mix(in srgb, var(--button-glass-bottom) 78%, var(--button-glass-accent))
+    );
+  border-color: var(--button-glass-border);
+  color: var(--button-on-accent);
   box-shadow:
-    inset 0 1px 0 #fff,
-    inset 0 -8px 14px #07568955,
-    0 7px 18px #087da752;
-  text-shadow: 0 1px 1px #064765;
+    inset 0 1px 0 #ffffffd9,
+    inset 0 -8px 14px color-mix(in srgb, var(--button-glass-bottom) 68%, transparent),
+    0 6px 16px var(--button-glass-glow);
+  text-shadow: 0 1px 1px color-mix(in srgb, var(--button-glass-bottom) 80%, transparent);
 }
 html[data-button-style='sky-glass'] .secondary-button {
-  background: linear-gradient(180deg, #d9faff5c, #5ab7cc38 49%, #20789440 52%, #c5ffff2e);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--button-glass-top) 34%, transparent),
+    color-mix(in srgb, var(--button-glass-mid) 19%, var(--theme-surface)) 48%,
+    color-mix(in srgb, var(--button-glass-bottom) 25%, var(--theme-surface)) 52%,
+    color-mix(in srgb, var(--button-glass-accent) 13%, var(--theme-surface))
+  );
+  color: var(--theme-text);
 }
 html[data-button-style='sky-glass'] button:hover:not(:disabled),
 html[data-button-style='sky-glass'] a.primary-button:hover,
 html[data-button-style='sky-glass'] a.secondary-button:hover {
-  filter: saturate(1.18) brightness(1.08);
+  filter: saturate(1.08) brightness(1.06);
   box-shadow:
-    inset 0 1px 0 #fff,
-    0 10px 24px #0a789757,
-    0 0 18px #62e8ff40;
+    inset 0 1px 0 #ffffffbf,
+    inset 0 -1px 0 var(--button-glass-bottom),
+    0 8px 18px var(--button-glass-glow);
 }
 
 html[data-button-style='y2k'] button,
@@ -760,11 +862,11 @@ html[data-button-style='y2k'] button::after,
 html[data-button-style='y2k'] a.primary-button::after,
 html[data-button-style='y2k'] a.secondary-button::after {
   background-image:
-    repeating-linear-gradient(90deg, #ffffff16 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(0deg, #00000010 0 1px, transparent 1px 3px);
+    linear-gradient(135deg, #ffffff3d 0 12%, transparent 12% 88%, #00000024 88%),
+    repeating-linear-gradient(90deg, #ffffff0d 0 1px, transparent 1px 5px);
   background-size: auto;
   mix-blend-mode: overlay;
-  opacity: 0.52;
+  opacity: 0.45;
 }
 html[data-button-style='y2k']
   button[class]:not(.text-link):not(.mode-link):not(.sign-out):not(.account-profile):not(
@@ -772,39 +874,54 @@ html[data-button-style='y2k']
   ),
 html[data-button-style='y2k'] a.primary-button,
 html[data-button-style='y2k'] a.secondary-button {
-  border-color: #9bb0c5;
-  border-radius: 4px;
+  border-color: color-mix(in srgb, var(--button-chrome-light) 62%, var(--theme-border));
+  border-radius: 7px;
   box-shadow:
-    inset 1px 1px 0 #edf9ff87,
-    inset -1px -1px 0 #06101d80,
-    3px 3px 0 #07101d;
+    inset 1px 1px 0 color-mix(in srgb, var(--button-chrome-light) 68%, transparent),
+    inset -1px -1px 0 color-mix(in srgb, var(--button-chrome-dark) 72%, transparent),
+    0 3px 0 color-mix(in srgb, var(--button-chrome-shadow) 76%, transparent),
+    0 6px 12px color-mix(in srgb, var(--button-chrome-shadow) 36%, transparent);
 }
 html[data-button-style='y2k'] .primary-button,
 html[data-button-style='y2k'] .send-button {
-  background: linear-gradient(180deg, #e7f4ff, #718aa3 46%, #293b50 51%, #87c7e3);
-  color: #07111d;
-  text-shadow: 0 1px #fff;
+  background: linear-gradient(
+    180deg,
+    var(--button-chrome-light),
+    var(--button-chrome-mid) 45%,
+    var(--button-chrome-dark) 51%,
+    color-mix(in srgb, var(--button-chrome-mid) 72%, var(--button-glass-accent))
+  );
+  border-color: var(--button-chrome-light);
+  color: var(--button-on-accent);
+  text-shadow: 0 1px color-mix(in srgb, var(--button-chrome-dark) 82%, transparent);
 }
 html[data-button-style='y2k'] .secondary-button,
 html[data-button-style='y2k'] .icon-button,
 html[data-button-style='y2k'] .message-actions button {
-  background: linear-gradient(180deg, #d9e5edb8, #5f738999 48%, #26364b99 52%, #91a8ba99);
-  color: #f2f8ff;
-  text-shadow: 0 1px #06101a;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--button-chrome-light) 72%, var(--theme-surface)),
+    color-mix(in srgb, var(--button-chrome-mid) 66%, var(--theme-surface)) 47%,
+    color-mix(in srgb, var(--button-chrome-dark) 68%, var(--theme-surface)) 52%,
+    color-mix(in srgb, var(--button-chrome-mid) 56%, var(--theme-surface))
+  );
+  color: var(--theme-text);
+  text-shadow: 0 1px color-mix(in srgb, var(--button-chrome-shadow) 62%, transparent);
 }
 html[data-button-style='y2k'] button:hover:not(:disabled),
 html[data-button-style='y2k'] a.primary-button:hover,
 html[data-button-style='y2k'] a.secondary-button:hover {
-  filter: brightness(1.12) contrast(1.06);
-  transform: translate(-1px, -1px);
+  filter: brightness(1.08) contrast(1.03);
+  transform: translateY(-1px);
   box-shadow:
-    inset 1px 1px 0 #fff,
-    inset -1px -1px 0 #07101d,
-    4px 4px 0 #07101d;
+    inset 1px 1px 0 var(--button-chrome-light),
+    inset -1px -1px 0 var(--button-chrome-dark),
+    0 4px 0 color-mix(in srgb, var(--button-chrome-shadow) 82%, transparent),
+    0 8px 14px color-mix(in srgb, var(--button-chrome-shadow) 42%, transparent);
 }
 html[data-button-style='y2k'] button:active:not(:disabled) {
-  transform: translate(2px, 2px);
+  transform: translateY(2px);
   box-shadow:
-    inset 1px 1px 2px #07101d,
-    1px 1px 0 #07101d;
+    inset 1px 1px 2px var(--button-chrome-shadow),
+    0 1px 0 var(--button-chrome-shadow);
 }

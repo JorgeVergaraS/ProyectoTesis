@@ -15,6 +15,9 @@
   font-size: 31px;
   gap: 12px;
 }
+.mobile-account-card {
+  display: none;
+}
 .navigation-caption {
   font-size: 8px;
   letter-spacing: 1.2px;
@@ -205,6 +208,7 @@
 }
 @media (max-width: 760px) {
   .main-navigation {
+    position: relative;
     flex-shrink: 0;
     overflow: visible;
     padding: 13px 14px 9px;
@@ -220,6 +224,44 @@
   .brand .nexo-mark {
     width: 26px;
     height: 28px;
+  }
+  .mobile-account-card {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 37px;
+    align-items: stretch;
+    max-width: min(195px, calc(100vw - 155px));
+    min-height: 36px;
+    overflow: hidden;
+    border: 1px solid var(--theme-border-strong);
+    border-radius: 10px;
+    background: var(--theme-panel);
+    color: var(--theme-text);
+  }
+  .mobile-account-card strong {
+    align-self: center;
+    overflow: hidden;
+    padding: 0 10px;
+    font-size: 10px;
+    font-weight: 550;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mobile-account-card button {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid var(--theme-border-strong);
+    border-radius: 0;
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+  }
+  .mobile-account-card nexo-icon {
+    width: 15px;
+    height: 15px;
   }
   .navigation-caption,
   .navigation-bottom {
