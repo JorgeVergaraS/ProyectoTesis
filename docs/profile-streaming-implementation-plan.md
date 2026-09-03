@@ -23,18 +23,14 @@ Microsoft Entra ID y demostración local.
   `avatar_version`.
 - La subida de avatar ya valida tamaño, dimensiones y contenido, recorta la imagen y la
   normaliza a PNG.
-- El frontend ya tiene una ruta `/profile`, un `ProfileService` y un componente compartido
-  `nexo-avatar`.
+- El frontend ya tiene una ruta `/profile`, un `ProfileService`, un panel reutilizable,
+  un formulario reactivo y el componente compartido `nexo-avatar`.
 - Existe una llamada WebRTC uno-a-uno con permiso de micrófono, mute, liberación de tracks y
   pruebas automatizadas.
 - La autorización de canales y conversaciones ya se controla en el backend por membresía.
 
 ### Brechas que deben resolverse
 
-- Perfil y avatar: la escritura funciona solo bajo `local-demo`; las cuentas locales y Entra
-  solo pueden consultar el perfil.
-- El componente de perfil actual es una página aislada y no el panel reutilizable que muestra
-  el mockup.
 - `status` representa el estado administrativo de la cuenta (`ACTIVE`), por lo que no debe
   reutilizarse como «Disponible/Ocupado/Ausente».
 - La llamada actual es exclusiva del modo demo, usa señalización HTTP por polling, vive en
@@ -193,6 +189,10 @@ subir/quitar avatar y ver el cambio en perfil, mensajes y participantes.
 
 ### Fase 2 — Perfil y edición en Angular
 
+**Estado:** completada en `codex/authenticated-workspace`. El panel y el formulario son
+reutilizables, se adaptan a escritorio/móvil y conservan compatibilidad con demo, cuenta local
+y Microsoft. La persistencia y la recarga se validaron desde la interfaz real.
+
 1. Extraer `ProfilePanelComponent` reutilizable desde la página actual.
 2. Crear `ProfileEditFormComponent` con Reactive Forms.
 3. Adaptar `ProfileService` a las rutas autenticadas y conservar compatibilidad demo.
@@ -318,13 +318,13 @@ recuperación documentada ante fallos.
 ## 9. Orden recomendado de trabajo
 
 1. **Perfil autenticado completo (completado)**: menor riesgo y máximo reaprovechamiento del código actual.
-2. **Panel Angular reutilizable**: materializa el mockup con persistencia real.
+2. **Panel Angular reutilizable (completado)**: materializa el mockup con persistencia real.
 3. **Vista previa multimedia local**: valida permisos y UX sin introducir infraestructura.
 4. **Transmisión SFU local con dos usuarios**: primera vertical audiovisual completa.
 5. **TURN/HTTPS y prueba entre redes**: convierte la demo local en una función verificable.
 6. **Tiempo real, límites y observabilidad**: endurecimiento antes del despliegue.
 
-El siguiente cambio recomendado es la Fase 2: conectar estos contratos al panel Angular
-reutilizable. Aún no conviene ampliar `VoiceCallService`: su contrato actual es demo,
+El siguiente cambio recomendado es la Fase 3: construir la vista previa multimedia local sin
+emitir. Aún no conviene ampliar `VoiceCallService`: su contrato actual es demo,
 uno-a-uno y audio-only; mezclarlo con transmisiones haría más difícil asegurar y probar
 ambos flujos.

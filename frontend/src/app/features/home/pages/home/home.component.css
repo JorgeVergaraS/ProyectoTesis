@@ -1491,6 +1491,35 @@
   padding-bottom: 28px;
   border-bottom: 1px solid #283047;
 }
+.profile-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  justify-content: flex-end;
+  background: #03050a99;
+  backdrop-filter: blur(3px);
+  animation: profile-fade-in 0.16s ease-out;
+}
+.profile-drawer {
+  height: 100dvh;
+  animation: profile-slide-in 0.2s ease-out;
+}
+@keyframes profile-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes profile-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+@media (max-width: 760px) {
+  .profile-backdrop {
+    display: none;
+  }
+}
 .authenticated-home .brand {
   color: #eef2ff;
   font-size: 26px;

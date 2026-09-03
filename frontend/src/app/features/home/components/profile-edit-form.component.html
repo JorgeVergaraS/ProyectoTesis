@@ -1,0 +1,102 @@
+<form class="profile-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="field">
+    <label for="profile-display-name">Nombre visible</label>
+    <input
+      #displayNameInput
+      id="profile-display-name"
+      type="text"
+      formControlName="displayName"
+      autocomplete="name"
+      maxlength="120"
+      [attr.aria-invalid]="form.controls.displayName.touched && form.controls.displayName.invalid"
+      aria-describedby="profile-display-name-error"
+    />
+    @if (form.controls.displayName.touched && form.controls.displayName.invalid) {
+      <small id="profile-display-name-error" class="field-error"
+        >Escribe un nombre visible de hasta 120 caracteres.</small
+      >
+    }
+  </div>
+
+  <div class="field">
+    <label for="profile-username">Nombre de usuario</label>
+    <div class="handle-input">
+      <input
+        id="profile-username"
+        type="text"
+        formControlName="username"
+        autocomplete="username"
+        maxlength="254"
+        [attr.aria-invalid]="form.controls.username.touched && form.controls.username.invalid"
+        aria-describedby="profile-username-help profile-username-error"
+      />
+    </div>
+    <small id="profile-username-help" class="field-help"
+      >Letras, números y los caracteres . _ &#64; + -</small
+    >
+    @if (form.controls.username.touched && form.controls.username.hasError('conflict')) {
+      <small id="profile-username-error" class="field-error"
+        >Ese nombre de usuario ya está en uso.</small
+      >
+    } @else if (form.controls.username.touched && form.controls.username.invalid) {
+      <small id="profile-username-error" class="field-error"
+        >Usa al menos dos caracteres y comienza y termina con una letra o número.</small
+      >
+    }
+  </div>
+
+  <div class="field">
+    <div class="label-row">
+      <label for="profile-bio">Biografía</label>
+      <span>{{ form.controls.bio.value.length }}/250</span>
+    </div>
+    <textarea
+      id="profile-bio"
+      formControlName="bio"
+      maxlength="250"
+      rows="4"
+      aria-describedby="profile-bio-error"
+    ></textarea>
+    @if (form.controls.bio.touched && form.controls.bio.invalid) {
+      <small id="profile-bio-error" class="field-error"
+        >La biografía admite hasta 250 caracteres.</small
+      >
+    }
+  </div>
+
+  <div class="form-grid">
+    <div class="field">
+      <label for="profile-availability">Disponibilidad</label>
+      <select id="profile-availability" formControlName="availability">
+        <option value="AVAILABLE">Disponible</option>
+        <option value="BUSY">Ocupado</option>
+        <option value="AWAY">Ausente</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="profile-color">Color del perfil</label>
+      <div class="color-input">
+        <input id="profile-color" type="color" formControlName="color" />
+        <span>{{ form.controls.color.value.toUpperCase() }}</span>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="form-error" role="alert">{{ error() }}</p>
+  }
+
+  <div class="form-actions">
+    <button
+      class="secondary-button"
+      type="button"
+      [disabled]="busy()"
+      (click)="cancelRequested.emit()"
+    >
+      Cancelar
+    </button>
+    <button class="primary-button" type="submit" [disabled]="busy() || form.pristine">
+      {{ busy() ? 'Guardando…' : 'Guardar cambios' }}
+    </button>
+  </div>
+</form>

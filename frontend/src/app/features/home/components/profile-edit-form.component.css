@@ -1,0 +1,134 @@
+:host {
+  display: block;
+}
+.profile-form {
+  display: grid;
+  gap: 17px;
+  padding: 22px;
+}
+.field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.field label,
+.label-row {
+  color: #dfe5f2;
+  font-size: 12px;
+  font-weight: 600;
+}
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.label-row span,
+.field-help {
+  color: #7f8ba0;
+  font-size: 10px;
+  font-weight: 400;
+}
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 11px;
+  border: 1px solid #303a4e;
+  border-radius: 10px;
+  outline: none;
+  background: #1b2130;
+  color: #f1f4fb;
+}
+.field textarea {
+  min-height: 92px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: #8b74ef;
+  box-shadow: 0 0 0 3px #7c5ce526;
+}
+.field input[aria-invalid='true'],
+.field textarea[aria-invalid='true'] {
+  border-color: #df6a80;
+}
+.handle-input {
+  border: 1px solid #303a4e;
+  border-radius: 10px;
+  background: #1b2130;
+}
+.handle-input:focus-within {
+  border-color: #8b74ef;
+  box-shadow: 0 0 0 3px #7c5ce526;
+}
+.handle-input input {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.field-error {
+  color: #ff9bad;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.color-input {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 43px;
+  padding: 6px 9px;
+  border: 1px solid #303a4e;
+  border-radius: 10px;
+  background: #1b2130;
+}
+.color-input input {
+  width: 31px;
+  min-height: 29px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.color-input span {
+  color: #b5bfd1;
+  font-size: 10px;
+}
+.form-error {
+  margin: 0;
+  padding: 11px;
+  color: #ffabb9;
+  border: 1px solid #663648;
+  border-radius: 9px;
+  background: #301b29;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 10px;
+  padding-top: 3px;
+}
+.form-actions button {
+  min-height: 43px;
+}
+@media (max-width: 420px) {
+  .profile-form {
+    padding: 18px;
+  }
+  .form-grid,
+  .form-actions {
+    grid-template-columns: 1fr;
+  }
+  .form-actions .primary-button {
+    grid-row: 1;
+  }
+}

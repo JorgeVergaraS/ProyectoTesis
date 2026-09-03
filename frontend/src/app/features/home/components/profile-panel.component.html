@@ -1,0 +1,124 @@
+<aside
+  class="profile-panel"
+  [class.page-panel]="variant() === 'page'"
+  [style.--profile-color]="user().color"
+  role="dialog"
+  [attr.aria-modal]="variant() === 'drawer' ? 'true' : null"
+  aria-labelledby="profile-panel-title"
+>
+  <header class="panel-header">
+    @if (mode() === 'edit') {
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="Volver al perfil"
+        (click)="returnToProfile()"
+      >
+        <nexo-icon name="back" />
+      </button>
+    } @else {
+      <span aria-hidden="true"></span>
+    }
+    <h2 id="profile-panel-title">{{ mode() === 'edit' ? 'Editar perfil' : 'Mi perfil' }}</h2>
+    <span></span>
+    <button
+      #closeButton
+      class="icon-button"
+      type="button"
+      [attr.aria-label]="variant() === 'page' ? 'Volver al espacio de trabajo' : 'Cerrar perfil'"
+      (click)="requestClose()"
+    >
+      <nexo-icon name="close" />
+    </button>
+  </header>
+
+  @if (mode() === 'profile') {
+    <div class="profile-view">
+      <div class="cover" aria-hidden="true"></div>
+      <div class="avatar-row">
+        <nexo-avatar
+          [src]="user().avatarUrl"
+          [name]="user().displayName"
+          [color]="user().color"
+          [online]="(user().availability ?? 'AVAILABLE') === 'AVAILABLE'"
+          [profile]="true"
+        />
+        <label
+          class="avatar-edit"
+          [class.disabled]="uploading()"
+          [attr.aria-label]="uploading() ? 'Guardando foto' : 'Cambiar foto de perfil'"
+          title="Cambiar foto de perfil"
+        >
+          <nexo-icon name="camera" />
+          <input
+            type="file"
+            accept="image/png,image/jpeg"
+            [disabled]="uploading()"
+            (change)="uploadAvatar($event)"
+          />
+        </label>
+      </div>
+
+      <div class="profile-heading">
+        <h3>{{ user().displayName }}</h3>
+        <p>{{ handle() }}</p>
+      </div>
+      <div class="status-row" [attr.data-status]="user().availability ?? 'AVAILABLE'">
+        <i aria-hidden="true"></i><span>{{ availabilityLabel() }}</span>
+      </div>
+      <p class="bio">{{ user().bio || 'Aún no has agregado una biografía.' }}</p>
+
+      <dl class="profile-facts">
+        <div>
+          <dt>Acceso</dt>
+          <dd>{{ providerLabel() }}</dd>
+        </div>
+        <div>
+          <dt>Cuenta</dt>
+          <dd>{{ user().email || user().username }}</dd>
+        </div>
+      </dl>
+
+      @if (avatarError()) {
+        <p class="panel-message error" role="alert">{{ avatarError() }}</p>
+      }
+      @if (savedMessage()) {
+        <p class="panel-message success" role="status">{{ savedMessage() }}</p>
+      }
+
+      <div class="action-stack">
+        <button class="primary-button" type="button" (click)="openEdit()">
+          <nexo-icon name="edit" />Editar mi perfil
+        </button>
+        @if (user().avatarUrl) {
+          <button
+            class="secondary-button"
+            type="button"
+            [disabled]="removing() || uploading()"
+            (click)="removeAvatar()"
+          >
+            <nexo-icon name="trash" />{{ removing() ? 'Quitando foto…' : 'Quitar foto' }}
+          </button>
+        }
+        <button
+          class="future-action"
+          type="button"
+          disabled
+          title="Se habilitará en la fase multimedia"
+        >
+          <nexo-icon name="radio" />Preparar transmisión <small>Próxima fase</small>
+        </button>
+      </div>
+
+      <button class="sign-out" type="button" (click)="signOut.emit()">
+        <nexo-icon name="logout" />Cerrar sesión
+      </button>
+    </div>
+  } @else {
+    <nexo-profile-edit-form
+      [user]="user()"
+      (saved)="profileSaved($event)"
+      (cancelRequested)="returnToProfile()"
+    />
+  }
+</aside>

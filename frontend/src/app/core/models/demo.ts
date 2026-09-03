@@ -1,10 +1,12 @@
+export type ProfileAvailability = 'AVAILABLE' | 'BUSY' | 'AWAY';
+
 export interface DemoUser {
   id: string;
   username: string;
   displayName: string;
   color: string;
   bio: string;
-  availability?: 'AVAILABLE' | 'BUSY' | 'AWAY';
+  availability?: ProfileAvailability;
   online: boolean;
   avatarUrl?: string | null;
   email?: string | null;

@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
     class="avatar"
     [style.--avatar-color]="color()"
     [class.large]="large()"
+    [class.profile]="profile()"
     aria-hidden="true"
   >
     @if (imageUrl() && failedUrl() !== imageUrl()) {
@@ -43,6 +44,14 @@ import { environment } from '../../../environments/environment';
         font-size: 23px;
         border-radius: 50%;
       }
+      .profile {
+        width: 94px;
+        height: 94px;
+        border: 5px solid #151a24;
+        border-radius: 28px;
+        font-size: 32px;
+        box-shadow: 0 10px 28px #00000038;
+      }
       img {
         position: absolute;
         width: 100%;
@@ -68,6 +77,7 @@ export class AvatarComponent {
   readonly color = input('#8b5cf6');
   readonly online = input(false);
   readonly large = input(false);
+  readonly profile = input(false);
   readonly src = input<string | null | undefined>(null);
   readonly failedUrl = signal('');
   readonly imageUrl = computed(() => {

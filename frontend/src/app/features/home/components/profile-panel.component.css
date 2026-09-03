@@ -1,0 +1,242 @@
+:host {
+  display: block;
+  width: min(380px, 100vw);
+  height: 100%;
+}
+.profile-panel {
+  --profile-color: #8b5cf6;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  border-left: 1px solid #303745;
+  background: #151922;
+  color: #f2f4fa;
+  box-shadow: -22px 0 55px #00000035;
+}
+.page-panel {
+  min-height: min(760px, calc(100dvh - 48px));
+  border: 1px solid #303745;
+  border-radius: 22px;
+  box-shadow: 0 24px 65px #00000045;
+}
+.panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 1fr 36px;
+  align-items: center;
+  gap: 8px;
+  min-height: 68px;
+  padding: 12px 15px;
+  border-bottom: 1px solid #303745;
+  background: #151922ee;
+  backdrop-filter: blur(14px);
+}
+.panel-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+.panel-header .icon-button {
+  width: 36px;
+  height: 36px;
+}
+.profile-view {
+  padding: 0 22px 24px;
+}
+.cover {
+  height: 104px;
+  margin: 0 -22px;
+  background:
+    radial-gradient(circle at 72% 32%, #ffffff3d, transparent 24%),
+    linear-gradient(135deg, var(--profile-color), #d56fac);
+}
+.avatar-row {
+  position: relative;
+  width: 94px;
+  margin-top: -47px;
+}
+.avatar-edit {
+  position: absolute;
+  right: -7px;
+  bottom: 1px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #151922;
+  border-radius: 12px;
+  background: #eff2f8;
+  color: #181c26;
+  cursor: pointer;
+}
+.avatar-edit:hover {
+  background: #fff;
+}
+.avatar-edit.disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.avatar-edit nexo-icon {
+  width: 17px;
+  height: 17px;
+}
+.avatar-edit input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.profile-heading {
+  margin-top: 17px;
+}
+.profile-heading h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 22px;
+}
+.profile-heading p {
+  margin: 5px 0 0;
+  color: #9da6b8;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+  color: #c4cbd8;
+  font-size: 12px;
+}
+.status-row i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #55d8a8;
+  box-shadow: 0 0 10px #55d8a877;
+}
+.status-row[data-status='BUSY'] i {
+  background: #ff758b;
+  box-shadow: 0 0 10px #ff758b66;
+}
+.status-row[data-status='AWAY'] i {
+  background: #f2bd63;
+  box-shadow: 0 0 10px #f2bd6366;
+}
+.bio {
+  min-height: 42px;
+  margin: 19px 0;
+  color: #d8dce6;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.profile-facts {
+  display: grid;
+  gap: 9px;
+  margin: 0 0 20px;
+}
+.profile-facts > div {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 11px;
+  background: #202530;
+}
+.profile-facts dt {
+  color: #8993a6;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.profile-facts dd {
+  margin: 5px 0 0;
+  overflow: hidden;
+  color: #e9ecf4;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.panel-message {
+  margin: 0 0 13px;
+  padding: 10px 11px;
+  border: 1px solid;
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.panel-message.error {
+  color: #ffabb9;
+  border-color: #663648;
+  background: #301b29;
+}
+.panel-message.success {
+  color: #83e2b9;
+  border-color: #285d4a;
+  background: #142d26;
+}
+.action-stack {
+  display: grid;
+  gap: 9px;
+}
+.action-stack > button {
+  width: 100%;
+  min-height: 42px;
+}
+.future-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: #929bad;
+  border: 1px dashed #384052;
+  border-radius: 9px;
+  background: #191e28;
+  font-size: 11px;
+}
+.future-action small {
+  padding: 3px 6px;
+  border-radius: 9px;
+  background: #292f3d;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+.future-action nexo-icon,
+.sign-out nexo-icon {
+  width: 16px;
+  height: 16px;
+}
+.sign-out {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 22px;
+  padding: 11px;
+  color: #9099ab;
+  border: 0;
+  border-top: 1px solid #2c3341;
+  background: transparent;
+  font-size: 11px;
+}
+.sign-out:hover {
+  color: #fff;
+}
+@media (max-width: 600px) {
+  :host {
+    width: 100%;
+  }
+  .page-panel {
+    min-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+  .profile-view {
+    padding-inline: 20px;
+  }
+}

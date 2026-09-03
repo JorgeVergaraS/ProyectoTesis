@@ -88,7 +88,7 @@ las imágenes no importan esos datos a una instalación nueva.
 | Directos | Conversaciones entre dos perfiles con autorización backend | Sin grupos privados ni confirmaciones de lectura |
 | Historial | PostgreSQL; envío idempotente mediante `clientId` | Últimos 100 mensajes, sin paginación |
 | Enlaces | Reconoce `http://`, `https://` y `www.` | Sin previews ni verificación de reputación |
-| Perfil | Edición autenticada, disponibilidad y foto opcional normalizada | La interfaz de edición completa se incorpora en la Fase 2 |
+| Perfil | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada | Sin campos institucionales ni configuración de privacidad |
 | Llamadas | Voz WebRTC, aceptar/rechazar, mute y finalizar | Dos usuarios; mismo equipo; sin video ni STUN/TURN |
 | Presencia | Actividad reciente de sesiones | Polling HTTP; no hay WebSocket |
 | Operación | Docker Compose, Flyway, health, Actuator y Swagger | Solo local, sin despliegue público |
@@ -590,8 +590,8 @@ Servicios iniciados, desde la raíz en PowerShell:
 
 | Comprobación | Resultado registrado |
 | --- | --- |
-| Backend | 34 pruebas aprobadas, incluidas autenticación, perfil, avatares y Testcontainers |
-| Frontend | 34 pruebas aprobadas en trece archivos |
+| Backend | 35 pruebas aprobadas, incluidas autenticación, perfil, avatares, CORS y Testcontainers |
+| Frontend | 43 pruebas aprobadas en diecisiete archivos |
 | Build Angular | Compilación de producción correcta |
 | Formato | Prettier correcto |
 | Integración | Health, readiness DB, proxy, CORS y OpenAPI correctos |
@@ -687,6 +687,7 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Workspace, comunidades y mensajería para cuentas locales y Microsoft.
 - [x] Identidad del mensaje y autorización de membresía controladas por el backend.
 - [x] Perfil y avatar autenticados para cuentas locales y Microsoft, con compatibilidad demo.
+- [x] Panel Angular de perfil reutilizable, edición persistente y navegación adaptable.
 - [ ] Validación interactiva del login/logout Microsoft real en Brave.
 - [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.

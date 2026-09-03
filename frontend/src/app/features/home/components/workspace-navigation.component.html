@@ -2,7 +2,7 @@
   <a routerLink="/home" class="brand" aria-label="Nexo, inicio" (click)="navigate.emit('overview')">
     <span class="nexo-mark" aria-hidden="true"><i></i><i></i><i></i></span>Nexo
   </a>
-  <span class="navigation-caption">TU COMUNIDAD UNIVERSITARIA · Microsoft Entra ID</span>
+  <span class="navigation-caption">TU COMUNIDAD UNIVERSITARIA · {{ sessionLabel() }}</span>
   <nav class="primary-navigation" aria-label="Secciones">
     <button
       class="nav-item"
@@ -36,7 +36,9 @@
     >
       <nexo-icon name="users" /><span>Personas</span>
     </button>
-    <a routerLink="/profile" class="nav-item"><nexo-icon name="profile" /><span>Perfil</span></a>
+    <button class="nav-item" type="button" (click)="profileOpen.emit()">
+      <nexo-icon name="profile" /><span>Perfil</span>
+    </button>
   </nav>
   <div class="navigation-bottom">
     <div class="campus-note">
@@ -46,7 +48,12 @@
         Encuentra tu comunidad <nexo-icon name="arrow" />
       </button>
     </div>
-    <a class="account-card" routerLink="/profile">
+    <button
+      class="account-card"
+      type="button"
+      aria-label="Abrir mi perfil"
+      (click)="profileOpen.emit()"
+    >
       <nexo-avatar
         [src]="user()?.avatarUrl"
         [name]="user()?.displayName || ''"
@@ -54,12 +61,12 @@
       />
       <span
         ><strong>{{ user()?.displayName }}</strong
-        ><small>&#64;{{ user()?.username }}</small></span
+        ><small>{{ handle() }}</small></span
       >
       <nexo-icon name="chevron" />
-    </a>
+    </button>
     <div class="session-footer">
-      <span class="demo-pill">DEMO LOCAL</span
+      <span class="demo-pill">{{ sessionLabel() }}</span
       ><button
         class="icon-button"
         aria-label="Cerrar sesión"

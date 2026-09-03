@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/guards/demo.guard';
+import { pendingChangesGuard } from './core/guards/pending-changes.guard';
 
 export const routes: Routes = [
   {
@@ -17,6 +18,7 @@ export const routes: Routes = [
   {
     path: 'profile',
     canActivate: [authGuard],
+    canDeactivate: [pendingChangesGuard],
     loadComponent: () =>
       import('./features/home/pages/profile/profile.component').then((m) => m.ProfileComponent),
   },

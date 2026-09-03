@@ -1,8 +1,10 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { DemoUser } from '../../../../core/models/demo';
+import { ProfileService } from '../../../../core/services/profile.service';
 import { ProfileComponent } from './profile.component';
 
 describe('ProfileComponent', () => {
@@ -12,6 +14,7 @@ describe('ProfileComponent', () => {
     displayName: 'Jorge',
     color: '#8b5cf6',
     bio: '',
+    availability: 'AVAILABLE',
     online: true,
   };
   beforeEach(() =>
@@ -24,6 +27,14 @@ describe('ProfileComponent', () => {
           useValue: {
             session: { user: signal(user), kind: signal<'microsoft'>('microsoft') },
             logout: vi.fn(),
+          },
+        },
+        {
+          provide: ProfileService,
+          useValue: {
+            update: vi.fn(() => of(user)),
+            upload: vi.fn(() => of(user)),
+            removeAvatar: vi.fn(() => of(user)),
           },
         },
       ],

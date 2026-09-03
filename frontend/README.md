@@ -20,7 +20,8 @@ Requiere Node 24/npm 11 y Spring Boot con `local-demo`. Abrir
 - `core/realtime`: WebRTC de audio, permiso del micrófono y señalización HTTP.
 - `shared/components`: avatares, iconos, enlaces seguros y panel de voz.
 - `features/auth`: selector visual de perfiles.
-- `features/home`: inicio, comunidades, bandeja, mensajes, personas y perfil.
+- `features/home`: inicio, comunidades, bandeja, mensajes, personas y panel de perfil
+  reutilizable con edición persistente.
 - `features/status`: diagnóstico técnico.
 
 Rutas: `/login`, `/home`, `/profile` y `/status`. Crear pestañas nuevas sin
@@ -35,7 +36,7 @@ npm run test:ci
 npm run build
 ```
 
-30 pruebas en doce archivos. Los tests unitarios de voz simulan medios;
+43 pruebas en diecisiete archivos. Los tests unitarios de voz simulan medios;
 la conectividad WebRTC real se verifica por separado. `npm run format` aplica
 Prettier. El build de producción genera `dist/nexo`, que no se versiona.
 

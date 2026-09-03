@@ -37,6 +37,7 @@ import {
   ConversationInboxComponent,
   InboxFilter,
 } from '../../components/conversation-inbox.component';
+import { ProfilePanelComponent } from '../../components/profile-panel.component';
 
 @Component({
   selector: 'app-home',
@@ -48,6 +49,7 @@ import {
     MessageTextComponent,
     WorkspaceNavigationComponent,
     ConversationInboxComponent,
+    ProfilePanelComponent,
     RouterLink,
   ],
   templateUrl: './home.component.html',
@@ -93,6 +95,7 @@ export class HomeComponent {
   readonly connectionError = signal('');
   readonly actionError = signal('');
   readonly actionBusy = signal(false);
+  readonly profileOpen = signal(false);
   readonly sending = signal(false);
   readonly messages = signal<Message[]>([]);
   readonly members = signal<DemoUser[]>([]);
@@ -116,6 +119,7 @@ export class HomeComponent {
   readonly inboxChannels = computed(() => this.channels().filter((c) => c.joined));
   readonly onlineCount = computed(() => this.workspace().people.filter((p) => p.online).length);
   readonly messageList = viewChild<ElementRef<HTMLElement>>('messageList');
+  readonly profilePanel = viewChild(ProfilePanelComponent);
   private readonly refreshWorkspace = new Subject<void>();
   private readonly refreshMessages = new Subject<void>();
   private readonly drafts = new Map<string, string>();
@@ -144,8 +148,17 @@ export class HomeComponent {
         this.workspace.set(workspace);
         const current = this.auth.session.user();
         const refreshed = workspace.people.find((person) => person.id === current?.id);
-        if (refreshed && refreshed.avatarUrl !== current?.avatarUrl)
-          this.auth.session.user.set(refreshed);
+        if (
+          refreshed &&
+          current &&
+          (refreshed.avatarUrl !== current.avatarUrl ||
+            refreshed.displayName !== current.displayName ||
+            refreshed.username !== current.username ||
+            refreshed.bio !== current.bio ||
+            refreshed.color !== current.color ||
+            refreshed.availability !== current.availability)
+        )
+          this.auth.session.user.set({ ...refreshed, email: current.email });
         this.initialLoading.set(false);
         this.connectionError.set('');
         this.connected.set(true);
@@ -217,6 +230,42 @@ export class HomeComponent {
     if (view === 'chat') this.inboxOpen.set(true);
     this.filter.setValue('');
     this.actionError.set('');
+  }
+  openOwnProfile(): void {
+    if (window.matchMedia('(max-width: 760px)').matches) {
+      void this.router.navigate(['/profile']);
+      return;
+    }
+    this.profileOpen.set(true);
+  }
+  requestProfileClose(): void {
+    this.profilePanel()?.requestClose();
+  }
+  profileUpdated(user: DemoUser): void {
+    this.auth.session.user.set(user);
+    this.workspace.update((workspace) => ({
+      ...workspace,
+      people: workspace.people.map((person) =>
+        person.id === user.id ? { ...person, ...user } : person,
+      ),
+    }));
+    this.members.update((members) =>
+      members.map((person) => (person.id === user.id ? { ...person, ...user } : person)),
+    );
+    this.messages.update((messages) =>
+      messages.map((message) =>
+        message.senderId === user.id
+          ? {
+              ...message,
+              senderName: user.displayName,
+              senderColor: user.color,
+              senderAvatarUrl: user.avatarUrl,
+            }
+          : message,
+      ),
+    );
+    this.refreshWorkspace.next();
+    this.refreshMessages.next();
   }
   async membership(conversation: Conversation, join: boolean): Promise<void> {
     if (this.actionBusy()) return;

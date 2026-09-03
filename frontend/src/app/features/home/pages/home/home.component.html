@@ -3,8 +3,10 @@
     <nexo-workspace-navigation
       [view]="view()"
       [user]="auth.session.user()"
+      [sessionKind]="auth.session.kind()"
       [busy]="actionBusy()"
       (navigate)="navigate($event)"
+      (profileOpen)="openOwnProfile()"
       (signOut)="logout()"
     />
 
@@ -513,6 +515,19 @@
       </main>
     </div>
   </div>
+  @if (profileOpen() && auth.session.user(); as profileUser) {
+    <div class="profile-backdrop" (click)="requestProfileClose()">
+      <div class="profile-drawer" (click)="$event.stopPropagation()">
+        <nexo-profile-panel
+          [user]="profileUser"
+          [sessionKind]="auth.session.kind()"
+          (userChange)="profileUpdated($event)"
+          (closed)="profileOpen.set(false)"
+          (signOut)="logout()"
+        />
+      </div>
+    </div>
+  }
 } @else {
   @if (auth.session.user(); as user) {
     <main id="dashboard-top" class="authenticated-home dashboard-home">

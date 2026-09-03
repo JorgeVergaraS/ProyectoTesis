@@ -108,6 +108,14 @@
   border-radius: 12px;
   padding: 12px 10px;
   background: #0b101b;
+  width: 100%;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.account-card:hover {
+  border-color: #594184;
+  background: #131526;
 }
 .account-card > span {
   flex: 1;

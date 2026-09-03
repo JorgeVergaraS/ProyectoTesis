@@ -89,6 +89,17 @@ class NexoApplicationTests {
     }
 
     @Test
+    void angularOriginCanPreflightProfileUpdates() throws Exception {
+        mvc.perform(options("/api/users/me/profile")
+                        .header("Origin", "http://127.0.0.1:4200")
+                        .header("Access-Control-Request-Method", "PATCH")
+                        .header("Access-Control-Request-Headers", "authorization,content-type"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://127.0.0.1:4200"))
+                .andExpect(header().string("Access-Control-Allow-Methods", org.hamcrest.Matchers.containsString("PATCH")));
+    }
+
+    @Test
     void unknownOriginIsRejected() throws Exception {
         mvc.perform(options("/api/public/health")
                         .header("Origin", "https://untrusted.example")
