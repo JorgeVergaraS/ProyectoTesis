@@ -2,6 +2,10 @@
   display: block;
   width: min(380px, 100vw);
   height: 100%;
+  transition: width 0.2s ease;
+}
+:host(.studio-open) {
+  width: min(560px, 100vw);
 }
 .profile-panel {
   --profile-color: #8b5cf6;
@@ -186,26 +190,13 @@
   width: 100%;
   min-height: 42px;
 }
-.future-action {
+.action-stack .secondary-button {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 12px;
-  color: #929bad;
-  border: 1px dashed #384052;
-  border-radius: 9px;
-  background: #191e28;
-  font-size: 11px;
 }
-.future-action small {
-  padding: 3px 6px;
-  border-radius: 9px;
-  background: #292f3d;
-  font-size: 8px;
-  text-transform: uppercase;
-}
-.future-action nexo-icon,
+.action-stack .secondary-button nexo-icon,
 .sign-out nexo-icon {
   width: 16px;
   height: 16px;

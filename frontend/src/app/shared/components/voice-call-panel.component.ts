@@ -37,9 +37,16 @@ import { IconComponent } from './icon.component';
             <p class="call-error" role="alert">{{ voice.error() }}</p>
           }
           @if (voice.call()?.status === 'RINGING' && !voice.call()?.outgoing && !voice.busy()) {
-            <p class="call-help">Te está llamando. Al aceptar se solicitará acceso al micrófono.</p>
+            <p class="call-help">
+              {{
+                voice.mediaInUse()
+                  ? 'Cierra el estudio multimedia para poder aceptar.'
+                  : 'Te está llamando. Al aceptar se solicitará acceso al micrófono.'
+              }}
+            </p>
             <div class="call-actions">
-              <button class="accept" (click)="voice.accept()">Aceptar llamada</button
+              <button class="accept" [disabled]="voice.mediaInUse()" (click)="voice.accept()">
+                Aceptar llamada</button
               ><button class="hangup" (click)="voice.reject()">Rechazar</button>
             </div>
           } @else {

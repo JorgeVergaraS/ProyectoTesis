@@ -9,13 +9,14 @@ npm ci
 npm start
 ```
 
-Requiere Node 24/npm 11 y Spring Boot con `local-demo`. Abrir
+Requiere Node 24/npm 11 y Spring Boot; `local-demo` habilita además los perfiles de demostración. Abrir
 [localhost:4200](http://localhost:4200). El proxy envía `/api` al backend en 8080.
 
 ## Organización
 
-- `core/auth`: sesión demo por pestaña; `guards` e `interceptors` protegen la UI
-  y limitan el envío de la credencial a la API propia.
+- `core/auth`: sesiones demo, locales y Microsoft; `guards` e `interceptors` protegen la UI
+  y limitan el envío de credenciales a la API propia.
+- `core/media`: captura local de cámara, pantalla y micrófono, dispositivos, nivel y liberación.
 - `core/services`: clientes de chat, perfil y health, además de la preferencia visual
   persistente.
 - `core/realtime`: WebRTC de audio, permiso del micrófono y señalización HTTP.
@@ -25,7 +26,7 @@ Requiere Node 24/npm 11 y Spring Boot con `local-demo`. Abrir
   reutilizable con edición persistente. Los mensajes ofrecen acciones para editar, borrar,
   copiar, responder y reenviar. La tuerca junto al usuario abre la configuración con temas
   predeterminado, OLED y claro, además de acabados Mate, Style SkayGlass y Y2K 2000 para
-  los botones.
+  los botones. El perfil también abre un estudio multimedia de vista previa privada.
 - `features/status`: diagnóstico técnico.
 
 Rutas: `/login`, `/home`, `/profile` y `/status`. Crear pestañas nuevas sin
@@ -46,10 +47,12 @@ npm run test:ci
 npm run build
 ```
 
-54 pruebas en diecinueve archivos. Los tests unitarios de voz simulan medios;
-la conectividad WebRTC real se verifica por separado. `npm run format` aplica
+71 pruebas en veintiún archivos. Los tests unitarios de voz y estudio simulan medios;
+la conectividad WebRTC real se verifica por separado y el estudio requiere una prueba manual
+con dispositivos reales. `npm run format` aplica
 Prettier. El build de producción genera `dist/nexo`, que no se versiona.
 
 Las variables de environment son públicas. Nunca colocar secretos o credenciales
 Microsoft allí. Ver [README raíz](../README.md), [seguridad](../SECURITY.md) y
-[verificación de voz y fotos](../docs/photos-and-calls-verification.md).
+[verificación de voz y fotos](../docs/photos-and-calls-verification.md) y
+[verificación del estudio](../docs/multimedia-studio-verification.md).

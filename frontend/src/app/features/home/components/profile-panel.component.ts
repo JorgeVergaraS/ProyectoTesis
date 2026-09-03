@@ -16,13 +16,15 @@ import { AuthSessionKind, DemoUser } from '../../../core/models/demo';
 import { ProfileService } from '../../../core/services/profile.service';
 import { AvatarComponent } from '../../../shared/components/avatar.component';
 import { IconComponent } from '../../../shared/components/icon.component';
+import { BroadcastStudioComponent } from './broadcast-studio.component';
 import { ProfileEditFormComponent } from './profile-edit-form.component';
 
 @Component({
   selector: 'nexo-profile-panel',
-  imports: [AvatarComponent, IconComponent, ProfileEditFormComponent],
+  imports: [AvatarComponent, IconComponent, ProfileEditFormComponent, BroadcastStudioComponent],
   templateUrl: './profile-panel.component.html',
   styleUrl: './profile-panel.component.css',
+  host: { '[class.studio-open]': "mode() === 'studio'" },
 })
 export class ProfilePanelComponent implements AfterViewInit {
   readonly user = input.required<DemoUser>();
@@ -31,15 +33,23 @@ export class ProfilePanelComponent implements AfterViewInit {
   readonly closed = output<void>();
   readonly userChange = output<DemoUser>();
   readonly signOut = output<void>();
-  readonly mode = signal<'profile' | 'edit'>('profile');
+  readonly mode = signal<'profile' | 'edit' | 'studio'>('profile');
   readonly uploading = signal(false);
   readonly removing = signal(false);
   readonly avatarError = signal('');
   readonly savedMessage = signal('');
   readonly editForm = viewChild(ProfileEditFormComponent);
+  readonly studio = viewChild(BroadcastStudioComponent);
   readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
   readonly closeButton = viewChild<ElementRef<HTMLButtonElement>>('closeButton');
+  readonly backButton = viewChild<ElementRef<HTMLButtonElement>>('backButton');
   readonly editButton = viewChild<ElementRef<HTMLButtonElement>>('editButton');
+  readonly studioButton = viewChild<ElementRef<HTMLButtonElement>>('studioButton');
+  readonly panelTitle = computed(() => {
+    if (this.mode() === 'edit') return 'Editar perfil';
+    if (this.mode() === 'studio') return 'Estudio multimedia';
+    return 'Mi perfil';
+  });
   readonly availabilityLabel = computed(() => {
     switch (this.user().availability ?? 'AVAILABLE') {
       case 'BUSY':
@@ -98,7 +108,21 @@ export class ProfilePanelComponent implements AfterViewInit {
     this.mode.set('edit');
   }
 
+  openStudio(): void {
+    if (this.uploading() || this.removing()) return;
+    this.avatarError.set('');
+    this.savedMessage.set('');
+    this.mode.set('studio');
+    queueMicrotask(() => this.backButton()?.nativeElement.focus());
+  }
+
   returnToProfile(): void {
+    if (this.mode() === 'studio') {
+      if (!this.studio()?.confirmClose()) return;
+      this.mode.set('profile');
+      queueMicrotask(() => this.studioButton()?.nativeElement.focus());
+      return;
+    }
     if (this.editForm()?.busy()) return;
     if (!this.confirmDiscard()) return;
     this.editForm()?.markDiscarded();
@@ -108,6 +132,7 @@ export class ProfilePanelComponent implements AfterViewInit {
 
   requestClose(): void {
     if (this.uploading() || this.removing() || this.editForm()?.busy()) return;
+    if (this.mode() === 'studio' && !this.studio()?.confirmClose()) return;
     if (!this.confirmDiscard()) return;
     this.editForm()?.markDiscarded();
     this.mode.set('profile');
@@ -119,6 +144,7 @@ export class ProfilePanelComponent implements AfterViewInit {
 
   confirmNavigation(): boolean {
     if (this.uploading() || this.removing() || this.editForm()?.busy()) return false;
+    if (this.mode() === 'studio') return this.studio()?.confirmClose() ?? true;
     return this.confirmDiscard();
   }
 
@@ -171,7 +197,10 @@ export class ProfilePanelComponent implements AfterViewInit {
   }
 
   private hasUnsavedChanges(): boolean {
-    return this.mode() === 'edit' && !!this.editForm()?.hasUnsavedChanges();
+    return (
+      (this.mode() === 'edit' && !!this.editForm()?.hasUnsavedChanges()) ||
+      (this.mode() === 'studio' && !!this.studio()?.hasActiveMedia())
+    );
   }
 
   private confirmDiscard(): boolean {

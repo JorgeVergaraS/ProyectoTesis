@@ -13,6 +13,7 @@ import {
 } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DemoSessionStore } from '../auth/demo-session.store';
+import { MediaDeviceService } from '../media/media-device.service';
 import { DemoUser } from '../models/demo';
 
 export interface VoiceCall {
@@ -30,6 +31,7 @@ export interface VoiceCall {
 export class VoiceCallService {
   private readonly http = inject(HttpClient);
   private readonly session = inject(DemoSessionStore);
+  private readonly studioMedia = inject(MediaDeviceService);
   private readonly callSessionId = this.readCallSessionId();
   readonly call = signal<VoiceCall | null>(null);
   readonly target = signal<DemoUser | null>(null);
@@ -43,6 +45,7 @@ export class VoiceCallService {
   readonly available =
     typeof RTCPeerConnection !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
   readonly occupied = computed(() => this.busy() || !!this.call());
+  readonly mediaInUse = computed(() => !!this.studioMedia.stream());
   readonly now = signal(Date.now());
   private readonly authenticatedSession = computed(() => {
     const kind = this.session.kind();
@@ -171,6 +174,10 @@ export class VoiceCallService {
 
   async start(person: DemoUser): Promise<void> {
     if (this.occupied()) return;
+    if (this.mediaInUse()) {
+      this.error.set('Cierra el estudio multimedia antes de iniciar una llamada de voz.');
+      return;
+    }
     if (!this.available) {
       this.error.set(
         'Este navegador no permite llamadas. Abre Nexo en Chrome o Edge en localhost.',
@@ -218,6 +225,10 @@ export class VoiceCallService {
   async accept(): Promise<void> {
     const call = this.call();
     if (!call || call.outgoing || call.status !== 'RINGING' || this.busy()) return;
+    if (this.mediaInUse()) {
+      this.error.set('Cierra el estudio multimedia antes de aceptar la llamada.');
+      return;
+    }
     if (!this.available) {
       this.error.set('Tu navegador no permite acceso al micrófono para esta llamada.');
       return;

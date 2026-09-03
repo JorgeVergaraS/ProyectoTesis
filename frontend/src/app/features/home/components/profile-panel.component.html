@@ -9,8 +9,9 @@
   aria-labelledby="profile-panel-title"
 >
   <header class="panel-header">
-    @if (mode() === 'edit') {
+    @if (mode() !== 'profile') {
       <button
+        #backButton
         class="icon-button"
         type="button"
         aria-label="Volver al perfil"
@@ -21,7 +22,7 @@
     } @else {
       <span aria-hidden="true"></span>
     }
-    <h2 id="profile-panel-title">{{ mode() === 'edit' ? 'Editar perfil' : 'Mi perfil' }}</h2>
+    <h2 id="profile-panel-title">{{ panelTitle() }}</h2>
     <span></span>
     <button
       #closeButton
@@ -108,13 +109,8 @@
             <nexo-icon name="trash" />{{ removing() ? 'Quitando foto…' : 'Quitar foto' }}
           </button>
         }
-        <button
-          class="future-action"
-          type="button"
-          disabled
-          title="Se habilitará en la fase multimedia"
-        >
-          <nexo-icon name="radio" />Preparar transmisión <small>Próxima fase</small>
+        <button #studioButton class="secondary-button" type="button" (click)="openStudio()">
+          <nexo-icon name="radio" />Preparar transmisión
         </button>
       </div>
 
@@ -127,11 +123,13 @@
         <nexo-icon name="logout" />Cerrar sesión
       </button>
     </div>
-  } @else {
+  } @else if (mode() === 'edit') {
     <nexo-profile-edit-form
       [user]="user()"
       (saved)="profileSaved($event)"
       (cancelRequested)="returnToProfile()"
     />
+  } @else {
+    <nexo-broadcast-studio />
   }
 </aside>

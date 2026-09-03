@@ -142,6 +142,8 @@ dependencias e imágenes; no necesita credenciales Microsoft.
 **Monorepo y monolito modular:** una SPA Angular, una sola aplicación Spring Boot
 y PostgreSQL. El backend está organizado por dominios, no por capas globales.
 No hay microservicios ni un servidor adicional que transporte el audio.
+La preparación multimedia de la fase 3 ocurre completamente en el navegador y
+no envía cámara, pantalla ni micrófono al backend.
 
 ```mermaid
 flowchart LR
@@ -159,6 +161,7 @@ flowchart LR
     C --> DB
     R --> RAM[Estado temporal de llamadas]
     A <-->|Audio WebRTC directo| B
+    A -->|Vista previa privada de cámara o pantalla| A
 ```
 
 ### Responsabilidades y decisiones
@@ -247,9 +250,9 @@ ProyectoTesis/
 ├── frontend/
 │   ├── public/                   # Recursos estáticos
 │   ├── src/app/
-│   │   ├── core/                 # auth/guards/interceptors/models/services/realtime
+│   │   ├── core/                 # auth/guards/interceptors/media/models/services/realtime
 │   │   ├── shared/components/    # Avatar, iconos, enlaces y llamada
-│   │   ├── features/             # auth/home/status
+│   │   ├── features/             # auth/home/status y estudio multimedia
 │   │   ├── app.config.ts
 │   │   └── app.routes.ts
 │   ├── src/environments/         # Valores públicos; nunca secretos
@@ -458,7 +461,10 @@ La verificación reciente de voz se hizo con Spring local, no con el contenedor 
 6. Ir a Perfil, elegir un JPG/PNG de hasta 2 MiB, guardar y comprobar el avatar.
 7. En el directo, pulsar el teléfono; Jean recibe la invitación y acepta.
 8. Permitir el micrófono, esperar **Audio conectado**, probar mute y finalizar.
-9. Recargar para comprobar persistencia; cerrar sesión para bloquear las rutas privadas.
+9. En Perfil, abrir **Preparar transmisión**, elegir cámara o pantalla y permitir los
+   dispositivos solo cuando el navegador lo solicite.
+10. Comprobar la vista previa privada, cambiar cámara/micrófono, probar mute y finalizar.
+11. Recargar para comprobar persistencia; cerrar sesión para bloquear las rutas privadas.
 
 No usar **Duplicar pestaña**: algunos navegadores copian `sessionStorage`.
 Crear una nueva o usar **Abrir otra sesión**, que emplea `noopener`. En móvil,
@@ -467,6 +473,12 @@ el menú superior abre navegación; participantes permite consultar el canal.
 **Voz:** usar audífonos para evitar acople. Si se bloquea el autoplay, pulsar
 **Activar audio recibido**. El micrófono del destinatario se solicita al aceptar.
 El aviso entrante es visual; la llamada permanece al navegar entre rutas. No se graba.
+
+**Estudio local:** la vista previa tampoco se graba ni se transmite. Al volver,
+cerrar el perfil, cambiar de ruta o terminar manualmente, Nexo detiene todos los
+tracks. Compartir pantalla completa puede exponer notificaciones; es preferible
+elegir una ventana concreta. **Iniciar transmisión** permanece deshabilitado hasta
+la fase 4.
 
 ICE es local, sin STUN/TURN: verificado entre pestañas del mismo equipo, no entre
 redes. El micrófono requiere un contexto seguro como localhost o HTTPS; una IP
@@ -624,7 +636,7 @@ Servicios iniciados, desde la raíz en PowerShell:
 | Comprobación  | Resultado registrado                                                                             |
 | ------------- | ------------------------------------------------------------------------------------------------ |
 | Backend       | 38 pruebas aprobadas, incluidas llamadas autenticadas, perfil, mensajería, CORS y Testcontainers |
-| Frontend      | 60 pruebas aprobadas en diecinueve archivos                                                      |
+| Frontend      | 71 pruebas aprobadas en veintiún archivos                                                         |
 | Build Angular | Compilación de producción correcta                                                               |
 | Formato       | Prettier correcto                                                                                |
 | Integración   | Health, readiness DB, proxy, CORS y OpenAPI correctos                                            |
@@ -691,6 +703,8 @@ y [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 | No se ve un canal           | El usuario debe unirse; permisos aplicados por servidor           |
 | Mensajes no instantáneos    | Polling de 2 s, conexión y membresía                              |
 | Sin micrófono               | Permisos del navegador y localhost/HTTPS                          |
+| Sin cámara                  | Cerrar otras aplicaciones, revisar el dispositivo y sus permisos  |
+| No permite compartir pantalla | Usar un navegador compatible en localhost/HTTPS                 |
 | Conectado pero sin sonido   | Dispositivo, mute, audífonos y activar audio recibido             |
 | Falla entre dispositivos    | Fuera del alcance verificado; falta STUN/TURN y hosting seguro    |
 | Foto rechazada              | JPG/PNG válido dentro de límites de tamaño y dimensiones          |
@@ -727,11 +741,12 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Acciones seguras de mensaje: editar, borrar, copiar, responder y reenviar.
 - [x] Configuración visual persistente con temas predeterminado, OLED y claro.
 - [x] Estilos de botón persistentes Mate, Style SkayGlass y Y2K 2000.
+- [x] Estudio multimedia local: cámara/pantalla, micrófono, dispositivos, nivel y liberación.
 - [ ] Validación interactiva del login/logout Microsoft real en Brave.
 - [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.
 - [ ] STUN/TURN, HTTPS y pruebas entre dispositivos/redes.
-- [ ] Video, grupos y adjuntos según el alcance aprobado.
+- [ ] Emisión de video, grupos y adjuntos según el alcance aprobado.
 - [ ] Paginación, límites, observabilidad y revisión para despliegue real.
 
 No hay fechas comprometidas ni se presentan estas etapas como disponibles.
@@ -747,6 +762,7 @@ Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilic
 - [Matriz de cumplimiento cloud-native](docs/cloud-native-compliance-matrix.md).
 - [Contribución](CONTRIBUTING.md) y [seguridad](SECURITY.md).
 - [Verificación actual de fotos y voz](docs/photos-and-calls-verification.md).
+- [Verificación del estudio multimedia local](docs/multimedia-studio-verification.md).
 - [Mockup interactivo de perfil, edición y transmisión](docs/nexo-profile-streaming-mockup.html).
 - [Plan de implementación de perfil y transmisiones](profile-streaming-implementation-plan.md).
 - Evidencia histórica: [fundación](docs/verification.md),

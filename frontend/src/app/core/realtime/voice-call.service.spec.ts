@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
 import { of, Subject } from 'rxjs';
 import { DemoSessionStore } from '../auth/demo-session.store';
+import { MediaDeviceService } from '../media/media-device.service';
 import { VoiceCall, VoiceCallService } from './voice-call.service';
 
 class FakePeer {
@@ -49,6 +50,7 @@ describe('VoiceCallService', () => {
   } as unknown as MediaStream;
   const getUserMedia = vi.fn();
   const http = { get: vi.fn(), post: vi.fn() };
+  const studioStream = signal<MediaStream | null>(null);
 
   beforeEach(async () => {
     vi.useFakeTimers();
@@ -56,6 +58,7 @@ describe('VoiceCallService', () => {
     token.set('demo-token');
     kind.set('demo');
     currentUser.set({ ...person, id: 'jorge' });
+    studioStream.set(null);
     track.enabled = true;
     track.stop.mockClear();
     server = null;
@@ -86,6 +89,7 @@ describe('VoiceCallService', () => {
         VoiceCallService,
         { provide: HttpClient, useValue: http },
         { provide: DemoSessionStore, useValue: { token, kind, user: currentUser } },
+        { provide: MediaDeviceService, useValue: { stream: studioStream } },
       ],
     });
     service = TestBed.inject(VoiceCallService);
@@ -146,6 +150,15 @@ describe('VoiceCallService', () => {
         ([url, body]) => url.endsWith('/answer') && body.answer.includes('audio'),
       ),
     ).toBe(true);
+  });
+
+  it('does not start a call while the multimedia studio owns the microphone', async () => {
+    studioStream.set(stream);
+
+    await service.start(person);
+
+    expect(getUserMedia).not.toHaveBeenCalled();
+    expect(service.error()).toContain('Cierra el estudio multimedia');
   });
 
   it('rejects an incoming call without activating the microphone', async () => {

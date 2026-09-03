@@ -1,0 +1,154 @@
+<section class="studio" aria-labelledby="studio-title" [attr.data-state]="state()">
+  <div class="studio-intro">
+    <span class="studio-kicker"><nexo-icon name="radio" /> ESTUDIO LOCAL</span>
+    <h3 id="studio-title">Prepara tu vista previa privada</h3>
+    <p>
+      Comprueba tu imagen y micrófono antes de emitir. Esta fase funciona solo en tu navegador:
+      nadie más puede verla y Nexo no la graba.
+    </p>
+  </div>
+
+  @if (!media.cameraSupported) {
+    <p class="studio-message error" role="alert">
+      Tu navegador no ofrece acceso a cámara y micrófono. Usa Chrome o Edge en localhost o HTTPS.
+    </p>
+  }
+  @if (calls.occupied()) {
+    <p class="studio-message warning" role="status">
+      Finaliza la llamada de voz antes de preparar el estudio para evitar conflictos con el
+      micrófono.
+    </p>
+  }
+  @if (error()) {
+    <p class="studio-message error" role="alert">{{ error() }}</p>
+  }
+  @if (notice()) {
+    <p class="studio-message success" role="status">{{ notice() }}</p>
+  }
+
+  @if (!media.stream()) {
+    <div class="source-grid" aria-label="Fuente de imagen">
+      <button
+        type="button"
+        class="source-option"
+        [class.selected]="selectedSource() === 'camera'"
+        [attr.aria-pressed]="selectedSource() === 'camera'"
+        [disabled]="busy() || !media.cameraSupported"
+        (click)="selectSource('camera')"
+      >
+        <span class="source-icon"><nexo-icon name="camera" /></span>
+        <strong>Cámara</strong>
+        <small>Cámara y micrófono</small>
+      </button>
+      <button
+        type="button"
+        class="source-option"
+        [class.selected]="selectedSource() === 'screen'"
+        [attr.aria-pressed]="selectedSource() === 'screen'"
+        [disabled]="busy() || !media.screenSupported || !media.cameraSupported"
+        (click)="selectSource('screen')"
+      >
+        <span class="source-icon"><nexo-icon name="monitor" /></span>
+        <strong>Pantalla</strong>
+        <small>{{ media.screenSupported ? 'Pantalla y micrófono' : 'No disponible' }}</small>
+      </button>
+    </div>
+
+    @if (selectedSource() === 'screen') {
+      <div class="privacy-note">
+        <nexo-icon name="shield" />
+        <p>
+          Elige una ventana concreta cuando sea posible. Compartir la pantalla completa puede
+          mostrar notificaciones o información privada.
+        </p>
+      </div>
+    }
+
+    <button
+      type="button"
+      class="primary-button prepare-button"
+      [disabled]="!canPrepare()"
+      (click)="prepare()"
+    >
+      <nexo-icon [name]="selectedSource() === 'camera' ? 'camera' : 'monitor'" />
+      {{ state() === 'CONNECTING' ? 'Esperando permisos…' : 'Preparar vista previa' }}
+    </button>
+  } @else {
+    <div class="preview-shell">
+      <video #preview muted autoplay playsinline aria-label="Vista previa multimedia"></video>
+      <span class="local-badge"><i></i> Solo tú</span>
+      <span class="source-badge">
+        <nexo-icon [name]="media.source() === 'camera' ? 'camera' : 'monitor'" />
+        {{ media.source() === 'camera' ? 'Cámara' : 'Pantalla' }}
+      </span>
+    </div>
+
+    <div class="device-controls">
+      <label>
+        <span><nexo-icon name="mic" /> Micrófono</span>
+        <select
+          [value]="media.selectedAudioId()"
+          [disabled]="busy()"
+          (change)="changeMicrophone($event)"
+        >
+          @for (device of media.audioInputs(); track device.deviceId) {
+            <option [value]="device.deviceId">{{ device.label }}</option>
+          }
+        </select>
+      </label>
+      @if (media.source() === 'camera') {
+        <label>
+          <span><nexo-icon name="camera" /> Cámara</span>
+          <select
+            [value]="media.selectedVideoId()"
+            [disabled]="busy()"
+            (change)="changeCamera($event)"
+          >
+            @for (device of media.videoInputs(); track device.deviceId) {
+              <option [value]="device.deviceId">{{ device.label }}</option>
+            }
+          </select>
+        </label>
+      }
+    </div>
+
+    <div class="level-row">
+      <span>{{ media.microphoneMuted() ? 'Micrófono silenciado' : 'Nivel del micrófono' }}</span>
+      <div
+        class="level-meter"
+        role="meter"
+        aria-label="Nivel del micrófono"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="media.audioLevel()"
+      >
+        <i [style.width.%]="media.audioLevel()"></i>
+      </div>
+    </div>
+
+    <div class="studio-actions">
+      <button
+        type="button"
+        class="secondary-button"
+        [attr.aria-pressed]="media.microphoneMuted()"
+        [disabled]="busy()"
+        (click)="media.toggleMicrophone()"
+      >
+        <nexo-icon name="mic" />
+        {{ media.microphoneMuted() ? 'Activar micrófono' : 'Silenciar' }}
+      </button>
+      <button type="button" class="danger-button" [disabled]="busy()" (click)="finishPreview()">
+        Finalizar vista previa
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="broadcast-disabled"
+      disabled
+      title="La emisión se habilitará en la fase 4"
+    >
+      <nexo-icon name="radio" /> Iniciar transmisión <small>Fase 4</small>
+    </button>
+  }
+</section>

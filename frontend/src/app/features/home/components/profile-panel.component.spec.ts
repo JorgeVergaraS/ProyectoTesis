@@ -1,6 +1,9 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { MediaDeviceService } from '../../../core/media/media-device.service';
 import { DemoUser } from '../../../core/models/demo';
+import { VoiceCallService } from '../../../core/realtime/voice-call.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { ProfilePanelComponent } from './profile-panel.component';
 
@@ -20,6 +23,24 @@ describe('ProfilePanelComponent', () => {
     upload: vi.fn(() => of({ ...user, avatarUrl: '/api/avatars/1/2' })),
     removeAvatar: vi.fn(() => of({ ...user, avatarUrl: null })),
   };
+  const studioMedia = {
+    stream: signal<MediaStream | null>(null),
+    source: signal(null),
+    audioInputs: signal([]),
+    videoInputs: signal([]),
+    selectedAudioId: signal(''),
+    selectedVideoId: signal(''),
+    microphoneMuted: signal(false),
+    audioLevel: signal(0),
+    stopReason: signal(null),
+    cameraSupported: true,
+    screenSupported: true,
+    start: vi.fn(),
+    changeMicrophone: vi.fn(),
+    changeCamera: vi.fn(),
+    toggleMicrophone: vi.fn(),
+    stop: vi.fn(),
+  };
 
   beforeEach(() => {
     profile.update.mockClear();
@@ -27,7 +48,11 @@ describe('ProfilePanelComponent', () => {
     profile.removeAvatar.mockClear();
     TestBed.configureTestingModule({
       imports: [ProfilePanelComponent],
-      providers: [{ provide: ProfileService, useValue: profile }],
+      providers: [
+        { provide: ProfileService, useValue: profile },
+        { provide: MediaDeviceService, useValue: studioMedia },
+        { provide: VoiceCallService, useValue: { occupied: signal(false) } },
+      ],
     });
   });
 
@@ -40,6 +65,22 @@ describe('ProfilePanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Jean Valenzuela');
     expect(fixture.nativeElement.textContent).toContain('Disponible');
     expect(fixture.nativeElement.textContent).toContain('Cuenta local Nexo');
+  });
+
+  it('opens the private multimedia studio from the profile', () => {
+    const fixture = TestBed.createComponent(ProfilePanelComponent);
+    fixture.componentRef.setInput('user', user);
+    fixture.detectChanges();
+
+    const button = [...fixture.nativeElement.querySelectorAll('button')].find(
+      (item: HTMLButtonElement) => item.textContent.includes('Preparar transmisión'),
+    ) as HTMLButtonElement;
+    button.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.mode()).toBe('studio');
+    expect(fixture.nativeElement.querySelector('nexo-broadcast-studio')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('vista previa privada');
   });
 
   it('asks before discarding an edited form', () => {

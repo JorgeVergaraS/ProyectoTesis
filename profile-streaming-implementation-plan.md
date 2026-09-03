@@ -225,9 +225,13 @@ una llamada de voz entre dos pestañas del mismo equipo.
 
 ### Fase 3 — Estudio multimedia local, sin emitir
 
+**Estado:** completada en `feature/estudio-multimedia`. El estudio se abre desde el perfil,
+solicita permisos solo por acción del usuario y mantiene cámara, pantalla y micrófono dentro
+del navegador. El botón de emisión queda explícitamente reservado para la fase 4.
+
 1. Crear `MediaDeviceService` responsable de permisos y liberación de tracks.
 2. Implementar `BroadcastStudioComponent` con estado explícito:
-   `IDLE → PREVIEWING → CONNECTING → LIVE → ENDING/ERROR`.
+   `IDLE → CONNECTING → PREVIEWING → ENDING/ERROR`; `LIVE` se reserva para la fase 4.
 3. Solicitar micrófono/cámara solamente después de una acción del usuario.
 4. Usar `getDisplayMedia` para pantalla y `getUserMedia` para cámara/micrófono.
 5. Mostrar vista previa, selector de dispositivo, indicador de nivel, mute y finalización.
@@ -338,12 +342,12 @@ recuperación documentada ante fallos.
 
 1. **Perfil autenticado completo (completado)**: menor riesgo y máximo reaprovechamiento del código actual.
 2. **Panel Angular reutilizable (completado)**: materializa el mockup con persistencia real.
-3. **Vista previa multimedia local**: valida permisos y UX sin introducir infraestructura.
+3. **Vista previa multimedia local (completada)**: valida permisos y UX sin introducir infraestructura.
 4. **Transmisión SFU local con dos usuarios**: primera vertical audiovisual completa.
 5. **TURN/HTTPS y prueba entre redes**: convierte la demo local en una función verificable.
 6. **Tiempo real, límites y observabilidad**: endurecimiento antes del despliegue.
 
-El siguiente cambio recomendado es la Fase 3: construir la vista previa multimedia local sin
-emitir. Aún no conviene ampliar `VoiceCallService`: su contrato actual es demo,
-uno-a-uno y audio-only; mezclarlo con transmisiones haría más difícil asegurar y probar
-ambos flujos.
+El siguiente cambio recomendado es la Fase 4: conectar el estudio ya validado a un SFU local y
+crear el modelo autorizado de transmisiones. `MediaDeviceService` mantiene la captura separada
+de `VoiceCallService`; la única coordinación entre ambos evita que intenten ocupar el micrófono
+al mismo tiempo.
