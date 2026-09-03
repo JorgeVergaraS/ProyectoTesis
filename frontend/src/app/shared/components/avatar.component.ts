@@ -72,7 +72,7 @@ export class AvatarComponent {
   readonly failedUrl = signal('');
   readonly imageUrl = computed(() => {
     const path = this.src();
-    return path && /^\/api\/demo\/avatars\/[0-9a-f-]+\/[0-9a-f-]+$/i.test(path)
+    return path && /^\/api\/(?:demo\/)?avatars\/[0-9a-f-]+\/[0-9a-f-]+$/i.test(path)
       ? environment.apiUrl + path.slice(4)
       : '';
   });

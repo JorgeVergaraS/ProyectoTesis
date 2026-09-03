@@ -71,6 +71,24 @@ class LocalDemoTests {
     }
 
     @Test
+    void demoProfileUpdatesThroughTheCompatibilityRoute() throws Exception {
+        String token = login(JEAN);
+        mvc.perform(patch("/api/demo/me/profile")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "bio", "Perfil demo actualizado",
+                                "availability", "AWAY"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(JEAN))
+                .andExpect(jsonPath("$.bio").value("Perfil demo actualizado"))
+                .andExpect(jsonPath("$.availability").value("AWAY"));
+        mvc.perform(get("/api/demo/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bio").value("Perfil demo actualizado"));
+    }
+
+    @Test
     void channelMembershipControlsReadAndSendAndRetryIsIdempotent() throws Exception {
         String jorge = login(JORGE);
         String jean = login(JEAN);

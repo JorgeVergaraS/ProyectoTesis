@@ -176,6 +176,9 @@ participantes o grabaciones se añadirá solo si el alcance académico lo exige.
 
 ### Fase 1 — Perfil autenticado en backend
 
+**Estado:** completada en `codex/authenticated-workspace`. La migración V9, los contratos
+autenticados, los adaptadores demo y las pruebas de integración están implementados.
+
 1. Crear DTOs de actualización y validaciones.
 2. Incorporar `PATCH /api/users/me/profile` usando `CurrentUserService.require`.
 3. Generalizar `AvatarService`; retirar su dependencia exclusiva de `DemoUsers`.
@@ -314,13 +317,14 @@ recuperación documentada ante fallos.
 
 ## 9. Orden recomendado de trabajo
 
-1. **Perfil autenticado completo**: menor riesgo y máximo reaprovechamiento del código actual.
+1. **Perfil autenticado completo (completado)**: menor riesgo y máximo reaprovechamiento del código actual.
 2. **Panel Angular reutilizable**: materializa el mockup con persistencia real.
 3. **Vista previa multimedia local**: valida permisos y UX sin introducir infraestructura.
 4. **Transmisión SFU local con dos usuarios**: primera vertical audiovisual completa.
 5. **TURN/HTTPS y prueba entre redes**: convierte la demo local en una función verificable.
 6. **Tiempo real, límites y observabilidad**: endurecimiento antes del despliegue.
 
-El primer cambio de código recomendado es la Fase 1. No conviene comenzar ampliando
-`VoiceCallService`: su contrato actual es demo, uno-a-uno y audio-only; mezclarlo con
-transmisiones haría más difícil asegurar y probar ambos flujos.
+El siguiente cambio recomendado es la Fase 2: conectar estos contratos al panel Angular
+reutilizable. Aún no conviene ampliar `VoiceCallService`: su contrato actual es demo,
+uno-a-uno y audio-only; mezclarlo con transmisiones haría más difícil asegurar y probar
+ambos flujos.

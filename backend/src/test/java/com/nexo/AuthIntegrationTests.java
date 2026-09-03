@@ -2,8 +2,12 @@ package com.nexo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,6 +66,139 @@ class AuthIntegrationTests {
         String passwordHash = jdbc.queryForObject(
                 "SELECT password_hash FROM nexo.users WHERE email='local-success@nexo.cl'", String.class);
         assertThat(passwordHash).startsWith("$2").isNotEqualTo(password);
+    }
+
+    @Test
+    void localUserUpdatesOnlyTheAuthenticatedProfile() throws Exception {
+        JsonNode registration = register(
+                "profile-local@nexo.cl", "valid-password-8", "Original Name", 201);
+        String token = registration.get("accessToken").asText();
+
+        mvc.perform(patch("/api/users/me/profile")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "displayName", "  Jean Valenzuela  ",
+                                "username", "Jean.Profile",
+                                "bio", "  Construyendo Nexo  ",
+                                "color", "#38bdf8",
+                                "availability", "BUSY"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("Jean Valenzuela"))
+                .andExpect(jsonPath("$.username").value("jean.profile"))
+                .andExpect(jsonPath("$.bio").value("Construyendo Nexo"))
+                .andExpect(jsonPath("$.color").value("#38BDF8"))
+                .andExpect(jsonPath("$.availability").value("BUSY"))
+                .andExpect(jsonPath("$.email").value("profile-local@nexo.cl"));
+
+        mvc.perform(get("/api/users/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("Jean Valenzuela"))
+                .andExpect(jsonPath("$.availability").value("BUSY"));
+        assertThat(jdbc.queryForObject(
+                        "SELECT profile_customized_at IS NOT NULL FROM nexo.users WHERE email='profile-local@nexo.cl'",
+                        Boolean.class))
+                .isTrue();
+    }
+
+    @Test
+    void entraProfileCustomizationSurvivesLaterClaimSynchronization() throws Exception {
+        var authorizedJwt = jwt()
+                .jwt(token -> token
+                        .claim("oid", "entra-custom-profile")
+                        .claim("preferred_username", "entra-custom@nexo.cl")
+                        .claim("name", "Name From Entra"))
+                .authorities(new SimpleGrantedAuthority("SCOPE_access_as_user"));
+
+        mvc.perform(get("/api/users/me").with(authorizedJwt))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("Name From Entra"));
+        mvc.perform(patch("/api/users/me/profile")
+                        .with(authorizedJwt)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "displayName", "Nombre personalizado",
+                                "username", "entra.custom",
+                                "bio", "Perfil administrado por Nexo"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("Nombre personalizado"));
+
+        mvc.perform(get("/api/users/me").with(authorizedJwt))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("Nombre personalizado"))
+                .andExpect(jsonPath("$.username").value("entra.custom"))
+                .andExpect(jsonPath("$.email").value("entra-custom@nexo.cl"));
+    }
+
+    @Test
+    void profileValidationRejectsEmptyInvalidAndDuplicateUpdates() throws Exception {
+        JsonNode first = register("profile-first@nexo.cl", "valid-password-8", "First", 201);
+        JsonNode second = register("profile-second@nexo.cl", "valid-password-8", "Second", 201);
+        String firstToken = first.get("accessToken").asText();
+        String secondToken = second.get("accessToken").asText();
+
+        mvc.perform(patch("/api/users/me/profile")
+                        .header("Authorization", "Bearer " + firstToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"shared.profile\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(patch("/api/users/me/profile")
+                        .header("Authorization", "Bearer " + secondToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"SHARED.PROFILE\"}"))
+                .andExpect(status().isConflict());
+        mvc.perform(patch("/api/users/me/profile")
+                        .header("Authorization", "Bearer " + secondToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(patch("/api/users/me/profile")
+                        .header("Authorization", "Bearer " + secondToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"color\":\"javascript:alert(1)\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(patch("/api/users/me/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"bio\":\"Denied\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void authenticatedUserOwnsAvatarChangesAndImagesContainNormalizedPng() throws Exception {
+        JsonNode registration = register(
+                "avatar-local@nexo.cl", "valid-password-8", "Avatar Local", 201);
+        String token = registration.get("accessToken").asText();
+        var source = new java.awt.image.BufferedImage(
+                600, 300, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var bytes = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(source, "png", bytes);
+        var file = new org.springframework.mock.web.MockMultipartFile(
+                "file", "../../avatar.png", "image/png", bytes.toByteArray());
+
+        mvc.perform(multipart("/api/users/me/avatar").file(file))
+                .andExpect(status().isUnauthorized());
+        JsonNode user = responseJson(mvc.perform(multipart("/api/users/me/avatar")
+                        .file(file)
+                        .param("userId", UUID.randomUUID().toString())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(registration.get("user").get("id").asText()))
+                .andReturn().getResponse().getContentAsString());
+        String url = user.get("avatarUrl").asText();
+        assertThat(url).startsWith("/api/avatars/");
+
+        byte[] saved = mvc.perform(get(url))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.IMAGE_PNG))
+                .andReturn().getResponse().getContentAsByteArray();
+        var image = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(saved));
+        assertThat(image.getWidth()).isEqualTo(300);
+        assertThat(image.getHeight()).isEqualTo(300);
+
+        mvc.perform(delete("/api/users/me/avatar").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.avatarUrl").isEmpty());
+        mvc.perform(get(url)).andExpect(status().isNotFound());
     }
 
     @Test

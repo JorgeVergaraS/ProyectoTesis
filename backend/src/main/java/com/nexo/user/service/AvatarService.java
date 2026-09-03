@@ -1,6 +1,8 @@
 package com.nexo.user.service;
 
 import com.nexo.user.dto.UserView;
+import com.nexo.user.entity.UserEntity;
+import com.nexo.user.repository.UserRepository;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -8,7 +10,6 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.UUID;
 import javax.imageio.ImageIO;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
@@ -17,16 +18,15 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
-@Profile("local-demo")
 public class AvatarService {
-    private final DemoUsers users;
+    private final UserRepository users;
     private final JdbcClient jdbc;
-    public AvatarService(DemoUsers users, JdbcClient jdbc) { this.users = users; this.jdbc = jdbc; }
+    public AvatarService(UserRepository users, JdbcClient jdbc) { this.users = users; this.jdbc = jdbc; }
 
     @Transactional
     public UserView upload(UUID userId, MultipartFile file) {
         byte[] image = normalize(file);
-        var user = users.require(userId);
+        var user = require(userId);
         jdbc.sql("""
                 INSERT INTO nexo.user_avatars(user_id,image) VALUES (:user,:image)
                 ON CONFLICT (user_id) DO UPDATE SET image=EXCLUDED.image
@@ -37,7 +37,7 @@ public class AvatarService {
 
     @Transactional
     public UserView remove(UUID userId) {
-        var user = users.require(userId);
+        var user = require(userId);
         jdbc.sql("DELETE FROM nexo.user_avatars WHERE user_id=:id").param("id", userId).update();
         user.changeAvatar(null);
         return user.toView(true);
@@ -47,7 +47,6 @@ public class AvatarService {
         return jdbc.sql("""
                 SELECT a.image FROM nexo.user_avatars a JOIN nexo.users u ON u.id=a.user_id
                 WHERE u.id=:id AND u.avatar_version=:version AND u.status='ACTIVE'
-                AND u.identity_provider='DEMO'
                 """).param("id", userId).param("version", version)
                 .query((rs, row) -> rs.getBytes("image")).optional()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -83,5 +82,11 @@ public class AvatarService {
             } finally { reader.dispose(); }
         } catch (IOException | IllegalArgumentException exception) { throw invalid(); }
     }
+
+    private UserEntity require(UUID userId) {
+        return users.findById(userId).filter(UserEntity::isActive)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
     private ResponseStatusException invalid() { return new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE); }
 }

@@ -89,6 +89,7 @@ public class SecurityConfig {
                     authorize.requestMatchers(
                                     "/api/public/**",
                                     "/api/auth/**",
+                                    "/api/avatars/**",
                                     "/actuator/health/**",
                                     "/actuator/info",
                                     "/swagger-ui/**",
@@ -104,6 +105,7 @@ public class SecurityConfig {
                     authorize.requestMatchers("/api/admin/**").hasRole("ADMIN");
                     authorize.requestMatchers(
                                     "/api/users/me",
+                                    "/api/users/me/**",
                                     "/api/workspace",
                                     "/api/directs",
                                     "/api/conversations/**")
@@ -281,6 +283,7 @@ public class SecurityConfig {
 
     private static boolean isJwtProtectedPath(String path) {
         return path.equals("/api/users/me")
+                || path.startsWith("/api/users/me/")
                 || path.equals("/api/workspace")
                 || path.equals("/api/directs")
                 || path.startsWith("/api/conversations/")

@@ -20,8 +20,10 @@ public class UserEntity {
     @Column(nullable = false) private String color;
     @Column(nullable = false) private String bio;
     @Column(nullable = false) private String status;
+    @Column(nullable = false) private String availability;
     @Column(name = "avatar_version") private UUID avatarVersion;
     @Column(name = "password_hash") private String passwordHash;
+    @Column(name = "profile_customized_at") private Instant profileCustomizedAt;
     @Column(name = "created_at", nullable = false) private Instant createdAt;
     @Column(name = "updated_at", nullable = false) private Instant updatedAt;
 
@@ -38,6 +40,7 @@ public class UserEntity {
         user.color = "#8B5CF6";
         user.bio = "";
         user.status = "ACTIVE";
+        user.availability = "AVAILABLE";
         user.createdAt = Instant.now(); user.updatedAt = user.createdAt;
         return user;
     }
@@ -53,6 +56,7 @@ public class UserEntity {
         user.color = "#8B5CF6";
         user.bio = "";
         user.status = "ACTIVE";
+        user.availability = "AVAILABLE";
         user.createdAt = Instant.now(); user.updatedAt = user.createdAt;
         return user;
     }
@@ -66,19 +70,37 @@ public class UserEntity {
     public String getPasswordHash() { return passwordHash; }
     public String getIdentityProvider() { return identityProvider; }
     public String getEntraObjectId() { return entraObjectId; }
-    public void changeAvatar(UUID version) { avatarVersion = version; }
+    public void changeAvatar(UUID version) { avatarVersion = version; updatedAt = Instant.now(); }
     public static String avatarUrl(UUID id, UUID version) {
-        return version == null ? null : "/api/demo/avatars/" + id + "/" + version;
+        return version == null ? null : "/api/avatars/" + id + "/" + version;
     }
     public UserView toView(boolean online) {
-        return new UserView(id, username, displayName, color, bio, online, avatarUrl(id, avatarVersion), email);
+        return new UserView(id, username, displayName, color, bio, availability,
+                online, avatarUrl(id, avatarVersion), email);
     }
 
     public UserView toPublicView(boolean online) {
-        return new UserView(id, username, displayName, color, bio, online, avatarUrl(id, avatarVersion), null);
+        return new UserView(id, username, displayName, color, bio, availability,
+                online, avatarUrl(id, avatarVersion), null);
     }
 
     public void updateEntraProfile(String email, String username, String displayName) {
-        this.email = email; this.username = username; this.displayName = displayName; this.updatedAt = Instant.now();
+        this.email = email;
+        if (profileCustomizedAt == null) {
+            this.username = username;
+            this.displayName = displayName;
+        }
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateProfile(
+            String displayName, String username, String bio, String color, String availability) {
+        if (displayName != null) this.displayName = displayName;
+        if (username != null) this.username = username;
+        if (bio != null) this.bio = bio;
+        if (color != null) this.color = color;
+        if (availability != null) this.availability = availability;
+        this.profileCustomizedAt = Instant.now();
+        this.updatedAt = profileCustomizedAt;
     }
 }

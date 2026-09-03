@@ -88,7 +88,7 @@ las imágenes no importan esos datos a una instalación nueva.
 | Directos | Conversaciones entre dos perfiles con autorización backend | Sin grupos privados ni confirmaciones de lectura |
 | Historial | PostgreSQL; envío idempotente mediante `clientId` | Últimos 100 mensajes, sin paginación |
 | Enlaces | Reconoce `http://`, `https://` y `www.` | Sin previews ni verificación de reputación |
-| Perfil | Foto opcional, validación, recorte y eliminación | Imágenes públicas dentro de la demo |
+| Perfil | Edición autenticada, disponibilidad y foto opcional normalizada | La interfaz de edición completa se incorpora en la Fase 2 |
 | Llamadas | Voz WebRTC, aceptar/rechazar, mute y finalizar | Dos usuarios; mismo equipo; sin video ni STUN/TURN |
 | Presencia | Actividad reciente de sesiones | Polling HTTP; no hay WebSocket |
 | Operación | Docker Compose, Flyway, health, Actuator y Swagger | Solo local, sin despliegue público |
@@ -321,6 +321,7 @@ duplicar un mensaje al reintentarlo.
 | V4 | Fotos `bytea` y versión UUID |
 | V5–V7 | Identidad local, contraseñas BCrypt y nombres de usuario Entra |
 | V8 | Canal `general` común y membresía inicial para usuarios activos |
+| V9 | Disponibilidad, protección de personalizaciones e identificador público único sin distinguir mayúsculas |
 
 Flyway guarda su historial en `public`; Hibernate usa `ddl-auto=validate`.
 No editar migraciones aplicadas: agregar una nueva. Desactivar `local-demo` no
@@ -464,6 +465,9 @@ con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 | POST | `/api/auth/register` | Registro local; correo válido y contraseña de 8+ caracteres |
 | POST | `/api/auth/login` | Login local; entrega JWT con issuer/audience propios |
 | GET | `/api/users/me` | Perfil autenticado; exige `ROLE_USER` o `SCOPE_access_as_user` |
+| PATCH | `/api/users/me/profile` | Edita nombre, identificador público, biografía, color y disponibilidad propios |
+| POST / DELETE | `/api/users/me/avatar` | Multipart `file` / quitar la foto de la cuenta autenticada |
+| GET | `/api/avatars/{userId}/{version}` | PNG público normalizado; solo responde para la versión vigente de un usuario activo |
 | GET | `/api/workspace` | Canales, directos y personas para la cuenta autenticada |
 | POST | `/api/directs` | Abrir un directo con `userId`; impide hablar consigo mismo |
 | POST / DELETE | `/api/conversations/{id}/membership` | Unirse / salir de un canal |
@@ -472,6 +476,7 @@ con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 | GET | `/api/demo/users` | Público con demo; selector |
 | POST | `/api/demo/sessions` | Público con demo; recibe `userId` |
 | GET | `/api/demo/me` | Perfil de la sesión |
+| PATCH | `/api/demo/me/profile` | Adaptador de compatibilidad para editar el perfil demo propio |
 | DELETE | `/api/demo/sessions/current` | Revocar sesión propia |
 | GET | `/api/demo/workspace` | Canales, directos y personas visibles |
 | POST | `/api/demo/directs` | Abrir directo con destinatario `userId` |
@@ -585,8 +590,8 @@ Servicios iniciados, desde la raíz en PowerShell:
 
 | Comprobación | Resultado registrado |
 | --- | --- |
-| Backend | 24 pruebas aprobadas, incluidas autenticación, 401/403/200 y Testcontainers |
-| Frontend | 30 pruebas aprobadas en doce archivos |
+| Backend | 34 pruebas aprobadas, incluidas autenticación, perfil, avatares y Testcontainers |
+| Frontend | 34 pruebas aprobadas en trece archivos |
 | Build Angular | Compilación de producción correcta |
 | Formato | Prettier correcto |
 | Integración | Health, readiness DB, proxy, CORS y OpenAPI correctos |
@@ -681,6 +686,7 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Sincronización Microsoft mediante `/api/users/me` sin contraseña.
 - [x] Workspace, comunidades y mensajería para cuentas locales y Microsoft.
 - [x] Identidad del mensaje y autorización de membresía controladas por el backend.
+- [x] Perfil y avatar autenticados para cuentas locales y Microsoft, con compatibilidad demo.
 - [ ] Validación interactiva del login/logout Microsoft real en Brave.
 - [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.

@@ -4,6 +4,7 @@ export interface DemoUser {
   displayName: string;
   color: string;
   bio: string;
+  availability?: 'AVAILABLE' | 'BUSY' | 'AWAY';
   online: boolean;
   avatarUrl?: string | null;
   email?: string | null;

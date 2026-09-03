@@ -3,12 +3,14 @@ package com.nexo.user.service;
 import com.nexo.auth.NexoPrincipal;
 import com.nexo.auth.demo.DemoPrincipal;
 import com.nexo.messaging.service.WorkspaceProvisioningService;
+import com.nexo.user.dto.ProfileUpdateRequest;
 import com.nexo.user.dto.UserView;
 import com.nexo.user.entity.UserEntity;
 import com.nexo.user.repository.UserRepository;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -50,10 +52,45 @@ public class CurrentUserService {
     @Transactional
     public UserView view(Authentication authentication) {
         NexoPrincipal principal = require(authentication);
-        return users.findById(principal.userId())
-                .filter(UserEntity::isActive)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
-                .toView(true);
+        return activeUser(principal.userId()).toView(true);
+    }
+
+    @Transactional
+    public UserView update(Authentication authentication, ProfileUpdateRequest request) {
+        if (request.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile update is empty");
+        }
+        NexoPrincipal principal = require(authentication);
+        UserEntity user = activeUser(principal.userId());
+        String displayName = request.displayName() == null ? null : request.displayName().strip();
+        String username = request.username() == null
+                ? null
+                : request.username().strip().toLowerCase(Locale.ROOT);
+        String bio = request.bio() == null ? null : request.bio().strip();
+        String color = request.color() == null ? null : request.color().toUpperCase(Locale.ROOT);
+
+        if (displayName != null && displayName.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Display name cannot be blank");
+        }
+        if (username != null) {
+            users.findByUsernameIgnoreCase(username)
+                    .filter(owner -> !owner.getId().equals(user.getId()))
+                    .ifPresent(owner -> {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already in use");
+                    });
+        }
+
+        user.updateProfile(
+                displayName,
+                username,
+                bio,
+                color,
+                request.availability() == null ? null : request.availability().name());
+        try {
+            return users.saveAndFlush(user).toView(true);
+        } catch (DataIntegrityViolationException conflict) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already in use");
+        }
     }
 
     private UserEntity localUser(JwtAuthenticationToken jwt) {
@@ -65,6 +102,12 @@ public class CurrentUserService {
         } catch (IllegalArgumentException invalidSubject) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid local subject");
         }
+    }
+
+    private UserEntity activeUser(UUID userId) {
+        return users.findById(userId)
+                .filter(UserEntity::isActive)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
     private UserEntity entraUser(JwtAuthenticationToken jwt) {

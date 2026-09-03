@@ -10,4 +10,5 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     List<UserEntity> findByStatusOrderByDisplayName(String status);
     java.util.Optional<UserEntity> findByEmailIgnoreCase(String email);
     java.util.Optional<UserEntity> findByEntraObjectId(String entraObjectId);
+    java.util.Optional<UserEntity> findByUsernameIgnoreCase(String username);
 }

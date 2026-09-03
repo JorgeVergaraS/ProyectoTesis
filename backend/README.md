@@ -29,9 +29,11 @@ para usar los tres perfiles. Sin ese perfil, la demo no queda habilitada.
 | realtime | Señalización HTTP y estado temporal de llamadas |
 | common | CORS, errores, health y OpenAPI |
 
-Flyway aplica V0–V8. V3 reside en `db/demo` y se carga solo bajo `local-demo`;
+Flyway aplica V0–V9. V3 reside en `db/demo` y se carga solo bajo `local-demo`;
 V8 crea el canal `general` para cualquier ambiente y matricula a los usuarios
-activos existentes.
+activos existentes. V9 separa la disponibilidad visible del estado administrativo,
+protege las personalizaciones de perfil y garantiza la unicidad de `username` sin
+distinguir mayúsculas.
 Hibernate valida el schema; no lo recrea. El historial Flyway está en `public`
 y las tablas de dominio en `nexo`.
 
@@ -56,6 +58,9 @@ La imagen Docker omite tests al construir. Ejecutarlos antes mediante verify/CI.
 - `POST /api/auth/register`: registro local con contraseña BCrypt.
 - `POST /api/auth/login`: entrega JWT local con issuer `nexo-local` y audience `nexo-api`.
 - `GET /api/users/me`: acepta `ROLE_USER` local o `SCOPE_access_as_user` de Entra.
+- `PATCH /api/users/me/profile`: actualiza únicamente los campos editables del perfil propio.
+- `POST|DELETE /api/users/me/avatar`: guarda o elimina el avatar de la identidad autenticada.
+- `GET /api/avatars/{userId}/{version}`: entrega el PNG normalizado de la versión vigente.
 - `GET /api/workspace`: canales, conversaciones directas y directorio para la identidad autenticada.
 - `POST /api/directs`: crea o recupera una conversación privada canónica.
 - `GET|POST /api/conversations/{id}/messages`: exige membresía y deriva el remitente del token.
