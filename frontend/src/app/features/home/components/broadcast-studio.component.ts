@@ -11,25 +11,46 @@ import {
 import { MediaDeviceService, StudioSource } from '../../../core/media/media-device.service';
 import { VoiceCallService } from '../../../core/realtime/voice-call.service';
 import { IconComponent } from '../../../shared/components/icon.component';
+import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { BroadcastApiService } from '../../../core/media/broadcast-api.service';
+import { BroadcastMediaService } from '../../../core/media/broadcast-media.service';
+import { ChatService } from '../../../core/services/chat.service';
+import { Conversation } from '../../../core/models/demo';
 
 export type BroadcastStudioState =
   'IDLE' | 'PREVIEWING' | 'CONNECTING' | 'LIVE' | 'ENDING' | 'ERROR';
 
 @Component({
   selector: 'nexo-broadcast-studio',
-  imports: [IconComponent],
+  imports: [IconComponent, FormsModule],
+  providers: [BroadcastMediaService],
   templateUrl: './broadcast-studio.component.html',
   styleUrl: './broadcast-studio.component.css',
 })
 export class BroadcastStudioComponent implements OnDestroy {
   readonly media = inject(MediaDeviceService);
   readonly calls = inject(VoiceCallService);
+  readonly broadcast = inject(BroadcastMediaService);
+  private readonly api = inject(BroadcastApiService);
+  private readonly chat = inject(ChatService);
+  readonly destinations = signal<Conversation[]>([]);
+  readonly enabled = signal(false);
+  readonly emitting = computed(() =>
+    ['CONNECTING', 'LIVE', 'RECONNECTING'].includes(this.broadcast.state()),
+  );
+  destination = '';
+  title = '';
+  private destroyed = false;
   readonly state = signal<BroadcastStudioState>('IDLE');
   readonly selectedSource = signal<StudioSource>(this.media.cameraSupported ? 'camera' : 'screen');
   readonly error = signal('');
   readonly notice = signal('');
   readonly preview = viewChild<ElementRef<HTMLVideoElement>>('preview');
-  readonly busy = computed(() => ['CONNECTING', 'ENDING'].includes(this.state()));
+  readonly busy = computed(
+    () =>
+      ['CONNECTING', 'ENDING'].includes(this.state()) || this.broadcast.state() === 'CONNECTING',
+  );
   readonly canPrepare = computed(
     () =>
       this.media.cameraSupported &&
@@ -39,6 +60,14 @@ export class BroadcastStudioComponent implements OnDestroy {
   );
 
   constructor() {
+    void this.loadDestinations();
+    effect(() => {
+      const status = this.broadcast.state();
+      if (status === 'ERROR' || status === 'ENDED') {
+        this.media.stop('user');
+        this.state.set('IDLE');
+      }
+    });
     effect(() => {
       const element = this.preview()?.nativeElement;
       const stream = this.media.stream();
@@ -51,13 +80,51 @@ export class BroadcastStudioComponent implements OnDestroy {
     effect(() => {
       const reason = this.media.stopReason();
       if (reason === 'source-ended') {
+        void this.broadcast.stop();
         this.state.set('IDLE');
         this.notice.set('Dejaste de compartir la pantalla. La vista previa se cerró.');
       } else if (reason === 'device-lost') {
+        void this.broadcast.stop();
         this.state.set('ERROR');
         this.error.set('Se desconectó un dispositivo. Vuelve a preparar la vista previa.');
       }
     });
+  }
+
+  private async loadDestinations() {
+    try {
+      const [config, workspace] = await Promise.all([
+        firstValueFrom(this.api.config()),
+        firstValueFrom(this.chat.workspace()),
+      ]);
+      if (this.destroyed) return;
+      this.enabled.set(config.enabled);
+      const destinations = [...workspace.channels, ...workspace.directs].filter((c) => c.joined);
+      this.destinations.set(destinations);
+      this.destination = destinations[0]?.id ?? '';
+    } catch {
+      if (!this.destroyed) this.error.set('No se pudieron cargar los destinos de transmisión.');
+    }
+  }
+
+  async startBroadcast() {
+    const stream = this.media.stream();
+    if (
+      !stream ||
+      this.busy() ||
+      this.emitting() ||
+      !this.enabled() ||
+      !this.destination ||
+      !this.title.trim()
+    )
+      return;
+    this.notice.set('');
+    await this.broadcast.publish(
+      this.destination,
+      this.title.trim(),
+      this.media.source() === 'screen' ? 'SCREEN' : 'CAMERA',
+      stream,
+    );
   }
 
   selectSource(source: StudioSource): void {
@@ -92,11 +159,13 @@ export class BroadcastStudioComponent implements OnDestroy {
   }
 
   async changeMicrophone(event: Event): Promise<void> {
+    if (this.emitting()) return;
     const value = (event.target as HTMLSelectElement).value;
     await this.changeDevice(() => this.media.changeMicrophone(value));
   }
 
   async changeCamera(event: Event): Promise<void> {
+    if (this.emitting()) return;
     const value = (event.target as HTMLSelectElement).value;
     await this.changeDevice(() => this.media.changeCamera(value));
   }
@@ -104,6 +173,7 @@ export class BroadcastStudioComponent implements OnDestroy {
   finishPreview(): void {
     if (!this.media.stream() && !this.busy()) return;
     this.state.set('ENDING');
+    void this.broadcast.stop();
     this.media.stop('user');
     this.state.set('IDLE');
     this.error.set('');
@@ -117,7 +187,11 @@ export class BroadcastStudioComponent implements OnDestroy {
   confirmClose(): boolean {
     if (!this.hasActiveMedia()) return true;
     if (
-      !window.confirm('La vista previa está activa. ¿Quieres cerrarla y liberar los dispositivos?')
+      !window.confirm(
+        this.emitting()
+          ? 'Estás transmitiendo. ¿Quieres finalizar la transmisión y cerrar?'
+          : 'La vista previa está activa. ¿Quieres cerrarla y liberar los dispositivos?',
+      )
     )
       return false;
     this.finishPreview();
@@ -125,6 +199,8 @@ export class BroadcastStudioComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
+    void this.broadcast.stop();
     if (this.media.stream() || this.busy()) this.media.stop('navigation');
   }
 

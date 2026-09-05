@@ -110,6 +110,7 @@ public class SecurityConfig {
                                     "/api/directs",
                                     "/api/calls",
                                     "/api/calls/**",
+                                    "/api/broadcasts/**",
                                     "/api/conversations/**")
                             .access((authentication, context) -> new AuthorizationDecision(
                                     hasAuthority(authentication.get(), "ROLE_USER")
@@ -290,6 +291,7 @@ public class SecurityConfig {
                 || path.equals("/api/directs")
                 || path.equals("/api/calls")
                 || path.startsWith("/api/calls/")
+                || path.startsWith("/api/broadcasts/")
                 || path.startsWith("/api/conversations/")
                 || path.startsWith("/api/admin/");
     }

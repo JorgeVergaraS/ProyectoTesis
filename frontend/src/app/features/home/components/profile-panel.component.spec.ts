@@ -1,6 +1,8 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { BroadcastApiService } from '../../../core/media/broadcast-api.service';
+import { ChatService } from '../../../core/services/chat.service';
 import { MediaDeviceService } from '../../../core/media/media-device.service';
 import { DemoUser } from '../../../core/models/demo';
 import { VoiceCallService } from '../../../core/realtime/voice-call.service';
@@ -49,6 +51,8 @@ describe('ProfilePanelComponent', () => {
     TestBed.configureTestingModule({
       imports: [ProfilePanelComponent],
       providers: [
+        { provide: BroadcastApiService, useValue: { config: () => of({ enabled: false }) } },
+        { provide: ChatService, useValue: { workspace: () => of({ channels: [], directs: [] }) } },
         { provide: ProfileService, useValue: profile },
         { provide: MediaDeviceService, useValue: studioMedia },
         { provide: VoiceCallService, useValue: { occupied: signal(false) } },

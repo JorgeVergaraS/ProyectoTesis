@@ -196,7 +196,8 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.device-controls select {
+.device-controls select,
+.device-controls input {
   width: 100%;
   min-height: 39px;
   padding: 0 10px;

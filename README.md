@@ -477,8 +477,9 @@ El aviso entrante es visual; la llamada permanece al navegar entre rutas. No se 
 **Estudio local:** la vista previa tampoco se graba ni se transmite. Al volver,
 cerrar el perfil, cambiar de ruta o terminar manualmente, Nexo detiene todos los
 tracks. Compartir pantalla completa puede exponer notificaciones; es preferible
-elegir una ventana concreta. **Iniciar transmisión** permanece deshabilitado hasta
-la fase 4.
+elegir una ventana concreta. **Iniciar transmisión** publica cámara/pantalla y micrófono
+en la conversación elegida cuando LiveKit está habilitado. Los demás miembros pueden abrir
+**Ver transmisión** desde el canal. Consulta la [guía de transmisión local](docs/broadcast-sfu-verification.md).
 
 ICE es local, sin STUN/TURN: verificado entre pestañas del mismo equipo, no entre
 redes. El micrófono requiere un contexto seguro como localhost o HTTPS; una IP
@@ -742,6 +743,7 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Configuración visual persistente con temas predeterminado, OLED y claro.
 - [x] Estilos de botón persistentes Mate, Style SkayGlass y Y2K 2000.
 - [x] Estudio multimedia local: cámara/pantalla, micrófono, dispositivos, nivel y liberación.
+- [x] Transmisión local con LiveKit: permisos anfitrión/espectador, visor y cierre de salas abandonadas.
 - [ ] Validación interactiva del login/logout Microsoft real en Brave.
 - [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.

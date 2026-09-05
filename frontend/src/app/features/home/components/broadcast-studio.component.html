@@ -1,10 +1,12 @@
 <section class="studio" aria-labelledby="studio-title" [attr.data-state]="state()">
   <div class="studio-intro">
-    <span class="studio-kicker"><nexo-icon name="radio" /> ESTUDIO LOCAL</span>
-    <h3 id="studio-title">Prepara tu vista previa privada</h3>
+    <span class="studio-kicker"><nexo-icon name="radio" /> ESTUDIO MULTIMEDIA</span>
+    <h3 id="studio-title">
+      {{ emitting() ? 'Tu transmisión' : 'Prepara tu vista previa privada' }}
+    </h3>
     <p>
-      Comprueba tu imagen y micrófono antes de emitir. Esta fase funciona solo en tu navegador:
-      nadie más puede verla y Nexo no la graba.
+      Comprueba tu imagen y micrófono antes de emitir. Al iniciar, los miembros de la conversación
+      seleccionada podrán verte y escucharte. Nexo no graba la transmisión.
     </p>
   </div>
 
@@ -24,6 +26,20 @@
   }
   @if (notice()) {
     <p class="studio-message success" role="status">{{ notice() }}</p>
+  }
+  @if (broadcast.error()) {
+    <p class="studio-message error" role="alert">{{ broadcast.error() }}</p>
+  }
+  @if (emitting()) {
+    <p class="studio-message warning" role="status">
+      {{
+        broadcast.state() === 'LIVE'
+          ? 'En vivo · Los miembros pueden verte y escucharte'
+          : broadcast.state() === 'RECONNECTING'
+            ? 'Reconectando transmisión…'
+            : 'Conectando transmisión…'
+      }}
+    </p>
   }
 
   @if (!media.stream()) {
@@ -76,7 +92,7 @@
   } @else {
     <div class="preview-shell">
       <video #preview muted autoplay playsinline aria-label="Vista previa multimedia"></video>
-      <span class="local-badge"><i></i> Solo tú</span>
+      <span class="local-badge"><i></i> {{ emitting() ? 'En vivo' : 'Solo tú' }}</span>
       <span class="source-badge">
         <nexo-icon [name]="media.source() === 'camera' ? 'camera' : 'monitor'" />
         {{ media.source() === 'camera' ? 'Cámara' : 'Pantalla' }}
@@ -88,7 +104,7 @@
         <span><nexo-icon name="mic" /> Micrófono</span>
         <select
           [value]="media.selectedAudioId()"
-          [disabled]="busy()"
+          [disabled]="busy() || emitting()"
           (change)="changeMicrophone($event)"
         >
           @for (device of media.audioInputs(); track device.deviceId) {
@@ -101,7 +117,7 @@
           <span><nexo-icon name="camera" /> Cámara</span>
           <select
             [value]="media.selectedVideoId()"
-            [disabled]="busy()"
+            [disabled]="busy() || emitting()"
             (change)="changeCamera($event)"
           >
             @for (device of media.videoInputs(); track device.deviceId) {
@@ -138,17 +154,46 @@
         {{ media.microphoneMuted() ? 'Activar micrófono' : 'Silenciar' }}
       </button>
       <button type="button" class="danger-button" [disabled]="busy()" (click)="finishPreview()">
-        Finalizar vista previa
+        {{ emitting() ? 'Finalizar transmisión' : 'Finalizar vista previa' }}
       </button>
     </div>
 
-    <button
-      type="button"
-      class="broadcast-disabled"
-      disabled
-      title="La emisión se habilitará en la fase 4"
-    >
-      <nexo-icon name="radio" /> Iniciar transmisión <small>Fase 4</small>
-    </button>
+    @if (!emitting()) {
+      @if (enabled()) {
+        <div class="device-controls">
+          <label
+            ><span>Transmitir en</span>
+            <select [(ngModel)]="destination" [disabled]="busy()">
+              @for (conversation of destinations(); track conversation.id) {
+                <option [value]="conversation.id">{{ conversation.title }}</option>
+              }
+            </select>
+          </label>
+          <label
+            ><span>Título</span
+            ><input
+              [(ngModel)]="title"
+              maxlength="120"
+              placeholder="¿Qué vas a compartir?"
+              [disabled]="busy()"
+          /></label>
+        </div>
+        <button
+          type="button"
+          class="primary-button"
+          [disabled]="busy() || !destination || !title.trim()"
+          (click)="startBroadcast()"
+        >
+          <nexo-icon name="radio" /> Iniciar transmisión
+        </button>
+        @if (!destinations().length) {
+          <p role="status">Únete a una conversación para transmitir.</p>
+        }
+      } @else {
+        <p class="studio-message" role="status">
+          La transmisión todavía no está habilitada en este servidor. Puedes probar tu vista previa.
+        </p>
+      }
+    }
   }
 </section>

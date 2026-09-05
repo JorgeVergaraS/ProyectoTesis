@@ -1,5 +1,8 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { BroadcastApiService } from '../../../core/media/broadcast-api.service';
+import { ChatService } from '../../../core/services/chat.service';
 import { MediaDeviceService } from '../../../core/media/media-device.service';
 import { VoiceCallService } from '../../../core/realtime/voice-call.service';
 import { BroadcastStudioComponent } from './broadcast-studio.component';
@@ -45,6 +48,8 @@ describe('BroadcastStudioComponent', () => {
     TestBed.configureTestingModule({
       imports: [BroadcastStudioComponent],
       providers: [
+        { provide: BroadcastApiService, useValue: { config: () => of({ enabled: false }) } },
+        { provide: ChatService, useValue: { workspace: () => of({ channels: [], directs: [] }) } },
         { provide: MediaDeviceService, useValue: media },
         { provide: VoiceCallService, useValue: { occupied } },
       ],

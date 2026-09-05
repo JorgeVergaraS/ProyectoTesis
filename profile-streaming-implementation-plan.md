@@ -245,6 +245,12 @@ datos a otro usuario y sin dejar dispositivos activos al salir.
 
 ### Fase 4 — Transmisión funcional mediante SFU
 
+**Estado:** implementada y validada localmente el 5 de septiembre de 2026. LiveKit,
+persistencia V10, permisos, publicación y visor están integrados. Dos cuentas locales
+en sesiones aisladas de Edge enviaron/recibieron cámara y pantalla con audio sintético;
+también se verificaron mute, cierre remoto, prohibición de publicar del espectador y
+cierre inesperado del anfitrión. Ver [guía de ejecución y pruebas](docs/broadcast-sfu-verification.md).
+
 1. Levantar LiveKit local como perfil opcional de Docker Compose con secretos solo en `.env`.
 2. Añadir el cliente web de LiveKit y un servicio Angular `BroadcastMediaService`.
 3. Añadir al backend el cliente servidor de LiveKit y el emisor de tokens con grants mínimos.
@@ -347,7 +353,7 @@ recuperación documentada ante fallos.
 5. **TURN/HTTPS y prueba entre redes**: convierte la demo local en una función verificable.
 6. **Tiempo real, límites y observabilidad**: endurecimiento antes del despliegue.
 
-El siguiente cambio recomendado es la Fase 4: conectar el estudio ya validado a un SFU local y
-crear el modelo autorizado de transmisiones. `MediaDeviceService` mantiene la captura separada
+El siguiente cambio recomendado es la Fase 5: HTTPS/WSS, TURN y validación entre redes reales.
+`MediaDeviceService` mantiene la captura separada
 de `VoiceCallService`; la única coordinación entre ambos evita que intenten ocupar el micrófono
 al mismo tiempo.

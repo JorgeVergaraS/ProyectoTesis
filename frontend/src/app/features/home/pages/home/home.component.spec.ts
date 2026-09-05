@@ -2,6 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { BroadcastApiService } from '../../../../core/media/broadcast-api.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { DemoUser, Workspace } from '../../../../core/models/demo';
 import { VoiceCallService } from '../../../../core/realtime/voice-call.service';
@@ -78,6 +79,7 @@ describe('HomeComponent', () => {
     TestBed.configureTestingModule({
       imports: [HomeComponent],
       providers: [
+        { provide: BroadcastApiService, useValue: { active: () => of([]) } },
         provideRouter([]),
         {
           provide: AuthService,

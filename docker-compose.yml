@@ -33,6 +33,11 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
       NEXO_JWT_SECRET: ${NEXO_JWT_SECRET:?Define NEXO_JWT_SECRET in .env}
+      NEXO_BROADCASTS_ENABLED: ${NEXO_BROADCASTS_ENABLED:-false}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-}
+      LIVEKIT_INTERNAL_URL: http://livekit:7880
+      LIVEKIT_PUBLIC_URL: ${LIVEKIT_PUBLIC_URL:-ws://127.0.0.1:7880}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
     depends_on:
@@ -44,6 +49,20 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
+
+  livekit:
+    profiles: ["media"]
+    image: livekit/livekit-server:v1.13.6
+    restart: unless-stopped
+    command: ["--config", "/etc/livekit.yaml", "--node-ip", "${LIVEKIT_NODE_IP:-127.0.0.1}"]
+    environment:
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:-}: ${LIVEKIT_API_SECRET:-}"
+    volumes:
+      - ./infra/livekit.yaml:/etc/livekit.yaml:ro
+    ports:
+      - "127.0.0.1:7880:7880"
+      - "${LIVEKIT_NODE_IP:-127.0.0.1}:7881:7881"
+      - "${LIVEKIT_NODE_IP:-127.0.0.1}:7882:7882/udp"
 
 volumes:
   postgres_data:

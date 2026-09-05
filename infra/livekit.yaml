@@ -1,0 +1,15 @@
+# Local workstation only. Use HTTPS/WSS and TURN before exposing this service.
+port: 7880
+bind_addresses: ["0.0.0.0"]
+rtc:
+  tcp_port: 7881
+  udp_port: 7882
+  use_external_ip: false
+  use_ice_lite: true
+room:
+  auto_create: false
+  empty_timeout: 90
+  departure_timeout: 20
+  max_participants: 25
+logging:
+  level: warn

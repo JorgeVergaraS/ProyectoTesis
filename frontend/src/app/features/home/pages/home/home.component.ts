@@ -39,6 +39,7 @@ import {
 } from '../../components/conversation-inbox.component';
 import { ProfilePanelComponent } from '../../components/profile-panel.component';
 import { SettingsPanelComponent } from '../../components/settings-panel.component';
+import { ConversationBroadcastsComponent } from '../../components/conversation-broadcasts.component';
 
 type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
 
@@ -54,6 +55,7 @@ type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
     ConversationInboxComponent,
     ProfilePanelComponent,
     SettingsPanelComponent,
+    ConversationBroadcastsComponent,
     RouterLink,
   ],
   templateUrl: './home.component.html',
