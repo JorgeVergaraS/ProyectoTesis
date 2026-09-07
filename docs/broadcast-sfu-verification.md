@@ -80,10 +80,15 @@ requerirán bloqueo distribuido o transacciones de estado coordinadas.
 
 ## Evidencia
 
-- Backend: suite completa de 40 pruebas aprobada; después se añadió y aprobó una prueba
-  adicional de vencimiento, con 3 pruebas específicas de transmisión aprobadas.
+- Backend: el 7 de septiembre se repitió `verify` completo con Java 21, Maven 3.9.16
+  y Docker activo: 41 pruebas aprobadas, sin fallos, errores ni omisiones; `BUILD SUCCESS`.
+  Se invocó `bin/mvn.cmd verify` de la distribución ya instalada porque `mvnw.cmd`
+  falló antes de arrancar Maven al evaluar `.Target[0]` en Windows. El wrapper no fue modificado.
 - Angular: 76 pruebas aprobadas, incluidas publicación separada, rol de espectador, cancelación
   de un acceso pendiente, reconexión, recuperación de autoplay y finalización remota.
+  El 7 de septiembre se repitieron `npm run format:check`, `npm run test:ci` y
+  `npm run build`: formato correcto, 76 pruebas en 22 archivos y build aprobado.
+  Tests/build necesitaron ejecución fuera del sandbox por errores de acceso a archivos.
 - Edge, dos sesiones aisladas: cámara + audio y pantalla + audio recibidos por WebRTC;
   se verificaron bytes RTP entrantes, imagen decodificada, mute/reactivación y liberación
   de tracks. El espectador no solicitó dispositivos y no pudo publicar.
@@ -92,6 +97,8 @@ requerirán bloqueo distribuido o transacciones de estado coordinadas.
 La prueba de navegador usa canvas y un tono sintetizado, además de dispositivos ficticios
 de Chromium para reproducir permisos. No utiliza cámara, pantalla ni micrófono reales.
 Las pruebas manuales con dispositivos físicos y entre redes externas siguen pendientes.
+La prueba WebRTC de navegador descrita arriba corresponde al 5 de septiembre; no se
+repitió durante la verificación automatizada del 7 de septiembre.
 
 `scripts/verify-broadcast.cjs` permite repetir la prueba con Playwright y Edge instalados;
 ejecuta `node scripts/verify-broadcast.cjs` desde la raíz con el proyecto en marcha. Crea

@@ -20,8 +20,11 @@
 
 > **Estado actual:** aplicación local con Angular, Spring Boot y PostgreSQL. Mantiene
 > la demo multiusuario y añade registro/login local más integración Microsoft Entra ID
-> mediante MSAL. La implementación y las pruebas automatizadas están completas; el
-> login Microsoft real y el despliegue AWS requieren validación interactiva.
+> mediante MSAL. Incluye perfil editable y transmisión local con LiveKit (fase 4).
+> Verificación del 7 de septiembre de 2026: 41 pruebas backend y 76 frontend aprobadas.
+> La fase 5 está en preparación, no desplegada: faltan HTTPS/WSS, TURN, controles
+> adicionales y pruebas entre redes. El login Microsoft real sigue pendiente de
+> validación interactiva. No se declara listo para producción.
 
 ## Índice
 
@@ -107,6 +110,7 @@ instalación nueva.
 | Perfil     | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada                         | Sin campos institucionales ni configuración de privacidad                        |
 | Llamadas   | Voz WebRTC, aceptar/rechazar, mute y finalizar                                                              | Dos usuarios; mismo equipo; sin video ni STUN/TURN                               |
 | Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
+| Transmisiones | Cámara/pantalla y micrófono mediante LiveKit; permisos anfitrión/espectador y visor en el canal | Validación local con medios sintéticos; pendientes dispositivos físicos y redes externas |
 | Operación  | Docker Compose, Flyway, health, Actuator y Swagger                                                          | Solo local, sin despliegue público                                               |
 
 <a id="stack"></a>
@@ -118,6 +122,7 @@ instalación nueva.
 | Frontend        | Angular 21.2, TypeScript 5.9, Tailwind CSS 4, RxJS 7.8               |
 | Diseño Angular  | Standalone Components, signals, Reactive Forms y rutas lazy          |
 | Voz             | WebRTC del navegador y `getUserMedia`                                |
+| Transmisiones   | LiveKit Server 1.13.6, cliente web 2.22.2 y SDK servidor 0.15.1       |
 | Backend         | Java 21, Spring Boot 3.5.16, Maven Wrapper 3.9.16                    |
 | API             | Spring Web, Bean Validation, DTOs y errores uniformes                |
 | Seguridad       | Spring Security, JWT local/Entra, scopes/roles y bearer demo aislado |
@@ -141,9 +146,10 @@ dependencias e imágenes; no necesita credenciales Microsoft.
 
 **Monorepo y monolito modular:** una SPA Angular, una sola aplicación Spring Boot
 y PostgreSQL. El backend está organizado por dominios, no por capas globales.
-No hay microservicios ni un servidor adicional que transporte el audio.
-La preparación multimedia de la fase 3 ocurre completamente en el navegador y
-no envía cámara, pantalla ni micrófono al backend.
+No hay microservicios de negocio. Las llamadas de voz son P2P; las transmisiones
+usan LiveKit como servidor multimedia SFU opcional. Spring controla permisos y
+metadatos, pero no transporta ni almacena audio/video. La vista previa permanece
+en el navegador hasta que el usuario inicia la transmisión.
 
 ```mermaid
 flowchart LR
@@ -155,11 +161,16 @@ flowchart LR
       S --> U[user · perfiles y fotos]
       S --> C[messaging · canales y mensajes]
       S --> R[realtime · señalización HTTP]
+      S --> T[broadcast · permisos y metadatos]
     end
     AU --> DB[(PostgreSQL · Docker)]
     U --> DB
     C --> DB
     R --> RAM[Estado temporal de llamadas]
+    T --> DB
+    T -->|Control de salas| SFU[LiveKit · perfil media]
+    A <-->|Transmisión WebRTC| SFU
+    B <-->|Recepción WebRTC| SFU
     A <-->|Audio WebRTC directo| B
     A -->|Vista previa privada de cámara o pantalla| A
 ```
@@ -177,6 +188,8 @@ flowchart LR
 - **realtime:** intercambia SDP entre participantes autorizados. El audio viaja
   entre navegadores; la señalización temporal permanece en memoria del monolito.
 - **common:** CORS, errores, health y OpenAPI.
+- **broadcast:** autoriza miembros, emite tokens breves por rol y controla salas
+  LiveKit y su vencimiento; persiste metadatos en PostgreSQL, nunca medios ni tokens.
 - **Angular core:** sesión, guard, interceptor, clientes HTTP y voz; los componentes
   de página no duplican autenticación.
 
@@ -345,6 +358,7 @@ duplicar un mensaje al reintentarlo.
 | V5–V7     | Identidad local, contraseñas BCrypt y nombres de usuario Entra                                          |
 | V8        | Canal `general` común y membresía inicial para usuarios activos                                         |
 | V9        | Disponibilidad, protección de personalizaciones e identificador público único sin distinguir mayúsculas |
+| V10       | Metadatos y estados de transmisiones; índices por conversación y un único directo activo por anfitrión |
 
 Flyway guarda su historial en `public`; Hibernate usa `ddl-auto=validate`.
 No editar migraciones aplicadas: agregar una nueva. Desactivar `local-demo` no
@@ -636,8 +650,8 @@ Servicios iniciados, desde la raíz en PowerShell:
 
 | Comprobación  | Resultado registrado                                                                             |
 | ------------- | ------------------------------------------------------------------------------------------------ |
-| Backend       | 38 pruebas aprobadas, incluidas llamadas autenticadas, perfil, mensajería, CORS y Testcontainers |
-| Frontend      | 71 pruebas aprobadas en veintiún archivos                                                         |
+| Backend       | 7 de septiembre: `verify` completo con Docker y Java 21; 41 pruebas aprobadas, sin omisiones |
+| Frontend      | 7 de septiembre: 76 pruebas aprobadas en 22 archivos                                              |
 | Build Angular | Compilación de producción correcta                                                               |
 | Formato       | Prettier correcto                                                                                |
 | Integración   | Health, readiness DB, proxy, CORS y OpenAPI correctos                                            |
@@ -647,6 +661,15 @@ Testcontainers crea bases efímeras, sin tocar la demo. Los tests unitarios de v
 usan dobles de medios; la conexión real se comprobó aparte. No se evaluó de oído
 la calidad de voz ni se probaron redes remotas.
 [Evidencia de fotos y llamadas](docs/photos-and-calls-verification.md).
+
+La verificación del 7 de septiembre usó Maven 3.9.16 ya instalado (`bin/mvn.cmd verify`):
+el wrapper de Windows falló antes de arrancar Maven al evaluar `.Target[0]`.
+El wrapper no fue modificado. Se repitieron también formato, tests y build de Angular.
+
+Las transmisiones se comprobaron el 5 de septiembre con dos sesiones de Edge y
+audio/video sintéticos: recepción, mute, cierre y permisos de espectador. Esa prueba
+WebRTC no se repitió el 7 de septiembre. Siguen pendientes cámara/micrófono físicos
+y redes distintas. [Evidencia de transmisiones](docs/broadcast-sfu-verification.md).
 
 ### GitHub Actions
 
@@ -748,11 +771,17 @@ remota vencerá, como máximo, en ocho horas.
 - [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.
 - [ ] STUN/TURN, HTTPS y pruebas entre dispositivos/redes.
-- [ ] Emisión de video, grupos y adjuntos según el alcance aprobado.
+- [ ] Grupos privados y adjuntos según el alcance aprobado.
+- [ ] Eventos firmados de LiveKit y revocación de membresía durante una transmisión.
 - [ ] Paginación, límites, observabilidad y revisión para despliegue real.
 
 No hay fechas comprometidas ni se presentan estas etapas como disponibles.
 Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilicen.
+
+**Siguiente paso: fase 5.** La verificación automatizada local está cerrada; faltan
+pruebas con dispositivos físicos y acordar servidor, dominio y presupuesto antes
+del despliegue de prueba. No se han publicado servicios ni abierto puertos públicos.
+Ver [preparación y criterios de aceptación](docs/phase-5-readiness.md).
 
 <a id="documentacion"></a>
 
@@ -765,6 +794,8 @@ Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilic
 - [Contribución](CONTRIBUTING.md) y [seguridad](SECURITY.md).
 - [Verificación actual de fotos y voz](docs/photos-and-calls-verification.md).
 - [Verificación del estudio multimedia local](docs/multimedia-studio-verification.md).
+- [Transmisiones LiveKit: configuración, contratos y verificación](docs/broadcast-sfu-verification.md).
+- [Fase 5: preparación, pruebas pendientes y reversión](docs/phase-5-readiness.md).
 - [Mockup interactivo de perfil, edición y transmisión](docs/nexo-profile-streaming-mockup.html).
 - [Plan de implementación de perfil y transmisiones](profile-streaming-implementation-plan.md).
 - Evidencia histórica: [fundación](docs/verification.md),

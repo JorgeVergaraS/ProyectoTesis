@@ -35,8 +35,9 @@ Microsoft Entra ID y demostración local.
   reutilizarse como «Disponible/Ocupado/Ausente».
 - La llamada autenticada usa señalización HTTP por polling, vive en memoria, está verificada
   solo entre pestañas del mismo equipo y rechaza explícitamente SDP con video.
-- No hay modelo de transmisión, permisos publicador/espectador, descubrimiento de directos,
-  servidor SFU, TURN ni pruebas entre redes.
+- La fase 4 ya incorpora modelo de transmisión, permisos publicador/espectador,
+  descubrimiento de directos y LiveKit local. Siguen pendientes HTTPS/WSS, TURN,
+  eventos firmados, revocación de membresía durante una sesión y pruebas entre redes.
 
 ## 3. Decisiones de arquitectura
 
@@ -265,6 +266,18 @@ local, con permisos de anfitrión/espectador aplicados por el backend.
 
 ### Fase 5 — Seguridad, conectividad y despliegue
 
+**Estado:** preparación iniciada el 7 de septiembre de 2026; no desplegada ni completada.
+La verificación automatizada de la fase 4 se repitió: backend `verify` con 41 pruebas
+aprobadas; frontend con formato correcto, 76 pruebas aprobadas y build correcto.
+La prueba con dispositivos físicos sigue pendiente. Antes de publicar se debe acordar servidor, dominio, responsable
+de DNS y presupuesto; no se abrirán puertos públicos ni se contratarán servicios sin autorización.
+
+Orden de trabajo: cerrar verificación local; definir el entorno de prueba; configurar
+HTTPS/WSS y TURN/TLS; implementar controles de seguridad y límites; validar entre redes.
+La elección de infraestructura no impide preparar pruebas y controles locales, pero sí
+impide considerar terminado el despliegue o prometer conectividad externa.
+Ver [preparación y criterios de aceptación](docs/phase-5-readiness.md).
+
 1. Publicar frontend, API y señalización bajo HTTPS/WSS.
 2. Configurar `Permissions-Policy` para `camera`, `microphone` y `display-capture` solo en el
    origen permitido.
@@ -349,7 +362,8 @@ recuperación documentada ante fallos.
 1. **Perfil autenticado completo (completado)**: menor riesgo y máximo reaprovechamiento del código actual.
 2. **Panel Angular reutilizable (completado)**: materializa el mockup con persistencia real.
 3. **Vista previa multimedia local (completada)**: valida permisos y UX sin introducir infraestructura.
-4. **Transmisión SFU local con dos usuarios**: primera vertical audiovisual completa.
+4. **Transmisión SFU local con dos usuarios (implementada y probada con medios sintéticos)**:
+   primera vertical audiovisual; pendiente comprobación manual con dispositivos físicos.
 5. **TURN/HTTPS y prueba entre redes**: convierte la demo local en una función verificable.
 6. **Tiempo real, límites y observabilidad**: endurecimiento antes del despliegue.
 
