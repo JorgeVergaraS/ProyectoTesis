@@ -4,10 +4,19 @@ const { chromium } = require('playwright');
 const { randomUUID } = require('node:crypto');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
 const origin = process.env.NEXO_TEST_URL || 'http://127.0.0.1:4200';
+const captureDir = process.env.NEXO_CAPTURE_DIR || '.tmp';
+const browserExecutable = process.env.NEXO_BROWSER_EXECUTABLE;
 
 async function main() {
-  const browser = await chromium.launch({ channel: 'msedge', headless: true, args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] });
+  fs.mkdirSync('.tmp', { recursive: true });
+  fs.mkdirSync(captureDir, { recursive: true });
+  const browser = await chromium.launch({
+    ...(browserExecutable ? { executablePath: browserExecutable } : { channel: 'msedge' }),
+    headless: true,
+    args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
+  });
   const errors = [];
   const contexts = [];
   let hostToken, currentId;
@@ -106,7 +115,24 @@ async function main() {
     await viewer.page.goto(origin + '/?conversation=' + channel.id);
     for (const source of ['CAMERA', 'SCREEN']) {
       if (source === 'SCREEN') await host.page.getByRole('button', { name: 'Pantalla Pantalla y micrófono', exact: true }).click();
+      if (source === 'SCREEN') await host.page.getByLabel('Fluidez').selectOption('60');
       await host.page.getByRole('button', { name: 'Preparar vista previa' }).click();
+      if (source === 'SCREEN') {
+        await host.page.screenshot({path: path.join(captureDir, 'broadcast-studio-desktop.png'), fullPage:true});
+        await host.page.setViewportSize({ width: 390, height: 844 });
+        await host.page.evaluate(() => window.scrollTo(0, 0));
+        const overflow = await host.page.evaluate(() => [...document.querySelectorAll('*')]
+          .map(element => ({
+            tag: element.tagName.toLowerCase(),
+            className: typeof element.className === 'string' ? element.className : '',
+            left: Math.round(element.getBoundingClientRect().left),
+            right: Math.round(element.getBoundingClientRect().right),
+          }))
+          .filter(element => element.left < 0 || element.right > window.innerWidth + 1));
+        assert.deepEqual(overflow, [], `Mobile horizontal overflow: ${JSON.stringify(overflow.slice(0, 12))}`);
+        await host.page.screenshot({path: path.join(captureDir, 'broadcast-studio-mobile.png'), fullPage:true});
+        await host.page.setViewportSize({ width: 1440, height: 1000 });
+      }
       await host.page.getByPlaceholder('¿Qué vas a compartir?').fill('Prueba ' + source);
       await host.page.getByRole('button', { name: 'Iniciar transmisión', exact: true }).click();
       await host.page.getByText('En vivo · Los miembros pueden verte y escucharte', {exact: true}).waitFor({timeout: 45000});
@@ -142,7 +168,7 @@ async function main() {
       await host.page.getByRole('button', {name:'Silenciar',exact:true}).click();
       assert.equal(await host.page.evaluate(() => window.__tracks.filter(t => t.kind === 'audio' && t.readyState === 'live').every(t => !t.enabled)), true);
       await host.page.getByRole('button', {name:'Activar micrófono',exact:true}).click();
-      await viewer.page.screenshot({path: '.tmp/broadcast-' + source.toLowerCase() + '.png', fullPage:true});
+      await viewer.page.screenshot({path: path.join(captureDir, 'broadcast-' + source.toLowerCase() + '.png'), fullPage:true});
       await host.page.getByRole('button', {name:'Finalizar transmisión',exact:true}).click();
       await viewer.page.getByText('La transmisión finalizó.', {exact:true}).waitFor({timeout:15000});
       assert.equal(await host.page.evaluate(() => window.__tracks.every(t => t.readyState === 'ended')), true);
@@ -160,7 +186,13 @@ async function main() {
     await host.page.close({runBeforeUnload:false});
     console.log('Host closed unexpectedly; checking server lease cleanup (up to 110 seconds)…');
     await viewer.page.getByText('La transmisión finalizó.', {exact:true}).waitFor({timeout:110000});
-    assert.equal((await api(`/conversations/${channel.id}/broadcasts/active`, viewer.token)).some(b => b.id === currentId), false);
+    const cleanupDeadline = Date.now() + 110000;
+    let stillActive = true;
+    while (stillActive && Date.now() < cleanupDeadline) {
+      stillActive = (await api(`/conversations/${channel.id}/broadcasts/active`, viewer.token)).some(b => b.id === currentId);
+      if (stillActive) await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    assert.equal(stillActive, false);
     currentId = null;
     console.log('Unexpected host closure and server room cleanup: PASS');
     assert.deepEqual(errors, [], 'Browser runtime errors');
