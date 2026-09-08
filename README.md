@@ -21,7 +21,8 @@
 > **Estado actual:** aplicación local con Angular, Spring Boot y PostgreSQL. Mantiene
 > la demo multiusuario y añade registro/login local más integración Microsoft Entra ID
 > mediante MSAL. Incluye perfil editable y transmisión local con LiveKit (fase 4).
-> Verificación del 7 de septiembre de 2026: 41 pruebas backend y 76 frontend aprobadas.
+> Verificación del 8 de septiembre de 2026: 41 pruebas backend y 76 frontend aprobadas,
+> además del flujo E2E de cámara/pantalla con LiveKit en Brave.
 > La fase 5 está en preparación, no desplegada: faltan HTTPS/WSS, TURN, controles
 > adicionales y pruebas entre redes. El login Microsoft real sigue pendiente de
 > validación interactiva. No se declara listo para producción.
@@ -110,7 +111,7 @@ instalación nueva.
 | Perfil     | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada                         | Sin campos institucionales ni configuración de privacidad                        |
 | Llamadas   | Voz WebRTC, aceptar/rechazar, mute y finalizar                                                              | Dos usuarios; mismo equipo; sin video ni STUN/TURN                               |
 | Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
-| Transmisiones | Cámara/pantalla y micrófono mediante LiveKit; permisos anfitrión/espectador y visor en el canal | Validación local con medios sintéticos; pendientes dispositivos físicos y redes externas |
+| Transmisiones | Cámara/pantalla, micrófono opcional y 15/30/60 FPS mediante LiveKit; visor en canal o llamada | 60 FPS es un objetivo dependiente del dispositivo/red; pendientes medios físicos y redes externas |
 | Operación  | Docker Compose, Flyway, health, Actuator y Swagger                                                          | Solo local, sin despliegue público                                               |
 
 <a id="stack"></a>
@@ -795,6 +796,7 @@ Ver [preparación y criterios de aceptación](docs/phase-5-readiness.md).
 - [Verificación actual de fotos y voz](docs/photos-and-calls-verification.md).
 - [Verificación del estudio multimedia local](docs/multimedia-studio-verification.md).
 - [Transmisiones LiveKit: configuración, contratos y verificación](docs/broadcast-sfu-verification.md).
+- [Servicios actuales, flujo de pantalla y capturas multimedia](docs/transmisiones-y-servicios.md).
 - [Fase 5: preparación, pruebas pendientes y reversión](docs/phase-5-readiness.md).
 - [Mockup interactivo de perfil, edición y transmisión](docs/nexo-profile-streaming-mockup.html).
 - [Plan de implementación de perfil y transmisiones](profile-streaming-implementation-plan.md).
