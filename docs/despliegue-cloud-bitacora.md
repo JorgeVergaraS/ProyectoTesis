@@ -389,6 +389,20 @@ el segundo espera el aviso entrante y lo acepta. Si vuelve a quedar pendiente
 bajo esas condiciones, se deben correlacionar la señalización y las asignaciones
 de Coturn antes de declarar una falla de red.
 
+La repetición posterior sí utilizó el chat directo correcto, pero ICE continuó
+pendiente. Coturn registró una asignación que se cerró sin transportar audio y
+mostró que el relay estaba enlazado a la dirección privada de la VPS. La captura
+siguiente conserva el estado observado antes de aplicar la corrección:
+
+![Llamada directa detenida durante la negociación ICE](images/cloud/15-llamada-directa-ice-detenido.png)
+
+La EC2 está detrás de NAT: su interfaz utiliza `172.31.31.127` y la dirección
+pública visible es `54.242.7.27`. Se reinició Coturn conservando credenciales,
+puertos y política de reinicio, pero declarando el mapeo explícito
+`54.242.7.27/172.31.31.127`. Este ajuste evita entregar a clientes externos una
+dirección relay privada no enrutable. La validación PC–5G debe repetirse después
+del reinicio antes de marcar el caso como aprobado.
+
 Cada paso completado debe añadir fecha, resultado observado, evidencia
 redactada y configuración reversible. No incluir contraseñas, JWT, claves
 privadas, secretos ni identificadores de cuenta AWS en las capturas publicadas.
