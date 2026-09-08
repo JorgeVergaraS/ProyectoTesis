@@ -86,8 +86,15 @@ entrega y evitar cambios de issuer en el backend.
 
    ![Azure confirmó la creación del invitado Duoc](images/cloud/07-entra-invitado-duoc.png)
 
-La evidencia publicada omite el correo completo y la cabecera de la cuenta del
-portal. La invitación todavía debe ser aceptada personalmente desde la cuenta
+4. Se detectó que la primera dirección no incluía la `s` final del nombre de
+   usuario. Con una segunda confirmación expresa, se eliminó ese invitado y se
+   creó uno nuevo para `jor.vergaras@duocuc.cl`. Azure confirmó ambas operaciones
+   y la búsqueda exacta mostró el nuevo registro como **Guest**, con creación
+   **Invitation**. No se publica la vista completa porque contiene direcciones
+   de correo y el identificador interno del usuario.
+
+La evidencia gráfica publicada omite el correo completo y la cabecera de la cuenta
+del portal. La invitación corregida todavía debe ser aceptada personalmente desde la cuenta
 Duoc. Después se repetirá login, `/api/users/me` HTTP 200 y logout; no se marcará
 el acceso institucional como aprobado hasta completar esas tres comprobaciones.
 
