@@ -20,8 +20,29 @@ inspeccionado en Chrome: cero bases de datos en `us-east-1`.
 - Presupuesto comunicado: USD 50 del laboratorio. Presentación viernes 11 y
   disponibilidad para sesiones hasta domingo 13. Sin dominio propio.
 - RDS: formulario preparado con PostgreSQL 17.10-R1, `db.t4g.micro`, Single-AZ,
-  20 GiB y acceso público desactivado. Sin crear: faltan revisar costos,
-  credenciales y el grupo de seguridad dedicado.
+  20 GiB y acceso público desactivado. Posteriormente se creó mediante el flujo
+  de creación sencilla; ver la evidencia y las salvedades siguientes.
+
+## Creación académica de PostgreSQL en RDS
+
+Con autorización expresa del propietario se utilizó **Creación sencilla** con
+PostgreSQL, tamaño **Capa gratuita**, instancia `db.t4g.micro`, 1 GiB de RAM y
+20 GiB de almacenamiento. El identificador es `nexo-academico-db` y el usuario
+maestro es `nexo_admin`.
+
+![Selección de creación sencilla y tamaño de capa gratuita](images/cloud/09-rds-creacion-sencilla.png)
+
+AWS aceptó la operación y mostró la instancia con estado **Creando**, motor
+PostgreSQL, tamaño `db.t4g.micro`, una sola zona de disponibilidad y Multi-AZ
+desactivado.
+
+![Instancia PostgreSQL en proceso de creación](images/cloud/10-rds-creando.png)
+
+La consola generó una contraseña maestra y advierte que solo puede verse una
+vez. Se dejó el modal abierto para que el propietario la guarde directamente;
+la contraseña no se leyó, copió, registró ni capturó. Tampoco debe incorporarse
+al repositorio. Antes de conectar el backend falta verificar el endpoint, la
+disponibilidad final y las reglas de red creadas por el modo sencillo.
 
 ## Evidencia de Azure y login: 8 de septiembre
 
