@@ -2,6 +2,7 @@ export const environment = {
   production: false,
   apiUrl: '/api',
   voiceIceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+  voiceIceTransportPolicy: 'all' as RTCIceTransportPolicy,
   azure: {
     clientId: '480a8cf4-c729-4ca1-8043-6c1198dfaceb',
     tenantId: '21a4bbb2-fc48-4053-a98e-b805aa2306cc',

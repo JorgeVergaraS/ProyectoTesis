@@ -1,6 +1,7 @@
 package com.nexo.realtime.controller;
 
 import com.nexo.realtime.service.CallService;
+import com.nexo.realtime.service.TurnCredentialService;
 import com.nexo.user.service.CurrentUserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -23,10 +24,13 @@ public class AuthenticatedCallController {
     private static final String CALL_SESSION_HEADER = "X-Nexo-Call-Session";
     private final CallService calls;
     private final CurrentUserService currentUser;
+    private final TurnCredentialService turn;
 
-    public AuthenticatedCallController(CallService calls, CurrentUserService currentUser) {
+    public AuthenticatedCallController(CallService calls, CurrentUserService currentUser,
+            TurnCredentialService turn) {
         this.calls = calls;
         this.currentUser = currentUser;
+        this.turn = turn;
     }
 
     public record StartRequest(
@@ -36,6 +40,11 @@ public class AuthenticatedCallController {
             @NotBlank @Size(max = 64000) String offer) {}
 
     public record AnswerRequest(@NotBlank @Size(max = 64000) String answer) {}
+
+    @GetMapping("/ice-config")
+    public TurnCredentialService.IceConfig iceConfig(Authentication authentication) {
+        return turn.credentials(currentUser.require(authentication).userId());
+    }
 
     @GetMapping("/current")
     public CallService.CallView current(

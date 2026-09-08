@@ -38,6 +38,8 @@ services:
       LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-}
       LIVEKIT_INTERNAL_URL: http://livekit:7880
       LIVEKIT_PUBLIC_URL: ${LIVEKIT_PUBLIC_URL:-ws://127.0.0.1:7880}
+      NEXO_TURN_URL: ${NEXO_TURN_URL:-}
+      NEXO_TURN_SECRET: ${NEXO_TURN_SECRET:-}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
     depends_on:

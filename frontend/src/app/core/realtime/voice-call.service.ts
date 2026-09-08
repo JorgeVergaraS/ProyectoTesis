@@ -28,6 +28,10 @@ export interface VoiceCall {
   conversationId: string | null;
 }
 
+interface IceConfig {
+  iceServers: RTCIceServer[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class VoiceCallService {
   private readonly http = inject(HttpClient);
@@ -353,7 +357,10 @@ export class VoiceCallService {
       throw new Error('Operation cancelled');
     }
     this.microphone = stream;
-    const peer = new RTCPeerConnection({ iceServers: [...environment.voiceIceServers] });
+    const peer = new RTCPeerConnection({
+      iceServers: await this.iceServers(),
+      iceTransportPolicy: environment.voiceIceTransportPolicy,
+    });
     this.peer = peer;
     stream.getTracks().forEach((track) => peer.addTrack(track, stream));
     peer.ontrack = (event) => {
@@ -417,6 +424,18 @@ export class VoiceCallService {
   }
   private assertCurrent(operation: number): void {
     if (operation !== this.generation) throw new Error('Operation cancelled');
+  }
+  private async iceServers(): Promise<RTCIceServer[]> {
+    const fallback: RTCIceServer[] = [...environment.voiceIceServers];
+    if (this.session.kind() === 'demo') return fallback;
+    try {
+      const config = await firstValueFrom(
+        this.http.get<IceConfig>(this.base + '/ice-config').pipe(timeout(5000)),
+      );
+      return [...fallback, ...(Array.isArray(config?.iceServers) ? config.iceServers : [])];
+    } catch {
+      return fallback;
+    }
   }
   private async endRemote(id: string): Promise<void> {
     try {
