@@ -15,7 +15,8 @@ inspeccionado en Chrome: cero bases de datos en `us-east-1`.
   ninguna instancia ni se modificaron reglas de red.
 - Azure: sesión de Brave recuperada en el tenant del proyecto. Se verificaron
   los dos registros, el redirect SPA y la preautorización del scope de la API.
-- No hay todavía evidencia de login/logout Microsoft de Nexo en esta sesión.
+- Login Microsoft, restauración de sesión, perfil HTTP 200 y logout comprobados
+  en Brave contra el backend local. No acreditan aún el despliegue cloud.
 - Presupuesto comunicado: USD 50 del laboratorio. Presentación viernes 11 y
   disponibilidad para sesiones hasta domingo 13. Sin dominio propio.
 - RDS: formulario preparado con PostgreSQL 17.10-R1, `db.t4g.micro`, Single-AZ,
@@ -51,8 +52,22 @@ inspeccionado en Chrome: cero bases de datos en `us-east-1`.
 6. Iniciar backend y Angular locales. Readiness respondió `UP`. Abrir Nexo en
    Brave y pulsar **Continuar con Microsoft**. La redirección usa el tenant,
    client ID, scope y redirect correctos y solicita Authorization Code con PKCE.
-   El flujo quedó en el selector de cuentas Microsoft para intervención del
-   usuario; todavía no se acredita login completo, perfil 200 ni logout.
+   El usuario completó personalmente el selector de cuentas Microsoft.
+7. Nexo volvió a `/home` y mostró acceso **Microsoft Entra ID**. Después de
+   recargar, se observó `/api/users/me` con HTTP **200** en la red del navegador,
+   sin registrar cabeceras, tokens ni cuerpo de respuesta. La sesión se restauró.
+8. Abrir `/profile` y pulsar **Cerrar sesión**. Microsoft mostró
+   **You signed out of your account**. En esta prueba quedó en la página de
+   Microsoft; no se acredita retorno automático a Nexo.
+9. Navegar manualmente a `http://localhost:4200/profile`: Nexo redirigió a
+   `/login`, sin mostrar el perfil. La captura siguiente documenta la pantalla
+   pública resultante; no expone datos personales ni credenciales.
+
+   ![Ruta protegida redirigida al login después de cerrar sesión](images/cloud/06-logout-ruta-protegida.png)
+
+Resultado local: login, restauración y cierre de sesión correctos para la cuenta
+probada. Pendientes: otras cuentas/roles, errores de autorización, expiración,
+retorno automático tras logout y repetir la matriz contra API Gateway y EC2.
 
 Las capturas guardadas omiten la cabecera de cuenta Azure. El backend iniciado
 para esta prueba usa el perfil local existente; esta ejecución no es un despliegue
@@ -102,10 +117,10 @@ antes de configurar el authorizer. No registrar tokens completos.
 
 ## Estado de aceptación
 
-Todos los puntos de la secuencia siguen pendientes de implementación o
-validación cloud. Las pruebas locales anteriores no acreditan funcionamiento
-en EC2 ni entre redes. No se han capturado todavía evidencias nuevas de un
-despliegue: el formulario EC2 y el selector de cuentas son estados intermedios.
+El punto de autenticación tiene evidencia interactiva local descrita arriba.
+La implementación y validación cloud siguen pendientes. Estas pruebas no
+acreditan funcionamiento en EC2 ni entre redes; los formularios EC2/RDS son
+estados intermedios, no recursos desplegados.
 
 Cada paso completado debe añadir fecha, resultado observado, evidencia
 redactada y configuración reversible. No incluir contraseñas, JWT, claves
