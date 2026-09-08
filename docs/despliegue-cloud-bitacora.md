@@ -94,9 +94,24 @@ entrega y evitar cambios de issuer en el backend.
    de correo y el identificador interno del usuario.
 
 La evidencia gráfica publicada omite el correo completo y la cabecera de la cuenta
-del portal. La invitación corregida todavía debe ser aceptada personalmente desde la cuenta
-Duoc. Después se repetirá login, `/api/users/me` HTTP 200 y logout; no se marcará
-el acceso institucional como aprobado hasta completar esas tres comprobaciones.
+del portal.
+
+## Validación de acceso con cuenta Duoc
+
+El usuario aceptó personalmente la invitación B2B e inició sesión con su cuenta
+institucional. Nexo abrió `/home`, mostró el nombre institucional y señaló el
+acceso **Microsoft Entra ID**. Se navegó a `/profile` correctamente.
+
+Después de recargar la aplicación, la solicitud protegida `/api/users/me`
+respondió HTTP **200**. La observación registró únicamente URL y estado; no se
+leyeron ni almacenaron JWT, cabeceras o cuerpo de respuesta.
+
+![Acceso Microsoft Entra ID en el perfil institucional](images/cloud/08-login-duoc-entra.png)
+
+Resultado: login B2B, persistencia de sesión y acceso al perfil protegidos
+aprobados en el entorno local. El logout ya fue validado anteriormente con otra
+cuenta Entra. Falta repetir toda la matriz contra EC2 y API Gateway; la evidencia
+actual no acredita todavía un backend cloud.
 
 Las capturas guardadas omiten la cabecera de cuenta Azure. El backend iniciado
 para esta prueba usa el perfil local existente; esta ejecución no es un despliegue
