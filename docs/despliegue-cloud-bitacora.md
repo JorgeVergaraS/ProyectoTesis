@@ -201,6 +201,12 @@ guardada personalmente por el propietario del laboratorio.
 Pendiente inmediato: autorizar PostgreSQL únicamente desde el grupo de seguridad
 de la VPS y probar una conexión real desde esa instancia.
 
+El 8 de septiembre se completó ese pendiente mediante el asistente de conexión
+EC2–RDS. AWS creó los grupos `ec2-rds-1` y `rds-ec2-1`; la base admite PostgreSQL
+desde el grupo de la VPS, no desde Internet. El backend abrió una conexión Hikari
+y Flyway aplicó correctamente las diez migraciones hasta V10 sobre PostgreSQL
+17.10.
+
 ### VPS económica en Amazon EC2
 
 Se lanzó una instancia llamada `nexo-backend-academico` con esta configuración:
@@ -227,13 +233,53 @@ obliga a medir el consumo antes de ejecutar simultáneamente Spring Boot,
 LiveKit y otros contenedores; si no alcanza, se debe separar LiveKit o cambiar
 temporalmente el tamaño durante las pruebas.
 
+Para sostener la compilación sin aumentar la clase de instancia se habilitó un
+archivo swap de 2 GiB. El repositorio se clonó temporalmente mientras su
+propietario lo hizo público y volvió a quedar privado al terminar. En la VPS se
+construyó `nexo-backend:cloud`; el contenedor usa `restart: always`, publica 8080
+solo en loopback y carga un archivo de entorno con permisos 600. La contraseña
+RDS fue ingresada directamente por el propietario y no se leyó ni registró.
+
+Pruebas observadas desde la VPS y desde un equipo externo:
+
+| Comprobación | Resultado |
+| --- | --- |
+| Contenedor backend | En ejecución |
+| Flyway | 10 migraciones aplicadas, versión V10 |
+| Readiness interno | HTTP 200, `UP` |
+| Health público vía proxy | HTTP 200, `nexo-backend` `UP` |
+| Ruta privada sin JWT | HTTP 401, acceso rechazado correctamente |
+| Navegación directa SPA (`/profile`) | HTTP 200, fallback de Angular correcto |
+| Angular | Compilación de producción correcta |
+
+### HTTPS y nombre temporal
+
+La SPA inicializaba MSAL y no podía arrancar correctamente sobre una IP por HTTP,
+porque las API criptográficas del navegador y los redirects remotos de Entra
+requieren un contexto seguro. Para la entrega se configuró Caddy con certificado
+automático de Let's Encrypt y un nombre DNS dinámico de `nip.io` que codifica la
+IP pública. El grupo de seguridad expone únicamente HTTP 80 y HTTPS 443 para la
+web; SSH permanece limitado a la IP del estudiante y RDS continúa privada.
+
+![Nexo publicado mediante HTTPS en la VPS](images/cloud/11-nexo-cloud-https.png)
+
+La URL concreta se omite de este documento porque cambia con la IP pública. El
+redirect HTTPS se registró como plataforma **Single-page application** en `Nexo
+Frontend`, conservando también `http://localhost:4200`. La URL temporal dura
+mientras `nip.io` continúe resolviendo y la EC2 conserve su IP. AWS Academy puede
+detener la instancia al finalizar una sesión; un nuevo arranque puede asignar
+otra IP y exigir regenerar el nombre, el certificado, CORS y el redirect Entra.
+Los contenedores y el certificado persisten en el volumen de la VPS y tienen
+reinicio automático.
+
 ## Estado de aceptación
 
 El punto de autenticación tiene evidencia interactiva local descrita arriba.
-RDS está disponible y la VPS EC2 está en ejecución, pero el backend aún no ha
-sido publicado ni probado contra RDS. Tampoco están acreditados API Gateway,
-WebSocket, TURN o pruebas entre redes. Un recurso creado no equivale todavía a
-una aplicación cloud operativa.
+RDS, la VPS, el backend, la SPA y HTTPS están operativos. Se verificaron HTTP 200
+para Angular y health mediante el proxy, y la conexión real de Spring a RDS.
+Todavía no están acreditados API Gateway con authorizer, WebSocket persistente,
+TURN, LiveKit cloud ni pruebas multimedia entre redes. La validación de login
+Microsoft cloud debe completarse interactivamente desde el navegador.
 
 Cada paso completado debe añadir fecha, resultado observado, evidencia
 redactada y configuración reversible. No incluir contraseñas, JWT, claves
