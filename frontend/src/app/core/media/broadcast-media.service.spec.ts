@@ -5,7 +5,14 @@ import { BroadcastMediaService } from './broadcast-media.service';
 
 const sdk = vi.hoisted(() => ({ rooms: [] as any[] }));
 vi.mock('livekit-client', () => ({
-  Track: { Source: { Microphone: 'microphone', Camera: 'camera', ScreenShare: 'screen_share' } },
+  Track: {
+    Source: {
+      Microphone: 'microphone',
+      Camera: 'camera',
+      ScreenShare: 'screen_share',
+      ScreenShareAudio: 'screen_share_audio',
+    },
+  },
   RoomEvent: {
     Reconnecting: 'reconnecting',
     Reconnected: 'reconnected',
@@ -102,10 +109,12 @@ describe('BroadcastMediaService', () => {
   });
   it('publishes separate screen and microphone tracks and ends the server room', async () => {
     api.access.mockReturnValue(of({ url: 'ws://localhost:7880', token: 'test', role: 'HOST' }));
-    const audio = { kind: 'audio', readyState: 'live' },
+    const systemAudio = { kind: 'audio', readyState: 'live' },
+      microphone = { kind: 'audio', readyState: 'live' },
       video = { kind: 'video', readyState: 'live' };
     await service.publish('channel', 'Test', 'SCREEN', {
-      getTracks: () => [video, audio],
+      getTracks: () => [video, systemAudio, microphone],
+      getAudioTracks: () => [systemAudio, microphone],
     } as unknown as MediaStream);
     const room = sdk.rooms[0];
     expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
@@ -113,7 +122,11 @@ describe('BroadcastMediaService', () => {
       expect.objectContaining({ source: 'screen_share' }),
     );
     expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
-      audio,
+      systemAudio,
+      expect.objectContaining({ source: 'screen_share_audio' }),
+    );
+    expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
+      microphone,
       expect.objectContaining({ source: 'microphone' }),
     );
     expect(service.state()).toBe('LIVE');

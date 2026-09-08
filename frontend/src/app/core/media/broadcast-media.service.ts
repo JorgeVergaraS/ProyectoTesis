@@ -47,6 +47,7 @@ export class BroadcastMediaService implements OnDestroy {
       const room = await this.connect(created.id, version, 'HOST');
       const { Track } = await import('livekit-client');
       const frameRate = options.frameRate ?? 30;
+      let screenAudioPending = source === 'SCREEN' && stream.getAudioTracks().length > 1;
       for (const track of stream.getTracks()) {
         this.check(version);
         if (track.kind === 'audio' && options.audioEnabled === false) continue;
@@ -54,7 +55,9 @@ export class BroadcastMediaService implements OnDestroy {
         await room.localParticipant.publishTrack(track, {
           source:
             track.kind === 'audio'
-              ? Track.Source.Microphone
+              ? screenAudioPending
+                ? ((screenAudioPending = false), Track.Source.ScreenShareAudio)
+                : Track.Source.Microphone
               : source === 'SCREEN'
                 ? Track.Source.ScreenShare
                 : Track.Source.Camera,

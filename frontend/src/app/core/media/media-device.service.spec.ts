@@ -92,21 +92,25 @@ describe('MediaDeviceService', () => {
 
   it('combines a shared screen with the microphone and stops when sharing ends', async () => {
     const screen = fakeTrack('video', 'screen');
+    const systemAudio = fakeTrack('audio', 'system');
     const microphone = fakeTrack('audio', 'mic-1');
-    getDisplayMedia.mockResolvedValue(new FakeStream([screen]));
+    getDisplayMedia.mockResolvedValue(new FakeStream([screen, systemAudio]));
     getUserMedia.mockResolvedValue(new FakeStream([microphone]));
 
     await service.start('screen');
 
     expect(getDisplayMedia).toHaveBeenCalledWith({
       video: { frameRate: { ideal: 30, max: 30 } },
-      audio: false,
+      audio: true,
+      systemAudio: 'include',
+      surfaceSwitching: 'include',
     });
-    expect(service.stream()?.getTracks()).toHaveLength(2);
+    expect(service.stream()?.getTracks()).toHaveLength(3);
     screen.onended?.call(screen, new Event('ended'));
     expect(service.stopReason()).toBe('source-ended');
     expect(service.stream()).toBeNull();
     expect(screen.stop).toHaveBeenCalledOnce();
+    expect(systemAudio.stop).toHaveBeenCalledOnce();
     expect(microphone.stop).toHaveBeenCalledOnce();
   });
 

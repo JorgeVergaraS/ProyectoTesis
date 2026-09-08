@@ -73,17 +73,22 @@ export class MediaDeviceService {
       } else {
         const display = await this.mediaDevices!.getDisplayMedia({
           video: this.videoConstraint('', frameRate),
-          audio: false,
-        });
+          audio: true,
+          systemAudio: 'include',
+          surfaceSwitching: 'include',
+        } as DisplayMediaStreamOptions);
         acquired.push(display);
         if (!display.getVideoTracks().length) throw new Error('screen-unavailable');
-        display.getAudioTracks().forEach((track) => track.stop());
         const microphone = await this.mediaDevices!.getUserMedia({
           audio: this.deviceConstraint(audioDeviceId),
           video: false,
         });
         acquired.push(microphone);
-        stream = new MediaStream([...display.getVideoTracks(), ...microphone.getAudioTracks()]);
+        stream = new MediaStream([
+          ...display.getVideoTracks(),
+          ...display.getAudioTracks(),
+          ...microphone.getAudioTracks(),
+        ]);
       }
 
       if (version !== this.requestVersion) {
