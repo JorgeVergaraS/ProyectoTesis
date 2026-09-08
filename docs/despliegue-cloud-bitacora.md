@@ -281,6 +281,46 @@ Todavía no están acreditados API Gateway con authorizer, WebSocket persistente
 TURN, LiveKit cloud ni pruebas multimedia entre redes. La validación de login
 Microsoft cloud debe completarse interactivamente desde el navegador.
 
+### Multimedia entre redes
+
+El 8 de septiembre se desplegó `livekit/livekit-server:v1.13.6` como contenedor
+`nexo-livekit`, unido a la red Docker del backend y con reinicio automático. Las
+claves se generaron dentro de la VPS, permanecen en archivos con permisos
+restringidos y no forman parte del repositorio ni de las capturas.
+
+La señalización se publica mediante Caddy en un subdominio HTTPS temporal y el
+backend entrega esa dirección como `wss://`. Se habilitaron únicamente estos
+puertos de medios en `launch-wizard-1`:
+
+| Protocolo | Puerto | Uso |
+| --- | ---: | --- |
+| TCP | 7881 | ICE/WebRTC cuando UDP no está disponible |
+| UDP | 7882 | Transporte principal de audio y video de LiveKit |
+| UDP | 3478 | STUN/TURN UDP integrado de LiveKit |
+
+AWS confirmó seis reglas de entrada totales. Después de guardar las reglas,
+LiveKit descubrió mediante STUN la IP pública de la EC2 y registró `using
+external IPs`, sin volver a mostrar el error de validación observado cuando UDP
+estaba bloqueado. Desde un equipo externo se verificaron TCP 7881 accesible,
+HTTPS 200 para el endpoint LiveKit y HTTP 200/`UP` para Spring.
+
+El cliente de llamadas dejó de usar `iceServers: []` y ahora incluye un servidor
+STUN configurable. Sus 76 pruebas unitarias pasan. Esto permite candidatos ICE
+externos, aunque una llamada P2P en una red con NAT simétrico todavía puede
+requerir un TURN específico con credenciales temporales; el TURN integrado de
+LiveKit protege las transmisiones LiveKit, no sustituye automáticamente el relay
+de la llamada P2P independiente.
+
+La captura reportada antes del cambio mostraba correctamente la causa: el estudio
+solo ofrecía vista previa porque `NEXO_BROADCASTS_ENABLED` estaba desactivado.
+
+![Vista previa cuando LiveKit cloud aún estaba deshabilitado](images/cloud/12-livekit-deshabilitado.png)
+
+Tras el despliegue, una sesión Microsoft autenticada abrió el estudio sin ese
+aviso y mostró cámara/pantalla, audio y selector de 15/30/60 FPS. Falta capturar
+la prueba funcional de extremo a extremo con un anfitrión en PC y un espectador
+en celular; no se declara aprobada hasta observar imagen y audio en ambos lados.
+
 Cada paso completado debe añadir fecha, resultado observado, evidencia
 redactada y configuración reversible. No incluir contraseñas, JWT, claves
 privadas, secretos ni identificadores de cuenta AWS en las capturas publicadas.
