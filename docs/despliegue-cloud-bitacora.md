@@ -69,6 +69,28 @@ Resultado local: login, restauración y cierre de sesión correctos para la cuen
 probada. Pendientes: otras cuentas/roles, errores de autorización, expiración,
 retorno automático tras logout y repetir la matriz contra API Gateway y EC2.
 
+## Incorporación de cuenta institucional Duoc por B2B
+
+El intento inicial con la cuenta institucional falló porque `Nexo Frontend` es
+single-tenant y la identidad no existía en **Default Directory**. Se eligió la
+alternativa de colaboración B2B para conservar el diseño single-tenant de la
+entrega y evitar cambios de issuer en el backend.
+
+1. En **Microsoft Entra ID → Users**, seleccionar **New user → Invite external
+   user**.
+2. Registrar la cuenta institucional como usuario tipo **Guest**, mantener el
+   mensaje de invitación y revisar el tenant de destino.
+3. Con confirmación expresa del propietario, seleccionar **Invite**. Azure
+   respondió **Successfully invited user** y el listado mostró el origen
+   **Invitation**.
+
+   ![Azure confirmó la creación del invitado Duoc](images/cloud/07-entra-invitado-duoc.png)
+
+La evidencia publicada omite el correo completo y la cabecera de la cuenta del
+portal. La invitación todavía debe ser aceptada personalmente desde la cuenta
+Duoc. Después se repetirá login, `/api/users/me` HTTP 200 y logout; no se marcará
+el acceso institucional como aprobado hasta completar esas tres comprobaciones.
+
 Las capturas guardadas omiten la cabecera de cuenta Azure. El backend iniciado
 para esta prueba usa el perfil local existente; esta ejecución no es un despliegue
 cloud ni una validación del perfil de producción.
