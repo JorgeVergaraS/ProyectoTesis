@@ -180,12 +180,60 @@ antes de configurar el authorizer. No registrar tokens completos.
 8. Dos dispositivos y redes diferentes: comprobar audio/video, candidato
    relay, pérdida de red y reconexión; registrar navegador y resultado real.
 
+## Infraestructura AWS creada
+
+### PostgreSQL en Amazon RDS
+
+Se creó `nexo-academico-db` mediante **Creación sencilla**, con PostgreSQL
+17.10, clase `db.t4g.micro`, 20 GiB, una zona de disponibilidad y sin Multi-AZ.
+La consola confirmó el estado **Disponible** el 8 de septiembre de 2026.
+
+La base no tiene puerta de enlace a Internet y no es públicamente accesible.
+Usa el puerto PostgreSQL 5432 y, al momento de la verificación, el grupo de
+seguridad predeterminado solo aceptaba entrada desde el mismo grupo. El endpoint
+y la contraseña maestra no se publican en este documento. La contraseña fue
+guardada personalmente por el propietario del laboratorio.
+
+![RDS configurado mediante creación sencilla](images/cloud/09-rds-creacion-sencilla.png)
+
+![Creación inicial de la base RDS](images/cloud/10-rds-creando.png)
+
+Pendiente inmediato: autorizar PostgreSQL únicamente desde el grupo de seguridad
+de la VPS y probar una conexión real desde esa instancia.
+
+### VPS económica en Amazon EC2
+
+Se lanzó una instancia llamada `nexo-backend-academico` con esta configuración:
+
+- Amazon Linux 2023 x86_64.
+- `t3.micro`: 2 vCPU y 1 GiB de memoria, apta para capa gratuita.
+- Un volumen raíz gp3 de 8 GiB.
+- Créditos de CPU en modo `standard`, evitando el consumo adicional del modo
+  ilimitado.
+- Perfil `LabInstanceProfile`/rol `LabRole` y par de claves `vockey` provistos
+  por AWS Academy.
+- IMDSv2 obligatorio y monitoreo detallado desactivado.
+- IP pública automática; puede cambiar al detener o reiniciar el laboratorio.
+- SSH limitado a la IP pública actual del estudiante y HTTP habilitado para la
+  demostración académica. Si cambia de red, debe actualizarse la regla SSH.
+
+Los datos de usuario instalan Docker y Git, habilitan Docker al iniciar y crean
+`/opt/nexo`. No contienen secretos. La consola confirmó el lanzamiento y luego
+mostró la instancia **En ejecución**. No se publica el ID, la IP ni el DNS de la
+instancia para evitar exponer identificadores de infraestructura.
+
+Esta VPS es adecuada para una entrega básica de bajo costo. Su 1 GiB de memoria
+obliga a medir el consumo antes de ejecutar simultáneamente Spring Boot,
+LiveKit y otros contenedores; si no alcanza, se debe separar LiveKit o cambiar
+temporalmente el tamaño durante las pruebas.
+
 ## Estado de aceptación
 
 El punto de autenticación tiene evidencia interactiva local descrita arriba.
-La implementación y validación cloud siguen pendientes. Estas pruebas no
-acreditan funcionamiento en EC2 ni entre redes; los formularios EC2/RDS son
-estados intermedios, no recursos desplegados.
+RDS está disponible y la VPS EC2 está en ejecución, pero el backend aún no ha
+sido publicado ni probado contra RDS. Tampoco están acreditados API Gateway,
+WebSocket, TURN o pruebas entre redes. Un recurso creado no equivale todavía a
+una aplicación cloud operativa.
 
 Cada paso completado debe añadir fecha, resultado observado, evidencia
 redactada y configuración reversible. No incluir contraseñas, JWT, claves
