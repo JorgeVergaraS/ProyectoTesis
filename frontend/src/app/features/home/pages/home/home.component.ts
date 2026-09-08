@@ -102,6 +102,7 @@ export class HomeComponent {
   readonly actionError = signal('');
   readonly actionBusy = signal(false);
   readonly profileOpen = signal(false);
+  readonly viewedProfile = signal<DemoUser | null>(null);
   readonly settingsOpen = signal(false);
   readonly sending = signal(false);
   readonly messageActionBusy = signal('');
@@ -252,12 +253,25 @@ export class HomeComponent {
     this.actionError.set('');
   }
   openOwnProfile(): void {
+    this.viewedProfile.set(null);
     this.settingsOpen.set(false);
     if (window.matchMedia('(max-width: 760px)').matches) {
       void this.router.navigate(['/profile']);
       return;
     }
     this.profileOpen.set(true);
+  }
+  openUserProfile(userId: string): void {
+    const user =
+      this.members().find((person) => person.id === userId) ??
+      this.workspace().people.find((person) => person.id === userId);
+    if (!user || user.id === this.auth.session.user()?.id) return;
+    this.profileOpen.set(false);
+    this.settingsOpen.set(false);
+    this.viewedProfile.set(user);
+  }
+  closeViewedProfile(): void {
+    this.viewedProfile.set(null);
   }
   openSettings(): void {
     this.profileOpen.set(false);
@@ -326,6 +340,25 @@ export class HomeComponent {
       this.actionError.set('No pudimos abrir la conversación. Inténtalo de nuevo.');
     } finally {
       this.actionBusy.set(false);
+    }
+  }
+  async startCall(person: DemoUser): Promise<void> {
+    const conversation = this.workspace().directs.find((item) => item.peerId === person.id);
+    if (conversation) {
+      await this.calls.start(person, conversation.id);
+      return;
+    }
+    try {
+      const created = await firstValueFrom(this.chat.direct(person.id));
+      this.workspace.update((workspace) => ({
+        ...workspace,
+        directs: workspace.directs.some((item) => item.id === created.id)
+          ? workspace.directs
+          : [...workspace.directs, created],
+      }));
+      await this.calls.start(person, created.id);
+    } catch {
+      this.actionError.set('No pudimos preparar la conversación para la llamada.');
     }
   }
   async send(): Promise<void> {

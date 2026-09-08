@@ -3,6 +3,12 @@ import { firstValueFrom, retry, timer, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import type { Room, RemoteTrack } from 'livekit-client';
 import { Broadcast, BroadcastApiService } from './broadcast-api.service';
+import { BroadcastFrameRate } from './media-device.service';
+
+export interface BroadcastPublishOptions {
+  frameRate?: BroadcastFrameRate;
+  audioEnabled?: boolean;
+}
 
 // Component-scoped: leaving a studio/viewer always disconnects its room.
 @Injectable()
@@ -25,6 +31,7 @@ export class BroadcastMediaService implements OnDestroy {
     title: string,
     source: 'CAMERA' | 'SCREEN',
     stream: MediaStream,
+    options: BroadcastPublishOptions = {},
   ) {
     const version = ++this.version;
     this.state.set('CONNECTING');
@@ -39,8 +46,10 @@ export class BroadcastMediaService implements OnDestroy {
       this.hostId = created.id;
       const room = await this.connect(created.id, version, 'HOST');
       const { Track } = await import('livekit-client');
+      const frameRate = options.frameRate ?? 30;
       for (const track of stream.getTracks()) {
         this.check(version);
+        if (track.kind === 'audio' && options.audioEnabled === false) continue;
         if (track.readyState === 'ended') throw new Error('Dispositivo desconectado');
         await room.localParticipant.publishTrack(track, {
           source:
@@ -51,6 +60,15 @@ export class BroadcastMediaService implements OnDestroy {
                 : Track.Source.Camera,
           simulcast: track.kind === 'video',
           videoCodec: 'vp8',
+          ...(track.kind === 'video'
+            ? {
+                videoEncoding: {
+                  maxFramerate: frameRate,
+                  maxBitrate:
+                    frameRate === 60 ? 6_000_000 : frameRate === 30 ? 3_000_000 : 1_500_000,
+                },
+              }
+            : {}),
         });
       }
       this.check(version);
@@ -98,8 +116,8 @@ export class BroadcastMediaService implements OnDestroy {
 
   async watch(broadcast: Broadcast) {
     const stopping = this.stop();
-    const version = this.version;
     await stopping;
+    const version = this.version;
     if (version !== this.version) return;
     this.error.set('');
     this.state.set('CONNECTING');

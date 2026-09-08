@@ -199,7 +199,7 @@
                   <button
                     class="secondary-button call-person-button"
                     [disabled]="calls.occupied()"
-                    (click)="calls.start(person)"
+                    (click)="startCall(person)"
                   >
                     <nexo-icon name="phone" />Llamar
                   </button>
@@ -256,7 +256,7 @@
                 [attr.aria-label]="'Llamar a ' + person.displayName"
                 title="Llamada de voz"
                 [disabled]="calls.occupied()"
-                (click)="calls.start(person)"
+                (click)="calls.start(person, conversation.id)"
               >
                 <nexo-icon name="phone" />
               </button>
@@ -311,20 +311,32 @@
                       [attr.aria-label]="'Mensaje de ' + message.senderName"
                     >
                       @if (message.senderId !== auth.session.user()?.id) {
-                        <nexo-avatar
-                          [src]="message.senderAvatarUrl"
-                          [name]="message.senderName"
-                          [color]="message.senderColor"
-                        />
+                        <button
+                          class="message-profile-trigger"
+                          type="button"
+                          [attr.aria-label]="'Ver perfil de ' + message.senderName"
+                          (click)="openUserProfile(message.senderId)"
+                        >
+                          <nexo-avatar
+                            [src]="message.senderAvatarUrl"
+                            [name]="message.senderName"
+                            [color]="message.senderColor"
+                          />
+                        </button>
                       }
                       <div class="message-bubble">
                         @if (
                           conversation.kind === 'CHANNEL' &&
                           message.senderId !== auth.session.user()?.id
                         ) {
-                          <strong class="sender-name" [style.color]="message.senderColor">{{
-                            message.senderName
-                          }}</strong>
+                          <button
+                            class="sender-name message-profile-trigger"
+                            type="button"
+                            [style.color]="message.senderColor"
+                            (click)="openUserProfile(message.senderId)"
+                          >
+                            {{ message.senderName }}
+                          </button>
                         }
                         <p><nexo-message-text [text]="message.body" /></p>
                         <div class="message-meta">
@@ -627,7 +639,7 @@
                     <button
                       class="primary-button call-person-button"
                       [disabled]="calls.occupied()"
-                      (click)="calls.start(person)"
+                      (click)="calls.start(person, conversation.id)"
                     >
                       Iniciar llamada
                     </button>
@@ -662,6 +674,17 @@
           (userChange)="profileUpdated($event)"
           (closed)="profileOpen.set(false)"
           (signOut)="logout()"
+        />
+      </div>
+    </div>
+  }
+  @if (viewedProfile(); as publicProfile) {
+    <div class="profile-backdrop" (click)="closeViewedProfile()">
+      <div class="profile-drawer" (click)="$event.stopPropagation()">
+        <nexo-profile-panel
+          [user]="publicProfile"
+          [readonlyView]="true"
+          (closed)="closeViewedProfile()"
         />
       </div>
     </div>

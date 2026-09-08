@@ -46,20 +46,22 @@
           [online]="(user().availability ?? 'AVAILABLE') === 'AVAILABLE'"
           [profile]="true"
         />
-        <label
-          class="avatar-edit"
-          [class.disabled]="uploading() || removing()"
-          [attr.aria-label]="uploading() ? 'Guardando foto' : 'Cambiar foto de perfil'"
-          title="Cambiar foto de perfil"
-        >
-          <nexo-icon name="camera" />
-          <input
-            type="file"
-            accept="image/png,image/jpeg"
-            [disabled]="uploading() || removing()"
-            (change)="uploadAvatar($event)"
-          />
-        </label>
+        @if (!readonlyView()) {
+          <label
+            class="avatar-edit"
+            [class.disabled]="uploading() || removing()"
+            [attr.aria-label]="uploading() ? 'Guardando foto' : 'Cambiar foto de perfil'"
+            title="Cambiar foto de perfil"
+          >
+            <nexo-icon name="camera" />
+            <input
+              type="file"
+              accept="image/png,image/jpeg"
+              [disabled]="uploading() || removing()"
+              (change)="uploadAvatar($event)"
+            />
+          </label>
+        }
       </div>
 
       <div class="profile-heading">
@@ -82,46 +84,48 @@
         </div>
       </dl>
 
-      @if (avatarError()) {
+      @if (avatarError() && !readonlyView()) {
         <p class="panel-message error" role="alert">{{ avatarError() }}</p>
       }
-      @if (savedMessage()) {
+      @if (savedMessage() && !readonlyView()) {
         <p class="panel-message success" role="status">{{ savedMessage() }}</p>
       }
 
-      <div class="action-stack">
+      @if (!readonlyView()) {
+        <div class="action-stack">
+          <button
+            #editButton
+            class="primary-button"
+            type="button"
+            [disabled]="uploading() || removing()"
+            (click)="openEdit()"
+          >
+            <nexo-icon name="edit" />Editar mi perfil
+          </button>
+          @if (user().avatarUrl) {
+            <button
+              class="secondary-button"
+              type="button"
+              [disabled]="removing() || uploading()"
+              (click)="removeAvatar()"
+            >
+              <nexo-icon name="trash" />{{ removing() ? 'Quitando foto…' : 'Quitar foto' }}
+            </button>
+          }
+          <button #studioButton class="secondary-button" type="button" (click)="openStudio()">
+            <nexo-icon name="radio" />Preparar transmisión
+          </button>
+        </div>
+
         <button
-          #editButton
-          class="primary-button"
+          class="sign-out"
           type="button"
           [disabled]="uploading() || removing()"
-          (click)="openEdit()"
+          (click)="signOut.emit()"
         >
-          <nexo-icon name="edit" />Editar mi perfil
+          <nexo-icon name="logout" />Cerrar sesión
         </button>
-        @if (user().avatarUrl) {
-          <button
-            class="secondary-button"
-            type="button"
-            [disabled]="removing() || uploading()"
-            (click)="removeAvatar()"
-          >
-            <nexo-icon name="trash" />{{ removing() ? 'Quitando foto…' : 'Quitar foto' }}
-          </button>
-        }
-        <button #studioButton class="secondary-button" type="button" (click)="openStudio()">
-          <nexo-icon name="radio" />Preparar transmisión
-        </button>
-      </div>
-
-      <button
-        class="sign-out"
-        type="button"
-        [disabled]="uploading() || removing()"
-        (click)="signOut.emit()"
-      >
-        <nexo-icon name="logout" />Cerrar sesión
-      </button>
+      }
     </div>
   } @else if (mode() === 'edit') {
     <nexo-profile-edit-form

@@ -2,7 +2,10 @@
   display: block;
 }
 .studio {
-  padding: 22px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(12px, 2vw, 22px);
   color: var(--theme-text);
 }
 .studio-intro {
@@ -42,6 +45,7 @@
   margin: 12px 0 7px;
   font-size: 21px;
   letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
 }
 .studio-intro p,
 .privacy-note p {
@@ -135,6 +139,56 @@
   min-height: 44px;
   margin-top: 15px;
 }
+.broadcast-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.broadcast-options label {
+  min-width: 0;
+}
+.broadcast-options label > span:first-child {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--theme-muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.broadcast-options select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 39px;
+  padding: 0 10px;
+  color: var(--theme-text);
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  background: var(--theme-surface);
+  font-size: 10px;
+}
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 39px;
+  color: var(--theme-text);
+  font-size: 11px;
+}
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--theme-accent);
+}
+.capture-note {
+  margin: 8px 0 0;
+  color: var(--theme-muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+.preview-specs {
+  margin-top: 10px;
+}
 .preview-shell {
   position: relative;
   overflow: hidden;
@@ -187,6 +241,29 @@
 }
 .device-controls label {
   min-width: 0;
+}
+.studio > label {
+  display: block;
+  margin-top: 12px;
+}
+.studio > label > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--theme-muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.studio > label input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 39px;
+  padding: 0 10px;
+  color: var(--theme-text);
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  background: var(--theme-surface);
+  font-size: 11px;
 }
 .device-controls label > span {
   gap: 6px;
@@ -269,10 +346,17 @@
 }
 @media (max-width: 480px) {
   .studio {
-    padding: 18px;
+    padding: 12px;
+  }
+  .studio-intro {
+    padding: 14px;
+  }
+  .studio-intro h3 {
+    font-size: 18px;
   }
   .source-grid,
-  .device-controls {
+  .device-controls,
+  .broadcast-options {
     grid-template-columns: 1fr;
   }
   .source-option {
@@ -281,5 +365,9 @@
   .studio-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+  .studio-actions button,
+  .prepare-button {
+    width: 100%;
   }
 }

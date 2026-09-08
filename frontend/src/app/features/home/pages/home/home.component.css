@@ -150,6 +150,22 @@
   font-weight: 550;
   margin-bottom: 6px;
 }
+.message-profile-trigger {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.message-profile-trigger:hover {
+  filter: brightness(1.2);
+}
+.message-profile-trigger:focus-visible {
+  outline: 2px solid #a4e8ff;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
 .message-bubble p {
   font-size: 13px;
   line-height: 1.8;

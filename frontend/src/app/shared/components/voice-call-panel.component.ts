@@ -2,10 +2,17 @@ import { Component, effect, ElementRef, inject, signal, viewChild } from '@angul
 import { VoiceCallService } from '../../core/realtime/voice-call.service';
 import { AvatarComponent } from './avatar.component';
 import { IconComponent } from './icon.component';
+import { BroadcastStudioComponent } from '../../features/home/components/broadcast-studio.component';
+import { ConversationBroadcastsComponent } from '../../features/home/components/conversation-broadcasts.component';
 
 @Component({
   selector: 'nexo-voice-call-panel',
-  imports: [AvatarComponent, IconComponent],
+  imports: [
+    AvatarComponent,
+    IconComponent,
+    BroadcastStudioComponent,
+    ConversationBroadcastsComponent,
+  ],
   template: `
     <audio #remoteAudio autoplay></audio>
     @if (voice.occupied()) {
@@ -66,6 +73,13 @@ import { IconComponent } from './icon.component';
                 Activar audio recibido
               </button>
             }
+            @if (voice.call()?.conversationId; as conversationId) {
+              <details class="call-broadcasts">
+                <summary>Transmitir en esta llamada</summary>
+                <nexo-broadcast-studio [inCall]="true" [conversationId]="conversationId" />
+                <nexo-conversation-broadcasts [conversationId]="conversationId" />
+              </details>
+            }
           }
           <p class="call-help">
             Usa audífonos si pruebas dos sesiones en el mismo equipo. Solo audio; sin grabación.
@@ -91,8 +105,10 @@ import { IconComponent } from './icon.component';
       z-index: 60;
       bottom: 24px;
       right: 24px;
-      width: 340px;
-      max-width: calc(100vw - 28px);
+      box-sizing: border-box;
+      width: min(420px, calc(100vw - 28px));
+      max-height: calc(100dvh - 48px);
+      overflow: auto;
       padding: 18px;
       border: 1px solid #665084;
       border-radius: 19px;
@@ -117,9 +133,13 @@ import { IconComponent } from './icon.component';
       color: #c1afe4;
     }
     .call-person h2 {
+      min-width: 0;
       margin: 0;
       font-size: 19px;
       font-weight: 550;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .call-person p {
       font-size: 12px;
@@ -131,6 +151,7 @@ import { IconComponent } from './icon.component';
       flex-wrap: wrap;
     }
     .call-actions button {
+      min-width: 0;
       flex: 1;
       min-height: 40px;
       font-size: 11px;
@@ -160,6 +181,22 @@ import { IconComponent } from './icon.component';
       margin-top: 12px;
       width: 100%;
     }
+    .call-broadcasts {
+      margin-top: 14px;
+      border-top: 1px solid #ffffff18;
+      padding-top: 12px;
+    }
+    .call-broadcasts summary {
+      cursor: pointer;
+      color: #bfa8e4;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .call-broadcasts nexo-broadcast-studio,
+    .call-broadcasts nexo-conversation-broadcasts {
+      display: block;
+      min-width: 0;
+    }
     .call-toast {
       position: fixed;
       bottom: 24px;
@@ -182,6 +219,29 @@ import { IconComponent } from './icon.component';
       .call-toast {
         bottom: 14px;
         right: 14px;
+      }
+    }
+    @media (max-width: 480px) {
+      .voice-panel {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        width: auto;
+        max-width: none;
+        max-height: calc(100dvh - 20px);
+        padding: 12px;
+        border-radius: 16px;
+      }
+      .call-actions {
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .call-actions button {
+        padding: 8px 6px;
+        font-size: 10px;
+      }
+      .call-help {
+        line-height: 1.55;
       }
     }
   `,

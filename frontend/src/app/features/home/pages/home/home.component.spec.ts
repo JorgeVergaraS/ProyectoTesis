@@ -66,6 +66,18 @@ describe('HomeComponent', () => {
     messages: vi.fn(() => of([])),
     members: vi.fn(() => of([user])),
     send: vi.fn(() => of({ ...ownMessage, id: 'sent-id' })),
+    direct: vi.fn(() =>
+      of({
+        id: 'direct-id',
+        kind: 'DIRECT',
+        title: otherUser.displayName,
+        description: 'Conversación directa',
+        slug: null,
+        joined: true,
+        memberCount: 2,
+        peerId: otherUser.id,
+      }),
+    ),
     edit: vi.fn((_conversation: string, _message: string, body: string) =>
       of({ ...ownMessage, body }),
     ),
@@ -128,8 +140,9 @@ describe('HomeComponent', () => {
     expect(callButton.textContent).toContain('Llamar');
 
     callButton.click();
+    await vi.waitFor(() => expect(calls.start).toHaveBeenCalled());
 
-    expect(calls.start).toHaveBeenCalledWith(otherUser);
+    expect(calls.start).toHaveBeenCalledWith(otherUser, 'direct-id');
     fixture.destroy();
     vi.clearAllTimers();
     vi.useRealTimers();

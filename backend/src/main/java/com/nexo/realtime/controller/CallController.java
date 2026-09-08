@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.*;
 public class CallController {
     private final CallService calls;
     public CallController(CallService calls) { this.calls = calls; }
-    public record StartRequest(@NotNull UUID id, @NotNull UUID calleeId, @NotBlank @Size(max=64000) String offer) {}
+    public record StartRequest(@NotNull UUID id, @NotNull UUID calleeId, UUID conversationId,
+            @NotBlank @Size(max=64000) String offer) {}
     public record AnswerRequest(@NotBlank @Size(max=64000) String answer) {}
     private CallService.Actor actor(DemoPrincipal principal, UUID callSession) {
         String sessionKey = principal.tokenHash() + ":" + (callSession == null ? "legacy" : callSession);
@@ -36,7 +37,8 @@ public class CallController {
             @AuthenticationPrincipal DemoPrincipal me,
             @RequestHeader(value = "X-Nexo-Call-Session", required = false) UUID callSession,
             @Valid @RequestBody StartRequest request) {
-        return calls.start(actor(me, callSession), request.id(), request.calleeId(), request.offer());
+        return calls.start(actor(me, callSession), request.id(), request.calleeId(), request.offer(),
+                request.conversationId());
     }
     @PostMapping("/{id}/answer")
     public CallService.CallView answer(

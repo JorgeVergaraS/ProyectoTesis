@@ -3,6 +3,7 @@ package com.nexo.realtime.service;
 import com.nexo.user.dto.UserView;
 import com.nexo.user.entity.UserEntity;
 import com.nexo.user.repository.UserRepository;
+import com.nexo.messaging.repository.ChatRepository;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -18,15 +19,20 @@ import org.springframework.web.server.ResponseStatusException;
 public class CallService {
     public record Actor(UUID userId, String sessionKey) {}
     public record CallView(UUID id, UserView peer, boolean outgoing, String status, String reason,
-                           String offer, String answer, Instant connectedAt) {}
+                           String offer, String answer, Instant connectedAt, UUID conversationId) {}
     private final UserRepository users;
+    private final ChatRepository chat;
     private final Map<UUID, Call> calls = new HashMap<>();
 
-    public CallService(UserRepository users) { this.users = users; }
+    public CallService(UserRepository users, ChatRepository chat) {
+        this.users = users;
+        this.chat = chat;
+    }
 
     private static final class Call {
         UUID id, caller, callee;
         String callerSession, calleeSession, offer, answer, status = "RINGING", reason;
+        UUID conversationId;
         Instant created = Instant.now(), accepted, connectedAt, ended;
         Instant callerSeen = created, calleeSeen = created;
         boolean callerConnected, calleeConnected;
@@ -44,7 +50,7 @@ public class CallService {
         }
     }
 
-    public synchronized CallView start(Actor actor, UUID id, UUID callee, String offer) {
+    public synchronized CallView start(Actor actor, UUID id, UUID callee, String offer, UUID conversationId) {
         cleanup();
         if (actor.userId().equals(callee)) throw error(HttpStatus.BAD_REQUEST);
         validateSdp(offer);
@@ -56,13 +62,18 @@ public class CallService {
             return view(existing, actor);
         }
         requireUser(callee);
+        if (conversationId != null) {
+            if (!"DIRECT".equals(chat.kind(conversationId, false))) throw error(HttpStatus.BAD_REQUEST);
+            chat.requireMember(conversationId, actor.userId());
+            chat.requireMember(conversationId, callee);
+        }
         boolean busy = calls.values().stream().anyMatch(c -> c.live() &&
                 (c.caller.equals(actor.userId()) || c.callee.equals(actor.userId()) || c.caller.equals(callee) || c.callee.equals(callee)));
         if (busy) throw error(HttpStatus.CONFLICT);
         if (calls.size() >= 256) throw error(HttpStatus.TOO_MANY_REQUESTS);
         var call = new Call();
         call.id = id; call.caller = actor.userId(); call.callee = callee;
-        call.callerSession = actor.sessionKey(); call.offer = offer;
+        call.callerSession = actor.sessionKey(); call.offer = offer; call.conversationId = conversationId;
         calls.put(id, call);
         return view(call, actor);
     }
@@ -132,7 +143,8 @@ public class CallService {
     private CallView view(Call call, Actor actor) {
         boolean outgoing = call.caller.equals(actor.userId());
         return new CallView(call.id, requireUser(outgoing ? call.callee : call.caller).toPublicView(false), outgoing,
-                call.status, call.reason, outgoing ? null : call.offer, outgoing ? call.answer : null, call.connectedAt);
+                call.status, call.reason, outgoing ? null : call.offer, outgoing ? call.answer : null,
+                call.connectedAt, call.conversationId);
     }
     private UserEntity requireUser(UUID id) {
         return users.findById(id).filter(UserEntity::isActive)

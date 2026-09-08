@@ -71,7 +71,7 @@ describe('BroadcastStudioComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(media.start).toHaveBeenCalledWith('camera');
+    expect(media.start).toHaveBeenCalledWith('camera', '', '', 30);
     expect(fixture.componentInstance.state()).toBe('PREVIEWING');
     expect(fixture.nativeElement.textContent).toContain('Nada se está transmitiendo');
   });

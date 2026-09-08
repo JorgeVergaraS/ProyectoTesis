@@ -77,6 +77,7 @@ describe('VoiceCallService', () => {
           offer: null,
           answer: null,
           connectedAt: null,
+          conversationId: null,
         };
       } else if (server && url.endsWith('/accept')) server = { ...server, status: 'CONNECTING' };
       else if (server && url.endsWith('/answer')) server = { ...server, answer: body['answer'] };
@@ -140,6 +141,7 @@ describe('VoiceCallService', () => {
       offer: 'v=0\r\nm=audio remote',
       answer: null,
       connectedAt: null,
+      conversationId: null,
     };
     await vi.advanceTimersByTimeAsync(1500);
     expect(getUserMedia).not.toHaveBeenCalled();
@@ -171,6 +173,7 @@ describe('VoiceCallService', () => {
       offer: 'v=0\r\nm=audio remote',
       answer: null,
       connectedAt: null,
+      conversationId: null,
     };
     await vi.advanceTimersByTimeAsync(1500);
     await service.reject();

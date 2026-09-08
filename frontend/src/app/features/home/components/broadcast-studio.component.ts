@@ -5,10 +5,15 @@ import {
   computed,
   effect,
   inject,
+  input,
   signal,
   viewChild,
 } from '@angular/core';
-import { MediaDeviceService, StudioSource } from '../../../core/media/media-device.service';
+import {
+  BroadcastFrameRate,
+  MediaDeviceService,
+  StudioSource,
+} from '../../../core/media/media-device.service';
 import { VoiceCallService } from '../../../core/realtime/voice-call.service';
 import { IconComponent } from '../../../shared/components/icon.component';
 import { FormsModule } from '@angular/forms';
@@ -29,6 +34,8 @@ export type BroadcastStudioState =
   styleUrl: './broadcast-studio.component.css',
 })
 export class BroadcastStudioComponent implements OnDestroy {
+  readonly inCall = input(false);
+  readonly conversationId = input<string | null>(null);
   readonly media = inject(MediaDeviceService);
   readonly calls = inject(VoiceCallService);
   readonly broadcast = inject(BroadcastMediaService);
@@ -44,6 +51,8 @@ export class BroadcastStudioComponent implements OnDestroy {
   private destroyed = false;
   readonly state = signal<BroadcastStudioState>('IDLE');
   readonly selectedSource = signal<StudioSource>(this.media.cameraSupported ? 'camera' : 'screen');
+  readonly frameRate = signal<BroadcastFrameRate>(30);
+  readonly audioEnabled = signal(true);
   readonly error = signal('');
   readonly notice = signal('');
   readonly preview = viewChild<ElementRef<HTMLVideoElement>>('preview');
@@ -55,7 +64,7 @@ export class BroadcastStudioComponent implements OnDestroy {
     () =>
       this.media.cameraSupported &&
       (this.selectedSource() === 'camera' || this.media.screenSupported) &&
-      !this.calls.occupied() &&
+      (this.inCall() || !this.calls.occupied()) &&
       !this.busy(),
   );
 
@@ -101,7 +110,7 @@ export class BroadcastStudioComponent implements OnDestroy {
       this.enabled.set(config.enabled);
       const destinations = [...workspace.channels, ...workspace.directs].filter((c) => c.joined);
       this.destinations.set(destinations);
-      this.destination = destinations[0]?.id ?? '';
+      this.destination = this.conversationId() ?? destinations[0]?.id ?? '';
     } catch {
       if (!this.destroyed) this.error.set('No se pudieron cargar los destinos de transmisión.');
     }
@@ -109,21 +118,23 @@ export class BroadcastStudioComponent implements OnDestroy {
 
   async startBroadcast() {
     const stream = this.media.stream();
+    const destination = this.conversationId() ?? this.destination;
     if (
       !stream ||
       this.busy() ||
       this.emitting() ||
       !this.enabled() ||
-      !this.destination ||
+      !destination ||
       !this.title.trim()
     )
       return;
     this.notice.set('');
     await this.broadcast.publish(
-      this.destination,
+      destination,
       this.title.trim(),
       this.media.source() === 'screen' ? 'SCREEN' : 'CAMERA',
       stream,
+      { frameRate: this.frameRate(), audioEnabled: this.audioEnabled() },
     );
   }
 
@@ -137,7 +148,7 @@ export class BroadcastStudioComponent implements OnDestroy {
 
   async prepare(): Promise<void> {
     if (!this.canPrepare()) {
-      if (this.calls.occupied())
+      if (this.calls.occupied() && !this.inCall())
         this.error.set('Finaliza la llamada de voz antes de abrir el estudio multimedia.');
       return;
     }
@@ -145,7 +156,7 @@ export class BroadcastStudioComponent implements OnDestroy {
     this.error.set('');
     this.notice.set('');
     try {
-      await this.media.start(this.selectedSource());
+      await this.media.start(this.selectedSource(), '', '', this.frameRate());
       this.state.set('PREVIEWING');
       this.notice.set('Vista previa privada. Nada se está transmitiendo ni grabando.');
     } catch (error: unknown) {
@@ -168,6 +179,11 @@ export class BroadcastStudioComponent implements OnDestroy {
     if (this.emitting()) return;
     const value = (event.target as HTMLSelectElement).value;
     await this.changeDevice(() => this.media.changeCamera(value));
+  }
+
+  setFrameRate(value: string): void {
+    const frameRate = Number(value);
+    if (frameRate === 15 || frameRate === 30 || frameRate === 60) this.frameRate.set(frameRate);
   }
 
   finishPreview(): void {

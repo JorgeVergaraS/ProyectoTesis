@@ -15,7 +15,7 @@
       Tu navegador no ofrece acceso a cámara y micrófono. Usa Chrome o Edge en localhost o HTTPS.
     </p>
   }
-  @if (calls.occupied()) {
+  @if (calls.occupied() && !inCall()) {
     <p class="studio-message warning" role="status">
       Finaliza la llamada de voz antes de preparar el estudio para evitar conflictos con el
       micrófono.
@@ -80,6 +80,29 @@
       </div>
     }
 
+    <div class="broadcast-options" aria-label="Configuración de transmisión">
+      <label>
+        <span>Fluidez</span>
+        <select [value]="frameRate()" (change)="setFrameRate($any($event.target).value)">
+          <option value="15">15 FPS · ahorro</option>
+          <option value="30">30 FPS · recomendado</option>
+          <option value="60">60 FPS · alta fluidez</option>
+        </select>
+      </label>
+      <label class="audio-option">
+        <span>Audio</span>
+        <span class="checkbox-row">
+          <input
+            type="checkbox"
+            [checked]="audioEnabled()"
+            (change)="audioEnabled.set($any($event.target).checked)"
+          />
+          Micrófono
+        </span>
+      </label>
+    </div>
+    <p class="capture-note">Hasta {{ frameRate() }} FPS según tu cámara, navegador y conexión.</p>
+
     <button
       type="button"
       class="primary-button prepare-button"
@@ -142,6 +165,10 @@
       </div>
     </div>
 
+    <p class="capture-note preview-specs">
+      Objetivo: {{ frameRate() }} FPS · Audio {{ audioEnabled() ? 'activado' : 'desactivado' }}
+    </p>
+
     <div class="studio-actions">
       <button
         type="button"
@@ -160,28 +187,34 @@
 
     @if (!emitting()) {
       @if (enabled()) {
-        <div class="device-controls">
-          <label
-            ><span>Transmitir en</span>
-            <select [(ngModel)]="destination" [disabled]="busy()">
-              @for (conversation of destinations(); track conversation.id) {
-                <option [value]="conversation.id">{{ conversation.title }}</option>
-              }
-            </select>
-          </label>
-          <label
-            ><span>Título</span
-            ><input
-              [(ngModel)]="title"
-              maxlength="120"
-              placeholder="¿Qué vas a compartir?"
-              [disabled]="busy()"
-          /></label>
-        </div>
+        @if (inCall()) {
+          <p class="studio-message success" role="status">
+            Se transmitirá dentro de esta llamada a {{ calls.target()?.displayName }}.
+          </p>
+        } @else {
+          <div class="device-controls">
+            <label
+              ><span>Transmitir en</span>
+              <select [(ngModel)]="destination" [disabled]="busy()">
+                @for (conversation of destinations(); track conversation.id) {
+                  <option [value]="conversation.id">{{ conversation.title }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        }
+        <label
+          ><span>Título</span
+          ><input
+            [(ngModel)]="title"
+            maxlength="120"
+            placeholder="¿Qué vas a compartir?"
+            [disabled]="busy()"
+        /></label>
         <button
           type="button"
           class="primary-button"
-          [disabled]="busy() || !destination || !title.trim()"
+          [disabled]="busy() || (!destination && !conversationId()) || !title.trim()"
           (click)="startBroadcast()"
         >
           <nexo-icon name="radio" /> Iniciar transmisión

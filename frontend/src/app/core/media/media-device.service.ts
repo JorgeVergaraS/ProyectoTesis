@@ -1,6 +1,7 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 
 export type StudioSource = 'camera' | 'screen';
+export type BroadcastFrameRate = 15 | 30 | 60;
 export type MediaStopReason = 'user' | 'navigation' | 'source-ended' | 'device-lost';
 
 export interface MediaInputDevice {
@@ -16,6 +17,7 @@ export class MediaDeviceService {
   readonly videoInputs = signal<MediaInputDevice[]>([]);
   readonly selectedAudioId = signal('');
   readonly selectedVideoId = signal('');
+  readonly frameRate = signal<BroadcastFrameRate>(30);
   readonly microphoneMuted = signal(false);
   readonly audioLevel = signal(0);
   readonly stopReason = signal<MediaStopReason | null>(null);
@@ -40,7 +42,12 @@ export class MediaDeviceService {
     });
   }
 
-  async start(source: StudioSource, audioDeviceId = '', videoDeviceId = ''): Promise<MediaStream> {
+  async start(
+    source: StudioSource,
+    audioDeviceId = '',
+    videoDeviceId = '',
+    frameRate: BroadcastFrameRate = 30,
+  ): Promise<MediaStream> {
     if (source === 'camera' && !this.cameraSupported) throw new Error('camera-unsupported');
     if (source === 'screen' && !this.screenSupported) throw new Error('screen-unsupported');
 
@@ -50,6 +57,7 @@ export class MediaDeviceService {
     this.source.set(null);
     this.selectedAudioId.set('');
     this.selectedVideoId.set('');
+    this.frameRate.set(frameRate);
     this.stopReason.set(null);
     this.microphoneMuted.set(false);
     const acquired: MediaStream[] = [];
@@ -59,11 +67,14 @@ export class MediaDeviceService {
       if (source === 'camera') {
         stream = await this.mediaDevices!.getUserMedia({
           audio: this.deviceConstraint(audioDeviceId),
-          video: this.deviceConstraint(videoDeviceId),
+          video: this.videoConstraint(videoDeviceId, frameRate),
         });
         acquired.push(stream);
       } else {
-        const display = await this.mediaDevices!.getDisplayMedia({ video: true, audio: false });
+        const display = await this.mediaDevices!.getDisplayMedia({
+          video: this.videoConstraint('', frameRate),
+          audio: false,
+        });
         acquired.push(display);
         if (!display.getVideoTracks().length) throw new Error('screen-unavailable');
         display.getAudioTracks().forEach((track) => track.stop());
@@ -123,7 +134,7 @@ export class MediaDeviceService {
     const version = ++this.requestVersion;
     const replacement = await this.mediaDevices!.getUserMedia({
       audio: false,
-      video: this.deviceConstraint(deviceId),
+      video: this.videoConstraint(deviceId, this.frameRate()),
     });
     if (version !== this.requestVersion || this.stream() !== current) {
       this.stopStreams([replacement]);
@@ -277,6 +288,13 @@ export class MediaDeviceService {
 
   private deviceConstraint(deviceId: string): true | MediaTrackConstraints {
     return deviceId ? { deviceId: { exact: deviceId } } : true;
+  }
+
+  private videoConstraint(deviceId: string, frameRate: BroadcastFrameRate): MediaTrackConstraints {
+    return {
+      ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+      frameRate: { ideal: frameRate, max: frameRate },
+    };
   }
 
   private applyMicrophoneMute(muted: boolean): void {

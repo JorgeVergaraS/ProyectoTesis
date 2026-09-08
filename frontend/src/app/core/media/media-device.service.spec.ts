@@ -74,7 +74,10 @@ describe('MediaDeviceService', () => {
     expect(getUserMedia).not.toHaveBeenCalled();
     await service.start('camera');
 
-    expect(getUserMedia).toHaveBeenCalledWith({ audio: true, video: true });
+    expect(getUserMedia).toHaveBeenCalledWith({
+      audio: true,
+      video: { frameRate: { ideal: 30, max: 30 } },
+    });
     expect(service.source()).toBe('camera');
     expect(service.audioInputs()).toHaveLength(2);
     service.toggleMicrophone();
@@ -95,7 +98,10 @@ describe('MediaDeviceService', () => {
 
     await service.start('screen');
 
-    expect(getDisplayMedia).toHaveBeenCalledWith({ video: true, audio: false });
+    expect(getDisplayMedia).toHaveBeenCalledWith({
+      video: { frameRate: { ideal: 30, max: 30 } },
+      audio: false,
+    });
     expect(service.stream()?.getTracks()).toHaveLength(2);
     screen.onended?.call(screen, new Event('ended'));
     expect(service.stopReason()).toBe('source-ended');

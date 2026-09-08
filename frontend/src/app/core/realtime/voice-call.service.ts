@@ -25,6 +25,7 @@ export interface VoiceCall {
   offer: string | null;
   answer: string | null;
   connectedAt: string | null;
+  conversationId: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -172,7 +173,7 @@ export class VoiceCallService {
     }
   }
 
-  async start(person: DemoUser): Promise<void> {
+  async start(person: DemoUser, conversationId: string | null = null): Promise<void> {
     if (this.occupied()) return;
     if (this.mediaInUse()) {
       this.error.set('Cierra el estudio multimedia antes de iniciar una llamada de voz.');
@@ -197,7 +198,11 @@ export class VoiceCallService {
       this.assertCurrent(operation);
       const call = await firstValueFrom(
         this.http
-          .post<VoiceCall>(this.base, { id, calleeId: person.id, offer }, this.requestOptions)
+          .post<VoiceCall>(
+            this.base,
+            { id, calleeId: person.id, conversationId, offer },
+            this.requestOptions,
+          )
           .pipe(timeout(10000)),
       );
       if (operation !== this.generation) {

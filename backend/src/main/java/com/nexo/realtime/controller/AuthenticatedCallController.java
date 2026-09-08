@@ -32,6 +32,7 @@ public class AuthenticatedCallController {
     public record StartRequest(
             @NotNull UUID id,
             @NotNull UUID calleeId,
+            UUID conversationId,
             @NotBlank @Size(max = 64000) String offer) {}
 
     public record AnswerRequest(@NotBlank @Size(max = 64000) String answer) {}
@@ -49,7 +50,8 @@ public class AuthenticatedCallController {
             @RequestHeader(CALL_SESSION_HEADER) UUID callSession,
             @Valid @RequestBody StartRequest request) {
         return calls.start(
-                actor(authentication, callSession), request.id(), request.calleeId(), request.offer());
+                actor(authentication, callSession), request.id(), request.calleeId(), request.offer(),
+                request.conversationId());
     }
 
     @PostMapping("/{id}/answer")
