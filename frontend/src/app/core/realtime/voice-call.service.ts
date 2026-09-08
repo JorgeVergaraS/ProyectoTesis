@@ -181,7 +181,7 @@ export class VoiceCallService {
     }
     if (!this.available) {
       this.error.set(
-        'Este navegador no permite llamadas. Abre Nexo en Chrome o Edge en localhost.',
+        'Este navegador no permite llamadas. Abre Nexo con HTTPS en un navegador compatible.',
       );
       return;
     }
@@ -353,7 +353,7 @@ export class VoiceCallService {
       throw new Error('Operation cancelled');
     }
     this.microphone = stream;
-    const peer = new RTCPeerConnection({ iceServers: [] });
+    const peer = new RTCPeerConnection({ iceServers: [...environment.voiceIceServers] });
     this.peer = peer;
     stream.getTracks().forEach((track) => peer.addTrack(track, stream));
     peer.ontrack = (event) => {
@@ -377,7 +377,7 @@ export class VoiceCallService {
           });
       } else if (peer.connectionState === 'failed') {
         void this.hangUp(
-          'No fue posible conectar el audio. Prueba en dos pestañas del mismo equipo.',
+          'No fue posible conectar el audio. Revisa la red o prueba una conexión con TURN.',
         );
       } else if (peer.connectionState === 'disconnected' && !this.disconnectTimer) {
         this.disconnectTimer = setTimeout(() => {
@@ -448,7 +448,7 @@ export class VoiceCallService {
       return 'Permite el micrófono en el navegador para realizar la llamada.';
     if (error instanceof DOMException && error.name === 'NotFoundError')
       return 'No se encontró un micrófono.';
-    return 'No se pudo iniciar el audio. Revisa tu micrófono, los permisos y la conexión local.';
+    return 'No se pudo iniciar el audio. Revisa tu micrófono, los permisos y la conexión.';
   }
 
   private readCallSessionId(): string {

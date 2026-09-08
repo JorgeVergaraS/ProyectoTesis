@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
   apiUrl: '/api',
+  voiceIceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
   azure: {
     clientId: 'YOUR_FRONTEND_CLIENT_ID',
     tenantId: 'YOUR_TENANT_ID',
