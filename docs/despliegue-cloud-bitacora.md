@@ -334,6 +334,38 @@ como `screen_share_audio`. El usuario debe marcar **Compartir audio** en el
 selector del navegador; algunos navegadores solo lo ofrecen al compartir una
 pestaña o la pantalla completa. Las 76 pruebas frontend permanecen aprobadas.
 
+### Compatibilidad de llamadas y transmisión
+
+La validación objetivo cubre navegadores modernos con WebRTC: Chrome y Edge en
+Windows/Android, Firefox en Windows/Android y Safari en macOS/iOS. Nexo debe
+abrirse mediante HTTPS y el usuario debe conceder permiso de micrófono. En iPhone
+y iPad todos los navegadores utilizan el motor WebKit de iOS, por lo que su
+comportamiento multimedia depende de la versión de iOS aunque se abra Chrome,
+Edge o Firefox.
+
+No es técnicamente correcto prometer compatibilidad con *todos* los dispositivos
+y navegadores. Quedan fuera navegadores antiguos, navegadores integrados dentro
+de otras aplicaciones, equipos sin WebRTC y dispositivos o redes con políticas
+que bloqueen cámara, micrófono o TURN. Para redes móviles y NAT restrictivo se
+usa TURN como relay; STUN queda como ruta directa preferida.
+
+El audio del sistema depende además del selector nativo de captura. Chrome y
+Edge de escritorio permiten incluirlo para pestañas y, según el sistema
+operativo, para pantalla completa. Los navegadores móviles normalmente no
+permiten capturar pantalla con audio del sistema desde una página web. El
+micrófono se publica como pista separada cuando el navegador lo autoriza.
+
+#### Prueba cruzada mínima
+
+1. Abrir la URL pública en una ventana limpia de PC y en un teléfono conectado a
+   datos móviles, usando dos cuentas distintas.
+2. Conceder permiso de micrófono en ambos equipos e iniciar una llamada.
+3. Confirmar audio bidireccional, silenciamiento y finalización.
+4. Iniciar una transmisión desde escritorio, marcar **Compartir audio** en el
+   selector y comprobar imagen y sonido desde el teléfono.
+5. Repetir en Chrome/Edge de escritorio y Chrome/Safari móvil, anotando versión,
+   red, resultado y evidencia.
+
 Cada paso completado debe añadir fecha, resultado observado, evidencia
 redactada y configuración reversible. No incluir contraseñas, JWT, claves
 privadas, secretos ni identificadores de cuenta AWS en las capturas publicadas.
