@@ -366,6 +366,29 @@ micrófono se publica como pista separada cuando el navegador lo autoriza.
 5. Repetir en Chrome/Edge de escritorio y Chrome/Safari móvil, anotando versión,
    red, resultado y evidencia.
 
+#### Incidencia: llamadas iniciadas en conversaciones diferentes
+
+La prueba del 8 de septiembre aportó dos capturas con `Conectando audio`. La
+evidencia permitió comprobar que los paneles no representaban una misma sesión:
+en el PC estaba seleccionada la conversación grupal **general**, mientras que en
+el teléfono estaba seleccionada la conversación directa **boryot**.
+
+![PC intentando llamar desde el grupo general](images/cloud/13-llamada-pc-conversacion-general.png)
+
+![Celular intentando llamar desde la conversación directa](images/cloud/14-llamada-movil-conversacion-directa.png)
+
+La señalización está aislada por identificador de conversación. Dos usuarios
+solo pueden negociar audio cuando abren la misma conversación: uno inicia la
+llamada y el otro acepta la llamada entrante. Iniciar dos llamadas independientes
+—o hacerlo desde un grupo en un equipo y desde un chat directo en el otro— crea
+sesiones distintas que no intercambian oferta y respuesta WebRTC.
+
+Para repetir correctamente la prueba PC–5G, ambos usuarios deben abrir el chat
+directo entre **boryot** y **JORGE VERGARA STUARDO**. Solo uno pulsa el teléfono;
+el segundo espera el aviso entrante y lo acepta. Si vuelve a quedar pendiente
+bajo esas condiciones, se deben correlacionar la señalización y las asignaciones
+de Coturn antes de declarar una falla de red.
+
 Cada paso completado debe añadir fecha, resultado observado, evidencia
 redactada y configuración reversible. No incluir contraseñas, JWT, claves
 privadas, secretos ni identificadores de cuenta AWS en las capturas publicadas.
