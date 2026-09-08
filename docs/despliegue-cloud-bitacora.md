@@ -321,6 +321,19 @@ aviso y mostró cámara/pantalla, audio y selector de 15/30/60 FPS. Falta captur
 la prueba funcional de extremo a extremo con un anfitrión en PC y un espectador
 en celular; no se declara aprobada hasta observar imagen y audio en ambos lados.
 
+El 8 de septiembre, una prueba PC–celular permaneció en `Conectando audio`; esto
+confirmó que STUN no bastaba para la llamada P2P. Se desplegó `nexo-turn` con
+Coturn, autenticación obligatoria, reinicio automático y credenciales aleatorias
+generadas dentro de EC2. Se habilitaron TCP/UDP 3479 y el rango UDP reducido
+49160–49200. El frontend cloud utiliza TURN por UDP y TCP; la credencial es
+temporal y debe rotarse al finalizar la demostración.
+
+También se corrigió la captura de pantalla: ahora solicita audio del sistema,
+conserva simultáneamente la pista del micrófono y publica el audio del escritorio
+como `screen_share_audio`. El usuario debe marcar **Compartir audio** en el
+selector del navegador; algunos navegadores solo lo ofrecen al compartir una
+pestaña o la pantalla completa. Las 76 pruebas frontend permanecen aprobadas.
+
 Cada paso completado debe añadir fecha, resultado observado, evidencia
 redactada y configuración reversible. No incluir contraseñas, JWT, claves
 privadas, secretos ni identificadores de cuenta AWS en las capturas publicadas.
