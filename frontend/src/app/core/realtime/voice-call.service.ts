@@ -432,7 +432,13 @@ export class VoiceCallService {
       const config = await firstValueFrom(
         this.http.get<IceConfig>(this.base + '/ice-config').pipe(timeout(5000)),
       );
-      return [...fallback, ...(Array.isArray(config?.iceServers) ? config.iceServers : [])];
+      const dynamic = Array.isArray(config?.iceServers) ? config.iceServers : [];
+      if (!dynamic.length) return fallback;
+      const stunOnlyFallback = fallback.filter((server) => {
+        const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+        return urls.every((url) => !url.startsWith('turn:') && !url.startsWith('turns:'));
+      });
+      return [...stunOnlyFallback, ...dynamic];
     } catch {
       return fallback;
     }

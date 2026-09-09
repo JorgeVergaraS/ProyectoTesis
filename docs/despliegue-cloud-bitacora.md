@@ -476,6 +476,14 @@ Se aplicaron estos cambios en la EC2:
   TURN no es alcanzable, informa que el micrófono funciona y que falló el
   servidor de audio, evitando pedir al usuario permisos que ya concedió.
 
+Una prueba posterior confirmó que Coturn recibía solicitudes con el usuario
+estático antiguo `nexo`. El frontend estaba combinando el fallback TURN antes
+de la credencial efímera y Chromium reutilizaba esa primera entrada porque las
+dos tenían la misma URL. Se ajustó la composición ICE: cuando el endpoint
+autenticado entrega TURN dinámico, se descarta cualquier TURN de fallback, se
+conserva STUN y se añade únicamente el relay firmado. Así no se envían dos
+credenciales diferentes para el mismo servidor.
+
 La credencial entregada a cada usuario expira en una hora y no se documenta ni
 se expone en capturas. Para aprobar la prueba funcional aún se debe realizar una
 llamada directa: una persona inicia, la segunda acepta, ambas confirman audio
