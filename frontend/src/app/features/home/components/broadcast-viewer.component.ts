@@ -1,4 +1,5 @@
 import { Component, ElementRef, effect, inject, input, viewChild, untracked } from '@angular/core';
+import type { RemoteTrack } from 'livekit-client';
 import { Broadcast } from '../../../core/media/broadcast-api.service';
 import { BroadcastMediaService } from '../../../core/media/broadcast-media.service';
 
@@ -9,7 +10,7 @@ import { BroadcastMediaService } from '../../../core/media/broadcast-media.servi
     <strong>{{ broadcast().title }}</strong>
     <p role="status">{{ status() }}</p>
     <video #video autoplay playsinline controls aria-label="Video en vivo"></video>
-    <audio #audio autoplay></audio>
+    <div #audioContainer class="audio-tracks" aria-hidden="true"></div>
     @if (media.audioBlocked()) {
       <button class="primary-button" (click)="media.unlockAudio()">Activar audio</button>
     }
@@ -41,6 +42,9 @@ import { BroadcastMediaService } from '../../../core/media/broadcast-media.servi
       button {
         margin-top: 8px;
       }
+      .audio-tracks {
+        display: none;
+      }
     `,
   ],
 })
@@ -48,7 +52,8 @@ export class BroadcastViewerComponent {
   readonly broadcast = input.required<Broadcast>();
   readonly media = inject(BroadcastMediaService);
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
-  private readonly audio = viewChild<ElementRef<HTMLAudioElement>>('audio');
+  private readonly audioContainer = viewChild<ElementRef<HTMLDivElement>>('audioContainer');
+  private attachedAudio = new Map<RemoteTrack, HTMLAudioElement>();
   constructor() {
     effect(() => {
       const broadcast = this.broadcast();
@@ -62,12 +67,23 @@ export class BroadcastViewerComponent {
         cleanup(() => track.detach(element));
       }
     });
-    effect((cleanup) => {
-      const track = this.media.audio(),
-        element = this.audio()?.nativeElement;
-      if (track && element) {
+    effect(() => {
+      const tracks = this.media.audioTracks();
+      const container = this.audioContainer()?.nativeElement;
+      if (!container) return;
+      for (const [track, element] of this.attachedAudio) {
+        if (tracks.includes(track)) continue;
+        track.detach(element);
+        element.remove();
+        this.attachedAudio.delete(track);
+      }
+      for (const track of tracks) {
+        if (this.attachedAudio.has(track)) continue;
+        const element = document.createElement('audio');
+        element.autoplay = true;
         track.attach(element);
-        cleanup(() => track.detach(element));
+        container.appendChild(element);
+        this.attachedAudio.set(track, element);
       }
     });
   }

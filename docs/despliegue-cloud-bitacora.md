@@ -489,3 +489,45 @@ se expone en capturas. Para aprobar la prueba funcional aún se debe realizar un
 llamada directa: una persona inicia, la segunda acepta, ambas confirman audio
 bidireccional y luego repiten entre Wi-Fi y datos móviles. No deben iniciar dos
 llamadas independientes.
+
+#### Cuentas institucionales y audio de pantalla (9 de septiembre de 2026)
+
+Se enviaron invitaciones B2B desde Microsoft Entra ID a dos cuentas
+institucionales adicionales. En ambos casos se configuró como redirección la URL
+estable `https://34.196.97.226.nip.io` y Azure mostró la confirmación **User
+invitation in progress**. Los correos completos no se publican en esta bitácora
+para no exponer datos personales. Cada estudiante debe aceptar su invitación
+antes de iniciar sesión; luego MSAL obtiene el token de Microsoft y el backend
+valida el JWT en cada petición protegida.
+
+La transmisión utiliza resolución de origen —no fuerza una reducción de ancho o
+alto— y selecciona **30 FPS** de forma predeterminada. El usuario aún puede elegir
+15 o 60 FPS, sujeto a la fuente, navegador, red y capacidad del equipo.
+
+Se corrigió el audio compartido en dos puntos:
+
+- La pista de audio del sistema y la pista del micrófono se publican por separado
+  como `ScreenShareAudio` y `Microphone`.
+- El reproductor remoto conserva y reproduce todas las pistas de audio. Antes
+  almacenaba una sola y la segunda podía reemplazar la primera, dejando inaudible
+  el sonido de la pantalla.
+- Desactivar **Micrófono** ya no elimina el audio de pantalla seleccionado.
+
+Para compartir sonido en Chrome o Edge, el emisor debe marcar **Compartir audio**
+en el selector nativo. Compartir una pestaña ofrece la compatibilidad más
+predecible. La captura de audio del sistema no está disponible en todos los
+navegadores ni en todos los móviles; es una limitación de `getDisplayMedia`, no
+del servidor LiveKit.
+
+La llamada de voz actual sigue siendo directa entre dos usuarios y usa WebRTC
+P2P con TURN. Una llamada grupal real no se obtiene habilitando el canal actual:
+requiere migrar ese flujo a una sala SFU de LiveKit, emitir tokens publicador/
+suscriptor para cada miembro, administrar entrada y salida de participantes y
+crear una interfaz de sala. Se mantiene como siguiente incremento para evitar
+presentar como terminada una función que aún no tiene señalización ni controles
+de participantes.
+
+Validación automatizada de esta corrección: **22 archivos de pruebas, 77 pruebas
+aprobadas**, además de compilación productiva correcta. La aceptación manual debe
+usar dos cuentas: una comparte una pestaña con **Compartir audio** activado y la
+otra confirma simultáneamente imagen, sonido del contenido y micrófono.

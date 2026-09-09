@@ -19,6 +19,7 @@ export class MediaDeviceService {
   readonly selectedVideoId = signal('');
   readonly frameRate = signal<BroadcastFrameRate>(30);
   readonly microphoneMuted = signal(false);
+  readonly systemAudioTrackIds = signal<readonly string[]>([]);
   readonly audioLevel = signal(0);
   readonly stopReason = signal<MediaStopReason | null>(null);
   readonly cameraSupported: boolean;
@@ -60,6 +61,7 @@ export class MediaDeviceService {
     this.frameRate.set(frameRate);
     this.stopReason.set(null);
     this.microphoneMuted.set(false);
+    this.systemAudioTrackIds.set([]);
     const acquired: MediaStream[] = [];
 
     try {
@@ -78,6 +80,7 @@ export class MediaDeviceService {
           surfaceSwitching: 'include',
         } as DisplayMediaStreamOptions);
         acquired.push(display);
+        this.systemAudioTrackIds.set(display.getAudioTracks().map((track) => track.id));
         if (!display.getVideoTracks().length) throw new Error('screen-unavailable');
         const microphone = await this.mediaDevices!.getUserMedia({
           audio: this.deviceConstraint(audioDeviceId),
@@ -170,6 +173,7 @@ export class MediaDeviceService {
     this.selectedAudioId.set('');
     this.selectedVideoId.set('');
     this.microphoneMuted.set(false);
+    this.systemAudioTrackIds.set([]);
     this.stopReason.set(reason);
   }
 

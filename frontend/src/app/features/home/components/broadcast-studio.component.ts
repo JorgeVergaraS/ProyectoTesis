@@ -134,7 +134,11 @@ export class BroadcastStudioComponent implements OnDestroy {
       this.title.trim(),
       this.media.source() === 'screen' ? 'SCREEN' : 'CAMERA',
       stream,
-      { frameRate: this.frameRate(), audioEnabled: this.audioEnabled() },
+      {
+        frameRate: this.frameRate(),
+        audioEnabled: this.audioEnabled(),
+        screenAudioTrackIds: this.media.systemAudioTrackIds(),
+      },
     );
   }
 

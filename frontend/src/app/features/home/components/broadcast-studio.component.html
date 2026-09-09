@@ -66,7 +66,7 @@
       >
         <span class="source-icon"><nexo-icon name="monitor" /></span>
         <strong>Pantalla</strong>
-        <small>{{ media.screenSupported ? 'Pantalla y micrófono' : 'No disponible' }}</small>
+        <small>{{ media.screenSupported ? 'Pantalla, audio compartido y micrófono' : 'No disponible' }}</small>
       </button>
     </div>
 
@@ -102,6 +102,13 @@
       </label>
     </div>
     <p class="capture-note">Hasta {{ frameRate() }} FPS según tu cámara, navegador y conexión.</p>
+    @if (selectedSource() === 'screen') {
+      <p class="capture-note">
+        Para transmitir sonido, activa “Compartir audio” en el selector del navegador. Chrome y
+        Edge ofrecen mejor compatibilidad al compartir una pestaña; algunos móviles y Safari no
+        permiten capturar el audio del sistema.
+      </p>
+    }
 
     <button
       type="button"

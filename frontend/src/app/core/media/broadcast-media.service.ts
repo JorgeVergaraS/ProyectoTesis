@@ -8,6 +8,7 @@ import { BroadcastFrameRate } from './media-device.service';
 export interface BroadcastPublishOptions {
   frameRate?: BroadcastFrameRate;
   audioEnabled?: boolean;
+  screenAudioTrackIds?: readonly string[];
 }
 
 // Component-scoped: leaving a studio/viewer always disconnects its room.
@@ -20,7 +21,7 @@ export class BroadcastMediaService implements OnDestroy {
   readonly error = signal('');
   readonly audioBlocked = signal(false);
   readonly video = signal<RemoteTrack | null>(null);
-  readonly audio = signal<RemoteTrack | null>(null);
+  readonly audioTracks = signal<readonly RemoteTrack[]>([]);
   private room: Room | null = null;
   private hostId = '';
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -47,20 +48,25 @@ export class BroadcastMediaService implements OnDestroy {
       const room = await this.connect(created.id, version, 'HOST');
       const { Track } = await import('livekit-client');
       const frameRate = options.frameRate ?? 30;
-      let screenAudioPending = source === 'SCREEN' && stream.getAudioTracks().length > 1;
       for (const track of stream.getTracks()) {
         this.check(version);
-        if (track.kind === 'audio' && options.audioEnabled === false) continue;
+        const trackSource =
+          track.kind === 'audio'
+            ? options.screenAudioTrackIds?.includes(track.id)
+              ? Track.Source.ScreenShareAudio
+              : Track.Source.Microphone
+            : source === 'SCREEN'
+              ? Track.Source.ScreenShare
+              : Track.Source.Camera;
+        if (
+          track.kind === 'audio' &&
+          trackSource === Track.Source.Microphone &&
+          options.audioEnabled === false
+        )
+          continue;
         if (track.readyState === 'ended') throw new Error('Dispositivo desconectado');
         await room.localParticipant.publishTrack(track, {
-          source:
-            track.kind === 'audio'
-              ? screenAudioPending
-                ? ((screenAudioPending = false), Track.Source.ScreenShareAudio)
-                : Track.Source.Microphone
-              : source === 'SCREEN'
-                ? Track.Source.ScreenShare
-                : Track.Source.Camera,
+          source: trackSource,
           simulcast: track.kind === 'video',
           videoCodec: 'vp8',
           ...(track.kind === 'video'
@@ -161,12 +167,16 @@ export class BroadcastMediaService implements OnDestroy {
     room.on(RoomEvent.TrackSubscribed, (track) => {
       if (this.room !== room) return;
       if (track.kind === 'video') this.video.set(track);
-      else if (track.kind === 'audio') this.audio.set(track);
+      else if (track.kind === 'audio')
+        this.audioTracks.update((tracks) =>
+          tracks.includes(track) ? tracks : [...tracks, track],
+        );
     });
     room.on(RoomEvent.TrackUnsubscribed, (track) => {
       track.detach();
       if (this.video() === track) this.video.set(null);
-      if (this.audio() === track) this.audio.set(null);
+      if (track.kind === 'audio')
+        this.audioTracks.update((tracks) => tracks.filter((candidate) => candidate !== track));
     });
     room.on(RoomEvent.AudioPlaybackStatusChanged, () => {
       if (this.room === room) this.audioBlocked.set(!room.canPlaybackAudio);
@@ -197,9 +207,9 @@ export class BroadcastMediaService implements OnDestroy {
     const id = this.hostId;
     this.hostId = '';
     this.video()?.detach();
-    this.audio()?.detach();
+    this.audioTracks().forEach((track) => track.detach());
     this.video.set(null);
-    this.audio.set(null);
+    this.audioTracks.set([]);
     this.audioBlocked.set(false);
     this.state.set('IDLE');
     // Stop sending immediately even when the API is unavailable. Server lease cleans up later.

@@ -109,13 +109,13 @@ describe('BroadcastMediaService', () => {
   });
   it('publishes separate screen and microphone tracks and ends the server room', async () => {
     api.access.mockReturnValue(of({ url: 'ws://localhost:7880', token: 'test', role: 'HOST' }));
-    const systemAudio = { kind: 'audio', readyState: 'live' },
-      microphone = { kind: 'audio', readyState: 'live' },
-      video = { kind: 'video', readyState: 'live' };
+    const systemAudio = { id: 'system-audio', kind: 'audio', readyState: 'live' },
+      microphone = { id: 'microphone', kind: 'audio', readyState: 'live' },
+      video = { id: 'video', kind: 'video', readyState: 'live' };
     await service.publish('channel', 'Test', 'SCREEN', {
       getTracks: () => [video, systemAudio, microphone],
       getAudioTracks: () => [systemAudio, microphone],
-    } as unknown as MediaStream);
+    } as unknown as MediaStream, { screenAudioTrackIds: [systemAudio.id] });
     const room = sdk.rooms[0];
     expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
       video,
@@ -134,6 +134,16 @@ describe('BroadcastMediaService', () => {
     await service.stop();
     expect(room.disconnect).toHaveBeenCalled();
     expect(api.end).toHaveBeenCalledWith('b');
+  });
+  it('keeps every subscribed audio track for screen sound and microphone', async () => {
+    await service.watch(broadcast);
+    const screenAudio = { kind: 'audio', detach: vi.fn() };
+    const microphone = { kind: 'audio', detach: vi.fn() };
+    sdk.rooms[0].handlers.subscribed(screenAudio);
+    sdk.rooms[0].handlers.subscribed(microphone);
+    expect(service.audioTracks()).toEqual([screenAudio, microphone]);
+    sdk.rooms[0].handlers.unsubscribed(screenAudio);
+    expect(service.audioTracks()).toEqual([microphone]);
   });
   it('clears attached media when the server ends the room', async () => {
     await service.watch(broadcast);
