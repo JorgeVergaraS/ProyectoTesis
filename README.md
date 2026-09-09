@@ -3,7 +3,7 @@
 <p align="center">
   <img src="frontend/public/favicon.svg" width="72" alt="Logo Nexo"><br>
   <strong>Tu campus. Tu gente. Tu espacio.</strong><br>
-  Proyecto de tesis · Prototipo funcional local
+  Proyecto de tesis · Despliegue académico funcional
 </p>
 
 <p align="center">
@@ -18,14 +18,12 @@
 
 ![Nexo: acceso autenticado con cuenta institucional o local](docs/images/nexo-login.png)
 
-> **Estado actual:** aplicación local con Angular, Spring Boot y PostgreSQL. Mantiene
-> la demo multiusuario y añade registro/login local más integración Microsoft Entra ID
-> mediante MSAL. Incluye perfil editable y transmisión local con LiveKit (fase 4).
-> Verificación del 8 de septiembre de 2026: 41 pruebas backend y 76 frontend aprobadas,
-> además del flujo E2E de cámara/pantalla con LiveKit en Brave.
-> La fase 5 está en preparación, no desplegada: faltan HTTPS/WSS, TURN, controles
-> adicionales y pruebas entre redes. El login Microsoft real sigue pendiente de
-> validación interactiva. No se declara listo para producción.
+> **Estado actual:** despliegue académico operativo sobre EC2 y RDS, servido por
+> HTTPS en una IP elástica mediante `nip.io`. Incluye MSAL/Entra ID, JWT validado
+> por Spring, mensajería, voz directa con TURN, llamadas grupales y transmisiones
+> mediante LiveKit. Verificación del 9 de septiembre de 2026: 42 pruebas backend
+> y 77 frontend aprobadas. API Gateway, WebSocket persistente y los controles de
+> producción permanecen en el backlog verificado de esta rama.
 
 ## Índice
 
@@ -101,7 +99,7 @@ instalación nueva.
 
 | Área       | Disponible                                                                                                  | Límite actual                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Acceso     | Demo, registro/login local y Microsoft Entra ID mediante MSAL                                               | Login Microsoft real pendiente de evidencia interactiva                          |
+| Acceso     | Demo, registro/login local y Microsoft Entra ID mediante MSAL; login institucional probado                   | Falta matriz formal de logout y errores por cuenta                               |
 | Navegación | Login, Inicio, Comunidades, Mensajes, Personas, Perfil y diagnóstico                                        | Sin administración institucional                                                 |
 | Canales    | Descubrir, unirse, salir, ver participantes y conversar                                                     | Cuatro canales predefinidos; sin creación desde UI                               |
 | Directos   | Conversaciones entre dos perfiles con autorización backend                                                  | Sin grupos privados ni confirmaciones de lectura                                 |
@@ -112,7 +110,7 @@ instalación nueva.
 | Llamadas   | Voz directa P2P y salas grupales de canal mediante LiveKit; mute, salida y contador de participantes         | Sin video; las salas grupales requieren LiveKit disponible                       |
 | Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
 | Transmisiones | Cámara/pantalla, micrófono opcional y 15/30/60 FPS mediante LiveKit; visor en canal o llamada | 60 FPS es un objetivo dependiente del dispositivo/red; pendientes medios físicos y redes externas |
-| Operación  | Docker Compose, Flyway, health, Actuator y Swagger                                                          | Solo local, sin despliegue público                                               |
+| Operación  | EC2, RDS, Docker con reinicio automático, Caddy HTTPS, health, Actuator y Swagger                            | Acceso directo vía proxy; falta API Gateway y observabilidad centralizada        |
 
 <a id="stack"></a>
 
@@ -500,8 +498,8 @@ elegir una ventana concreta. **Iniciar transmisión** publica cámara/pantalla y
 en la conversación elegida cuando LiveKit está habilitado. Los demás miembros pueden abrir
 **Ver transmisión** desde el canal. Consulta la [guía de transmisión local](docs/broadcast-sfu-verification.md).
 
-ICE es local, sin STUN/TURN: verificado entre pestañas del mismo equipo, no entre
-redes. El micrófono requiere un contexto seguro como localhost o HTTPS; una IP
+En cloud se configuran STUN y TURN para las llamadas directas; la aceptación final
+entre navegadores y redes continúa abierta. El micrófono requiere localhost o HTTPS; una IP
 por HTTP no es equivalente. Referencias:
 [getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
 y [conectividad WebRTC](https://webrtc.org/getting-started/peer-connections).
@@ -773,16 +771,36 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Estudio multimedia local: cámara/pantalla, micrófono, dispositivos, nivel y liberación.
 - [x] Transmisión local con LiveKit: permisos anfitrión/espectador, visor y cierre de salas abandonadas.
 - [x] Llamadas grupales de audio por canal con LiveKit, membresía backend, mute, salida y reconexión.
-- [ ] Validación interactiva del login/logout Microsoft real en Brave.
-- [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
+- [x] Validación interactiva del login Microsoft real en Brave con cuenta institucional invitada.
+- [ ] Evidencia completa de logout Microsoft, expiración y errores controlados.
+- [x] Backend desplegado en EC2 con Docker `restart: always`, RDS y health público.
+- [ ] Publicación mediante HTTP API Gateway con JWT Authorizer (Spring valida JWT actualmente).
 - [ ] WebSocket autenticado y presencia persistente.
-- [ ] STUN/TURN, HTTPS y pruebas entre dispositivos/redes.
+- [x] STUN/TURN y HTTPS/WSS configurados en EC2 con IP elástica.
+- [ ] Matriz reproducible de pruebas multimedia entre dispositivos y redes.
 - [ ] Grupos privados y adjuntos según el alcance aprobado.
+- [x] Llamada grupal de audio en canales mediante sala LiveKit multiusuario.
 - [ ] Eventos firmados de LiveKit y revocación de membresía durante una transmisión.
 - [ ] Paginación, límites, observabilidad y revisión para despliegue real.
 
-No hay fechas comprometidas ni se presentan estas etapas como disponibles.
-Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilicen.
+### Tickets de cierre cloud
+
+| Ticket | Estado en `feat/despliegue-cloud` | Evidencia / siguiente aceptación |
+| --- | --- | --- |
+| NEXO-CLOUD-01 · Login/logout Microsoft | Parcial | Login institucional probado; documentar logout, expiración y rechazo. |
+| NEXO-CLOUD-02 · EC2 + API Gateway JWT | Parcial | EC2/RDS/HTTPS y JWT Spring operativos; API Gateway JWT Authorizer pendiente. |
+| NEXO-CLOUD-03 · WebSocket y presencia | Pendiente | La rama conserva polling HTTP; diseñar autenticación y persistencia. |
+| NEXO-CLOUD-04 · STUN/TURN y redes | Parcial | Infraestructura activa; completar matriz PC/móvil, Wi-Fi/datos y candidatos ICE. |
+| NEXO-CLOUD-05 · Grupos privados/adjuntos | Pendiente | No confundir con canales ni con la nueva llamada grupal de canal. |
+| NEXO-CLOUD-06 · LiveKit firmado/revocación | Pendiente | Tokens breves implementados; faltan webhooks firmados y expulsión inmediata. |
+| NEXO-CLOUD-07 · Operación real | Pendiente | Faltan paginación, rate limits, métricas, alertas y revisión de costos/seguridad. |
+
+La evidencia visual y el historial técnico se mantienen en la
+[bitácora cloud](docs/despliegue-cloud-bitacora.md), la
+[guía MSAL/JWT](docs/autenticacion-msal-jwt.md) y la
+[guía de servicios y transmisiones](docs/transmisiones-y-servicios.md).
+
+Los estados **parcial** y **pendiente** no se presentan como funcionalidad terminada.
 
 **Siguiente paso:** completar la aceptación manual de la sala grupal con tres cuentas,
 incluyendo PC y teléfono en redes distintas, y registrar audio bidireccional,

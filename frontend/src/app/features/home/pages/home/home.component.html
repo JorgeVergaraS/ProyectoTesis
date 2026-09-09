@@ -632,18 +632,13 @@
                   ><span class="future-tag">LLAMADAS DE VOZ</span>
                   <h3>De un mensaje<br />a una buena charla.</h3>
                   <p>
-                    Llama a otra persona con el micrófono de tu equipo. En esta etapa, prueba entre
-                    pestañas en localhost. El video queda pendiente.
+                    @if (conversation.kind === 'CHANNEL') {
+                      Habla con los miembros conectados del canal mediante una sala LiveKit.
+                    } @else {
+                      Llama a otra persona con el micrófono de tu equipo. El video queda pendiente.
+                    }
                   </p>
-                  @if (peer(); as person) {
-                    <button
-                      class="primary-button call-person-button"
-                      [disabled]="calls.occupied() || groupCalls.occupied()"
-                      (click)="calls.start(person, conversation.id)"
-                    >
-                      Iniciar llamada
-                    </button>
-                  } @else if (conversation.kind === 'CHANNEL' && conversation.joined) {
+                  @if (conversation.kind === 'CHANNEL' && conversation.joined) {
                     <button
                       class="primary-button call-person-button"
                       [disabled]="calls.occupied() || groupCalls.occupied()"
@@ -651,14 +646,21 @@
                     >
                       Unirse a llamada grupal
                     </button>
+                  } @else if (peer(); as person) {
+                    <button
+                      class="primary-button call-person-button"
+                      [disabled]="calls.occupied() || groupCalls.occupied()"
+                      (click)="calls.start(person, conversation.id)"
+                    >
+                      Iniciar llamada
+                    </button>
                   }
                 </section>
                 <div class="local-note">
                   <nexo-icon name="info" />
                   <p>
                     Sesión protegida con {{ providerLabel() }}. Los mensajes no tienen cifrado de
-                    extremo a extremo. Las llamadas WebRTC son de voz, no se graban y en esta etapa
-                    están pensadas para pruebas en el mismo equipo.
+                    extremo a extremo. Las llamadas WebRTC son de voz y no se graban.
                   </p>
                 </div>
               </aside>
