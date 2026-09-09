@@ -463,6 +463,8 @@ export class VoiceCallService {
     this.connection.set('new');
   }
   private mediaError(error: unknown): string {
+    if (error instanceof Error && error.message === 'ICE timeout')
+      return 'El micrófono está disponible, pero no se pudo conectar con el servidor de audio TURN. Intenta nuevamente o cambia de red.';
     if (error instanceof DOMException && ['NotAllowedError', 'SecurityError'].includes(error.name))
       return 'Permite el micrófono en el navegador para realizar la llamada.';
     if (error instanceof DOMException && error.name === 'NotFoundError')

@@ -450,3 +450,34 @@ privadas, secretos ni identificadores de cuenta AWS en las capturas publicadas.
 Referencias del proyecto: [fase 5](phase-5-readiness.md),
 [flujo Git](git-workflow.md), [servicios y transmisiones](transmisiones-y-servicios.md)
 y [autenticación MSAL/JWT](autenticacion-msal-jwt.md).
+
+#### Corrección de llamadas detenidas con micrófono permitido (9 de septiembre de 2026)
+
+La reproducción con cuentas y redes diferentes mostró el estado **Preparando
+micrófono y conexión** aunque el permiso del navegador estaba concedido. La
+causa no era el dispositivo: producción forzaba tráfico WebRTC mediante relay,
+pero la imagen `nexo-backend:cloud` desplegada era anterior y no incluía el
+endpoint autenticado `GET /api/calls/ice-config`. Además, Coturn continuaba en
+modo de usuario fijo mientras el código actual genera credenciales TURN
+efímeras firmadas con HMAC-SHA1.
+
+Se aplicaron estos cambios en la EC2:
+
+- Coturn quedó en modo `use-auth-secret`, con secreto de 64 caracteres guardado
+  únicamente en `/opt/nexo/backend.env` y permisos `600`.
+- El servidor anuncia el mapeo NAT
+  `34.196.97.226/172.31.31.127`, escucha en UDP/TCP `3479` y conserva el rango
+  relay UDP `49160-49200`.
+- El backend fue reconstruido desde el código que incluye
+  `TurnCredentialService` y recreado con política `restart always`.
+- La comprobación posterior devolvió HTTP `200` en el health check y el JAR
+  desplegado contiene la clase del servicio TURN.
+- El frontend ahora distingue un timeout ICE de un rechazo del micrófono. Si
+  TURN no es alcanzable, informa que el micrófono funciona y que falló el
+  servidor de audio, evitando pedir al usuario permisos que ya concedió.
+
+La credencial entregada a cada usuario expira en una hora y no se documenta ni
+se expone en capturas. Para aprobar la prueba funcional aún se debe realizar una
+llamada directa: una persona inicia, la segunda acepta, ambas confirman audio
+bidireccional y luego repiten entre Wi-Fi y datos móviles. No deben iniciar dos
+llamadas independientes.
