@@ -448,4 +448,5 @@ redactada y configuración reversible. No incluir contraseñas, JWT, claves
 privadas, secretos ni identificadores de cuenta AWS en las capturas publicadas.
 
 Referencias del proyecto: [fase 5](phase-5-readiness.md),
-[flujo Git](git-workflow.md), [servicios y transmisiones](transmisiones-y-servicios.md).
+[flujo Git](git-workflow.md), [servicios y transmisiones](transmisiones-y-servicios.md)
+y [autenticación MSAL/JWT](autenticacion-msal-jwt.md).
