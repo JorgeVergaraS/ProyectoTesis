@@ -29,6 +29,12 @@ public class BroadcastController {
     public BroadcastRepository.Broadcast create(Authentication auth, @PathVariable UUID id, @Valid @RequestBody Create body) {
         return service.create(id, users.require(auth).userId(), body.title(), body.sourceType());
     }
+    @PostMapping("/conversations/{id}/group-call/access")
+    public ResponseEntity<BroadcastService.GroupCallAccess> groupCallAccess(
+            Authentication auth, @PathVariable UUID id) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(service.groupCallAccess(id, users.require(auth).userId()));
+    }
     @GetMapping("/conversations/{id}/broadcasts/active")
     public List<BroadcastRepository.Broadcast> active(Authentication auth, @PathVariable UUID id) {
         return service.active(id, users.require(auth).userId());

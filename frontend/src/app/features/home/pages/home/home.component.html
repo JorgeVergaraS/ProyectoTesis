@@ -198,7 +198,7 @@
                   </button>
                   <button
                     class="secondary-button call-person-button"
-                    [disabled]="calls.occupied()"
+                    [disabled]="calls.occupied() || groupCalls.occupied()"
                     (click)="startCall(person)"
                   >
                     <nexo-icon name="phone" />Llamar
@@ -255,7 +255,7 @@
                 class="icon-button"
                 [attr.aria-label]="'Llamar a ' + person.displayName"
                 title="Llamada de voz"
-                [disabled]="calls.occupied()"
+                [disabled]="calls.occupied() || groupCalls.occupied()"
                 (click)="calls.start(person, conversation.id)"
               >
                 <nexo-icon name="phone" />
@@ -638,10 +638,18 @@
                   @if (peer(); as person) {
                     <button
                       class="primary-button call-person-button"
-                      [disabled]="calls.occupied()"
+                      [disabled]="calls.occupied() || groupCalls.occupied()"
                       (click)="calls.start(person, conversation.id)"
                     >
                       Iniciar llamada
+                    </button>
+                  } @else if (conversation.kind === 'CHANNEL' && conversation.joined) {
+                    <button
+                      class="primary-button call-person-button"
+                      [disabled]="calls.occupied() || groupCalls.occupied()"
+                      (click)="groupCalls.join(conversation.id, conversation.title)"
+                    >
+                      Unirse a llamada grupal
                     </button>
                   }
                 </section>

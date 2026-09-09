@@ -29,6 +29,7 @@ import { AvatarComponent } from '../../../../shared/components/avatar.component'
 import { IconComponent } from '../../../../shared/components/icon.component';
 import { MessageTextComponent } from '../../../../shared/components/message-text.component';
 import { VoiceCallService } from '../../../../core/realtime/voice-call.service';
+import { GroupCallService } from '../../../../core/realtime/group-call.service';
 import {
   WorkspaceNavigationComponent,
   WorkspaceView,
@@ -64,6 +65,7 @@ type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
 export class HomeComponent {
   readonly auth = inject(AuthService);
   readonly calls = inject(VoiceCallService);
+  readonly groupCalls = inject(GroupCallService);
   private readonly chat = inject(ChatService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);

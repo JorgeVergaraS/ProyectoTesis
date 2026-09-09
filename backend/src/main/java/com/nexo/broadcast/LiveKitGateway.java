@@ -40,6 +40,22 @@ public class LiveKitGateway {
                 new CanSubscribe(true), new CanPublishData(false));
         return token.toJwt();
     }
+    public String participantToken(String room, UUID user) {
+        requireEnabled();
+        AccessToken token = new AccessToken(key, secret);
+        token.setIdentity(user.toString());
+        token.setTtl(300_000);
+        token.addGrants(new RoomJoin(true), new RoomName(room), new CanPublish(true),
+                new CanSubscribe(true), new CanPublishData(false));
+        return token.toJwt();
+    }
+    public void ensureRoom(String room) {
+        try {
+            var response = client().createRoom(room, 90, 25).execute();
+            if (!response.isSuccessful() && response.code() != 400 && response.code() != 409)
+                throw unavailable();
+        } catch (IOException ex) { throw unavailable(); }
+    }
     public void create(String room) {
         try {
             if (!client().createRoom(room, 90, 25).execute().isSuccessful()) throw unavailable();

@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 @EnableScheduling
 public class BroadcastService {
     public record Access(String url, String token, String role) {}
+    public record GroupCallAccess(String url, String token, String roomName) {}
     private final BroadcastRepository broadcasts;
     private final ChatRepository chat;
     private final LiveKitGateway media;
@@ -23,6 +24,15 @@ public class BroadcastService {
         this.broadcasts = broadcasts; this.chat = chat; this.media = media;
     }
     public boolean enabled() { return media.enabled(); }
+    public GroupCallAccess groupCallAccess(UUID conversation, UUID user) {
+        media.requireEnabled();
+        if (!"CHANNEL".equals(chat.kind(conversation, false)))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La llamada grupal requiere un canal");
+        chat.requireMember(conversation, user);
+        String room = "group-" + conversation;
+        media.ensureRoom(room);
+        return new GroupCallAccess(media.publicUrl(), media.participantToken(room, user), room);
+    }
     public synchronized Broadcast create(UUID conversation, UUID user, String title, String source) {
         media.requireEnabled();
         chat.requireMember(conversation, user);

@@ -2,9 +2,9 @@
 
 Fecha de actualización: 8 de septiembre de 2026
 
-Rama de trabajo: `feat/transmisiones-responsive`
+Rama de trabajo: `feat/despliegue-cloud`
 
-Estado: prototipo funcional local, preparado para pruebas entre sesiones del mismo equipo.
+Estado: despliegue académico en EC2 con LiveKit, preparado para aceptación entre dispositivos y redes.
 
 Este documento reúne el funcionamiento actual de Nexo, con especial foco en las llamadas,
 el estudio multimedia y las transmisiones de cámara o pantalla hacia otros participantes.
@@ -31,9 +31,11 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
 ### Límites conocidos
 
 - Las llamadas de voz son bidireccionales, pero no incluyen video.
-- Una transmisión es de un anfitrión hacia varios espectadores; no es una videollamada grupal.
+- Una transmisión es de un anfitrión hacia varios espectadores. Puede abrirse dentro
+  de una llamada grupal, pero conserva sala, permisos y ciclo de vida independientes.
 - La validación principal está hecha en localhost y en sesiones del mismo equipo.
-- HTTPS/WSS, TURN y pruebas entre redes externas siguen pendientes para un despliegue real.
+- HTTPS/WSS y TURN están configurados en la EC2 académica; falta cerrar la aceptación
+  multimedia entre varios dispositivos y redes externas.
 - La transmisión no se graba ni se almacena como archivo.
 
 ## 2. Capturas de la interfaz
@@ -255,6 +257,7 @@ Las rutas existen para cuentas autenticadas y para el modo demo bajo `/api/demo`
 | --- | --- | --- |
 | `GET` | `/api/broadcasts/config` | Consulta si la función está habilitada |
 | `POST` | `/api/conversations/{id}/broadcasts` | Crea un borrador de emisión |
+| `POST` | `/api/conversations/{id}/group-call/access` | Autoriza a un miembro y entrega acceso temporal a la sala grupal |
 | `GET` | `/api/conversations/{id}/broadcasts/active` | Lista emisiones activas de una conversación |
 | `POST` | `/api/broadcasts/{id}/access` | Entrega token HOST o VIEWER según permisos |
 | `POST` | `/api/broadcasts/{id}/start` | Marca la emisión como activa y renueva su lease |
@@ -263,17 +266,34 @@ Las rutas existen para cuentas autenticadas y para el modo demo bajo `/api/demo`
 El token de LiveKit es temporal y se mantiene en memoria del cliente. El espectador recibe
 `canPublish=false`. El servidor verifica membresía antes de entregar acceso a una emisión.
 
-## 9. Llamadas y transmisiones: diferencia
+## 9. Llamadas directas, grupales y transmisiones
 
-| Característica | Llamada de voz | Transmisión multimedia |
-| --- | --- | --- |
-| Dirección | Bidireccional | Un anfitrión a varios espectadores |
-| Video | No | Cámara o pantalla |
-| Audio | Voz del participante | Micrófono opcional del anfitrión |
-| Tecnología | WebRTC directo/señalización Spring | LiveKit SFU |
-| Participantes | Actualmente dos | Miembros de la conversación |
-| Grabación | No | No |
-| Uso recomendado | Conversación privada | Presentación, demo o compartir pantalla |
+| Función | Llamada directa | Llamada grupal de canal | Transmisión |
+| --- | --- | --- | --- |
+| Tecnología | WebRTC P2P + señalización Spring | LiveKit SFU | LiveKit SFU |
+| Participantes | Dos perfiles | Miembros autorizados del canal | Un anfitrión y varios espectadores |
+| Publicación | Micrófono de ambos | Micrófono de todos | Cámara/pantalla y pistas de micrófono/audio compartido |
+| Autorización | Miembros de conversación directa | Membresía de canal y JWT temporal | Rol anfitrión/espectador y JWT temporal |
+| Dirección | Bidireccional | Todos con todos mediante SFU | Un anfitrión a varios espectadores |
+| Video | No | No | Cámara o pantalla |
+| Audio | Voz de ambos | Voz de todos los conectados | Micrófono y/o audio compartido del anfitrión |
+| Grabación | No | No | No |
+| Persistencia de medios | Ninguna | Ninguna | Ninguna |
+
+### Flujo de llamada grupal
+
+1. Un miembro abre un canal y pulsa **Unirse a llamada grupal**.
+2. Spring valida JWT, tipo `CHANNEL` y membresía.
+3. `POST /api/conversations/{id}/group-call/access` crea o reutiliza la sala
+   `group-{conversationId}` y devuelve URL y token LiveKit de cinco minutos.
+4. Angular conecta, publica el micrófono y se suscribe automáticamente a las pistas
+   de los demás participantes.
+5. El panel muestra cantidad de participantes, mute, reconexión y salida.
+6. **Transmitir en esta llamada grupal** abre el estudio y el visor del canal.
+
+Las llamadas directas y grupales son excluyentes en una misma pestaña para evitar
+competencia por el micrófono. La autorización impide el acceso de usuarios que hayan
+salido del canal. El token no se persiste y el audio nunca atraviesa Spring.
 
 ## 10. Privacidad y seguridad
 
@@ -284,15 +304,15 @@ El token de LiveKit es temporal y se mantiene en memoria del cliente. El especta
 - El backend deriva anfitrión, identidad y permisos desde la sesión autenticada.
 - Los metadatos de la emisión se guardan; no se guardan audio, video, SDP ni tokens.
 - Se recomienda utilizar audífonos al probar dos sesiones en el mismo computador.
-- Para producción todavía faltan HTTPS/WSS, TURN, límites operativos, eventos firmados y
-  pruebas entre redes externas.
+- Para producción todavía faltan límites operativos, eventos firmados y completar las
+  pruebas documentadas entre redes externas.
 
 ## 11. Verificación realizada
 
 En la rama actual se verificó:
 
-- Backend: `41` pruebas aprobadas.
-- Frontend: `76` pruebas aprobadas en `22` archivos.
+- Backend: suite Maven completa aprobada, incluida autorización de llamadas grupales.
+- Frontend: `77` pruebas aprobadas en `22` archivos.
 - `npm run format:check`: correcto.
 - `npm run build`: correcto.
 - Vista previa de cámara y pantalla con liberación de tracks.
@@ -329,7 +349,7 @@ directorio ignorado por Git.
 1. Mostrar FPS efectivos recibidos junto al FPS objetivo.
 2. Incorporar selección de resolución y perfil de calidad.
 3. Permitir audio del sistema cuando el navegador y la fuente lo soporten.
-4. Agregar STUN/TURN y HTTPS/WSS para pruebas entre redes.
+4. Completar evidencia de STUN/TURN y HTTPS/WSS con tres cuentas en redes distintas.
 5. Añadir eventos firmados de LiveKit y revocación de membresía durante una emisión.
 6. Incorporar métricas de bitrate, pérdida de paquetes, latencia y cuadros descartados.
 7. Validar cámara, micrófono y captura de pantalla en equipos físicos variados.

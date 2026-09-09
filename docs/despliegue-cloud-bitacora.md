@@ -519,13 +519,24 @@ predecible. La captura de audio del sistema no está disponible en todos los
 navegadores ni en todos los móviles; es una limitación de `getDisplayMedia`, no
 del servidor LiveKit.
 
-La llamada de voz actual sigue siendo directa entre dos usuarios y usa WebRTC
-P2P con TURN. Una llamada grupal real no se obtiene habilitando el canal actual:
-requiere migrar ese flujo a una sala SFU de LiveKit, emitir tokens publicador/
-suscriptor para cada miembro, administrar entrada y salida de participantes y
-crear una interfaz de sala. Se mantiene como siguiente incremento para evitar
-presentar como terminada una función que aún no tiene señalización ni controles
-de participantes.
+#### Llamadas grupales de canal (9 de septiembre de 2026)
+
+Se implementó el incremento multiusuario con una sala SFU de LiveKit por canal.
+El backend comprueba que la conversación sea de tipo `CHANNEL` y que la identidad
+del JWT sea miembro antes de emitir un token temporal con permisos de publicación
+y suscripción. El navegador publica el micrófono, reproduce cada pista remota en
+un elemento independiente y mantiene contador, mute, salida y reconexión.
+
+Las llamadas directas continúan usando WebRTC P2P con TURN. Esta separación evita
+cambiar su señalización ya probada y reserva LiveKit para los canales, donde sí se
+requiere uno-a-varios. Desde el panel grupal también se puede abrir el estudio de
+transmisión y el visor del canal; el sonido de pantalla requiere que el emisor marque
+**Compartir audio** en el selector nativo del navegador.
+
+Ruta de acceso: `POST /api/conversations/{id}/group-call/access`. El servidor nunca
+recibe ni almacena el audio. La aceptación manual pendiente debe reunir al menos tres
+cuentas autorizadas, probar PC/teléfono y Wi-Fi/datos móviles, y verificar entrada,
+audio bidireccional, mute, reconexión, salida y pantalla con sonido.
 
 Validación automatizada de esta corrección: **22 archivos de pruebas, 77 pruebas
 aprobadas**, además de compilación productiva correcta. La aceptación manual debe

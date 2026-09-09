@@ -109,7 +109,7 @@ instalación nueva.
 | Apariencia | Temas predeterminado, OLED y claro; botones Mate, Style SkayGlass y Y2K 2000; configuración junto al nombre | Preferencias locales de cada navegador, sin sincronización entre dispositivos    |
 | Enlaces    | Reconoce `http://`, `https://` y `www.`                                                                     | Sin previews ni verificación de reputación                                       |
 | Perfil     | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada                         | Sin campos institucionales ni configuración de privacidad                        |
-| Llamadas   | Voz WebRTC, aceptar/rechazar, mute y finalizar                                                              | Dos usuarios; mismo equipo; sin video ni STUN/TURN                               |
+| Llamadas   | Voz directa P2P y salas grupales de canal mediante LiveKit; mute, salida y contador de participantes         | Sin video; las salas grupales requieren LiveKit disponible                       |
 | Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
 | Transmisiones | Cámara/pantalla, micrófono opcional y 15/30/60 FPS mediante LiveKit; visor en canal o llamada | 60 FPS es un objetivo dependiente del dispositivo/red; pendientes medios físicos y redes externas |
 | Operación  | Docker Compose, Flyway, health, Actuator y Swagger                                                          | Solo local, sin despliegue público                                               |
@@ -147,8 +147,9 @@ dependencias e imágenes; no necesita credenciales Microsoft.
 
 **Monorepo y monolito modular:** una SPA Angular, una sola aplicación Spring Boot
 y PostgreSQL. El backend está organizado por dominios, no por capas globales.
-No hay microservicios de negocio. Las llamadas de voz son P2P; las transmisiones
-usan LiveKit como servidor multimedia SFU opcional. Spring controla permisos y
+No hay microservicios de negocio. Las llamadas directas de voz son P2P; las llamadas
+grupales de canal y las transmisiones usan LiveKit como servidor multimedia SFU.
+Spring controla permisos y
 metadatos, pero no transporta ni almacena audio/video. La vista previa permanece
 en el navegador hasta que el usuario inicia la transmisión.
 
@@ -167,9 +168,11 @@ flowchart LR
     AU --> DB[(PostgreSQL · Docker)]
     U --> DB
     C --> DB
-    R --> RAM[Estado temporal de llamadas]
+    R --> RAM[Estado temporal de llamadas directas]
     T --> DB
     T -->|Control de salas| SFU[LiveKit · perfil media]
+    A <-->|Audio grupal WebRTC| SFU
+    B <-->|Audio grupal WebRTC| SFU
     A <-->|Transmisión WebRTC| SFU
     B <-->|Recepción WebRTC| SFU
     A <-->|Audio WebRTC directo| B
@@ -190,7 +193,8 @@ flowchart LR
   entre navegadores; la señalización temporal permanece en memoria del monolito.
 - **common:** CORS, errores, health y OpenAPI.
 - **broadcast:** autoriza miembros, emite tokens breves por rol y controla salas
-  LiveKit y su vencimiento; persiste metadatos en PostgreSQL, nunca medios ni tokens.
+  LiveKit y su vencimiento. También entrega acceso temporal de publicación/suscripción
+  a la sala grupal estable de cada canal; persiste metadatos, nunca medios ni tokens.
 - **Angular core:** sesión, guard, interceptor, clientes HTTP y voz; los componentes
   de página no duplican autenticación.
 
@@ -768,6 +772,7 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Estilos de botón persistentes Mate, Style SkayGlass y Y2K 2000.
 - [x] Estudio multimedia local: cámara/pantalla, micrófono, dispositivos, nivel y liberación.
 - [x] Transmisión local con LiveKit: permisos anfitrión/espectador, visor y cierre de salas abandonadas.
+- [x] Llamadas grupales de audio por canal con LiveKit, membresía backend, mute, salida y reconexión.
 - [ ] Validación interactiva del login/logout Microsoft real en Brave.
 - [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
 - [ ] WebSocket autenticado y presencia persistente.
@@ -779,10 +784,10 @@ remota vencerá, como máximo, en ocho horas.
 No hay fechas comprometidas ni se presentan estas etapas como disponibles.
 Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilicen.
 
-**Siguiente paso: fase 5.** La verificación automatizada local está cerrada; faltan
-pruebas con dispositivos físicos y acordar servidor, dominio y presupuesto antes
-del despliegue de prueba. No se han publicado servicios ni abierto puertos públicos.
-Ver [preparación y criterios de aceptación](docs/phase-5-readiness.md).
+**Siguiente paso:** completar la aceptación manual de la sala grupal con tres cuentas,
+incluyendo PC y teléfono en redes distintas, y registrar audio bidireccional,
+reconexión, mute, salida y transmisión de pantalla. Ver
+[preparación y criterios de aceptación](docs/phase-5-readiness.md).
 
 <a id="documentacion"></a>
 
