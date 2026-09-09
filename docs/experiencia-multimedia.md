@@ -13,7 +13,7 @@ credenciales, esquema de base de datos, membresías, puertos ni recursos cloud.
 | NEXO-MEDIA-02 | Implementado y probado localmente | Reproductor con volumen, activación de audio y pantalla completa sin recrear video ni conexión. |
 | NEXO-MEDIA-03 | Implementado y probado localmente | Vista previa privada real, estado explícito de audio capturado y controles adaptados al ancho del estudio. |
 | NEXO-MEDIA-04 | Pendiente de aceptación manual | Audio físico de pestaña/PC, Safari/iPhone, Android y redes móviles reales. |
-| NEXO-UX-DEPLOY | Pendiente | Publicar esta rama en EC2 cuando se restablezca el acceso al laboratorio. |
+| NEXO-UX-DEPLOY | Implementado; aceptación manual pendiente | Rama `feat/experiencia-multimedia` publicada en EC2 con commit `dee4fb0`; se conservaron los valores cloud de MSAL del entorno anterior. |
 
 Las referencias visuales se adaptaron a Nexo, conservando su logo, formularios,
 acceso Microsoft, registro y datos reales. Las ilustraciones son CSS; no se
@@ -152,12 +152,16 @@ Los visores se recortan al componente para no publicar conversaciones ajenas.
 
 ### Estado cloud y aceptación pendiente
 
-No se desplegó este incremento en EC2: la consola de AWS mostraba **Session
-Expired** y una comprobación HTTPS de la URL pública agotó 15 segundos de espera.
-Esto no demuestra por sí solo que la instancia esté detenida. Se necesita
-restablecer la sesión del laboratorio y comprobar EC2 antes de publicar.
+El incremento quedó publicado en la EC2 académica `nexo-backend-academico`
+(us-east-1), con la rama `feat/experiencia-multimedia` y el commit `dee4fb0`.
+La URL pública responde mediante Caddy en
+<https://34.196.97.226.nip.io/>. Se verificaron `200 OK` en `/` y `/login`, y
+el backend interno respondió `{"status":"UP"}` en el readiness de Actuator.
+El frontend se reconstruyó y el contenedor se dejó con `restart: always`.
+La configuración cloud de Microsoft se recuperó desde el checkout anterior,
+que quedó preservado en `/opt/nexo/app-predeploy-20260909` para rollback.
 
-- [ ] Desplegar el frontend de esta rama conservando la configuración cloud.
+- [x] Desplegar el frontend de esta rama conservando la configuración cloud.
 - [ ] Probar una pestaña con audio real y confirmar escucha desde otra cuenta.
 - [ ] Silenciar solo micrófono, luego solo pantalla, y comprobar ambos extremos.
 - [ ] Probar fullscreen con contenido en movimiento y volver al chat.

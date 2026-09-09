@@ -758,7 +758,7 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Audio de pantalla y micrófono independientes, conservados al cambiar de micrófono.
 - [x] Vista previa real con aviso cuando la fuente no entrega audio compartido.
 - [x] Visor con volumen y fullscreen sin recrear video/conexión; prueba local de tres ciclos.
-- [ ] Publicación de este incremento en EC2 y aceptación con audio físico, móviles y redes reales.
+- [x] Publicación de este incremento en EC2; queda pendiente la aceptación con audio físico, móviles y redes reales.
 
 Ver [tickets, instrucciones, pruebas y capturas nuevas](docs/experiencia-multimedia.md).
 La captura de sonido depende de la fuente y los permisos del navegador; no se
