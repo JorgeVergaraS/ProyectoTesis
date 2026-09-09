@@ -403,6 +403,46 @@ puertos y política de reinicio, pero declarando el mapeo explícito
 dirección relay privada no enrutable. La validación PC–5G debe repetirse después
 del reinicio antes de marcar el caso como aprobado.
 
+#### IP elástica y dominio estable (8 de septiembre de 2026)
+
+Para impedir que la URL pública cambie en cada reinicio del laboratorio, se
+reservó la IP elástica `34.196.97.226`, con nombre
+`nexo-academico-eip`, y se asoció a la instancia EC2 de Nexo. AWS confirmó la
+asociación con la interfaz privada `172.31.31.127`. La dirección se debe mantener
+asociada a la instancia mientras el proyecto esté activo; una IP pública sin
+asociar puede generar costo innecesario.
+
+El acceso estable quedó definido como:
+
+- Aplicación: `https://34.196.97.226.nip.io`
+- LiveKit: `wss://livekit.34.196.97.226.nip.io`
+- TURN: `34.196.97.226:3479`, por UDP y TCP
+- Relay TURN: UDP `49160-49200`
+
+Se actualizaron `Caddyfile`, la configuración productiva del frontend, CORS y
+la URL pública de LiveKit del backend. Coturn se recreó conservando sus
+credenciales y política `restart always`, con el mapeo NAT
+`34.196.97.226/172.31.31.127`. El frontend se recompiló correctamente y los
+cuatro contenedores (`nexo-web`, `nexo-backend`, `nexo-livekit` y `nexo-turn`)
+quedaron activos.
+
+La primera prueba utilizó por error `34-196-97-226.nip.io`. Aunque ese nombre
+también resuelve la IP, no coincide con el certificado emitido para
+`34.196.97.226.nip.io` y produjo `ERR_SSL_PROTOCOL_ERROR`. Después de unificar
+el nombre exacto, se verificó TLS 1.3 y respuesta HTTP `200` en `/login`. El
+certificado de Let's Encrypt es válido para `34.196.97.226.nip.io` y su vigencia
+observada termina el 7 de diciembre de 2026; Caddy se ocupa de su renovación
+automática mientras el laboratorio, los puertos 80/443 y el DNS estén
+disponibles.
+
+La revisión completa del código desplegado encontró además que la versión
+anterior construía `RTCPeerConnection` con `iceServers: []`. Por tanto, aunque
+Coturn estaba activo, el navegador nunca recibía ni utilizaba el servidor TURN.
+La versión actual pasa los servidores ICE del entorno y fuerza relay en
+producción. La prueba funcional definitiva sigue siendo una llamada entre PC y
+5G, dentro de la misma conversación, verificando audio bidireccional y luego
+pantalla con audio compartido.
+
 Cada paso completado debe añadir fecha, resultado observado, evidencia
 redactada y configuración reversible. No incluir contraseñas, JWT, claves
 privadas, secretos ni identificadores de cuenta AWS en las capturas publicadas.
