@@ -113,12 +113,7 @@
           </section>
         } @else if (view() === 'discover') {
           <section class="explore-page">
-            <span class="eyebrow">ENCUENTRA TU LUGAR</span>
-            <h1>Una comunidad.<br /><span>Muchas conversaciones.</span></h1>
-            <p class="page-intro">
-              Desde tu próximo proyecto hasta los planes después de clases.<br />Hay un espacio para
-              lo que te mueve.
-            </p>
+            <nexo-community-hero (people)="navigate('people')" />
             <div class="community-stats">
               <span><nexo-icon name="users" />{{ workspace().channels.length }} canales</span
               ><span><nexo-icon name="users" />{{ workspace().people.length }} personas</span

@@ -66,8 +66,16 @@
       >
         <span class="source-icon"><nexo-icon name="monitor" /></span>
         <strong>Pantalla</strong>
-        <small>{{ media.screenSupported ? 'Pantalla, audio compartido y micrófono' : 'No disponible' }}</small>
+        <small>{{
+          media.screenSupported ? 'Pantalla, audio compartido y micrófono' : 'No disponible'
+        }}</small>
       </button>
+    </div>
+
+    <div class="preview-idle" aria-label="Vista previa sin preparar">
+      <span class="idle-orb" aria-hidden="true"></span>
+      <strong>Tu momento empieza aquí.</strong>
+      <span>Elige una fuente para ver tu captura real. Todavía no estás transmitiendo.</span>
     </div>
 
     @if (selectedSource() === 'screen') {
@@ -104,9 +112,9 @@
     <p class="capture-note">Hasta {{ frameRate() }} FPS según tu cámara, navegador y conexión.</p>
     @if (selectedSource() === 'screen') {
       <p class="capture-note">
-        Para transmitir sonido, activa “Compartir audio” en el selector del navegador. Chrome y
-        Edge ofrecen mejor compatibilidad al compartir una pestaña; algunos móviles y Safari no
-        permiten capturar el audio del sistema.
+        Para transmitir sonido, activa “Compartir audio” en el selector del navegador. Chrome y Edge
+        ofrecen mejor compatibilidad al compartir una pestaña; algunos móviles y Safari no permiten
+        capturar el audio del sistema.
       </p>
     }
 
@@ -137,6 +145,7 @@
           [disabled]="busy() || emitting()"
           (change)="changeMicrophone($event)"
         >
+          <option value="">Micrófono predeterminado</option>
           @for (device of media.audioInputs(); track device.deviceId) {
             <option [value]="device.deviceId">{{ device.label }}</option>
           }
@@ -150,6 +159,7 @@
             [disabled]="busy() || emitting()"
             (change)="changeCamera($event)"
           >
+            <option value="">Cámara predeterminada</option>
             @for (device of media.videoInputs(); track device.deviceId) {
               <option [value]="device.deviceId">{{ device.label }}</option>
             }
@@ -173,8 +183,40 @@
     </div>
 
     <p class="capture-note preview-specs">
-      Objetivo: {{ frameRate() }} FPS · Audio {{ audioEnabled() ? 'activado' : 'desactivado' }}
+      Resolución de la fuente · Hasta {{ frameRate() }} FPS · Vista previa sin sonido para evitar
+      eco
     </p>
+
+    @if (media.source() === 'screen') {
+      <div
+        class="shared-audio"
+        [class.available]="media.systemAudioTrackIds().length > 0"
+        role="status"
+      >
+        <div>
+          <strong>Sonido de la pantalla</strong>
+          <p>
+            {{
+              media.systemAudioTrackIds().length
+                ? media.systemAudioMuted()
+                  ? 'Silenciado. El micrófono se controla por separado.'
+                  : 'Audio capturado. Se compartirá con tus espectadores.'
+                : 'No se recibió audio. Finaliza la vista previa, elige una pestaña y marca Compartir audio en el selector del navegador.'
+            }}
+          </p>
+        </div>
+        @if (media.systemAudioTrackIds().length) {
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="media.toggleSystemAudio()"
+            [attr.aria-pressed]="media.systemAudioMuted()"
+          >
+            {{ media.systemAudioMuted() ? 'Activar sonido de pantalla' : 'Silenciar pantalla' }}
+          </button>
+        }
+      </div>
+    }
 
     <div class="studio-actions">
       <button
@@ -182,10 +224,10 @@
         class="secondary-button"
         [attr.aria-pressed]="media.microphoneMuted()"
         [disabled]="busy()"
-        (click)="media.toggleMicrophone()"
+        (click)="toggleMicrophone()"
       >
         <nexo-icon name="mic" />
-        {{ media.microphoneMuted() ? 'Activar micrófono' : 'Silenciar' }}
+        {{ media.microphoneMuted() ? 'Activar micrófono' : 'Silenciar micrófono' }}
       </button>
       <button type="button" class="danger-button" [disabled]="busy()" (click)="finishPreview()">
         {{ emitting() ? 'Finalizar transmisión' : 'Finalizar vista previa' }}
@@ -196,7 +238,7 @@
       @if (enabled()) {
         @if (inCall()) {
           <p class="studio-message success" role="status">
-            Se transmitirá dentro de esta llamada a {{ calls.target()?.displayName }}.
+            Se transmitirá en la conversación de esta llamada.
           </p>
         } @else {
           <div class="device-controls">

@@ -1,6 +1,7 @@
 .login-page {
+  box-sizing: border-box;
   min-height: 100dvh;
-  max-width: 1300px;
+  max-width: 1560px;
   margin: auto;
   padding: 36px 60px 24px;
 }
@@ -12,8 +13,8 @@
 }
 .login-grid {
   display: grid;
-  grid-template-columns: 1fr 440px;
-  gap: 80px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 470px);
+  gap: clamp(36px, 7vw, 112px);
   align-items: center;
   margin: 64px 0 50px;
 }
@@ -25,7 +26,7 @@
   margin: 24px 0;
 }
 .welcome h1 span {
-  background: linear-gradient(100deg, #a78bfa, #75aaff);
+  background: linear-gradient(100deg, #ac8bff, #53d4dc);
   background-clip: text;
   color: transparent;
 }
@@ -53,7 +54,7 @@
   width: 16px;
 }
 .social-art {
-  height: 260px;
+  height: 290px;
   position: relative;
   max-width: 440px;
   margin-top: 8px;
@@ -77,13 +78,13 @@
 }
 .art-core {
   position: absolute;
-  left: 44%;
-  top: 37%;
-  width: 60px;
-  height: 65px;
+  left: 36%;
+  top: 23%;
+  width: 150px;
+  height: 150px;
   border: 1px solid #9d7cf9;
-  border-radius: 19px;
-  background: linear-gradient(150deg, #7c3aed, #4c49b3);
+  border-radius: 42%;
+  background: radial-gradient(circle at 25% 20%, #d9fff6, #51c3cc 14%, #7755de 48%, #181338 78%);
   box-shadow: 0 0 65px #7c3aed35;
   display: grid;
   place-items: center;
@@ -182,11 +183,15 @@
   color: #f2bf7e;
 }
 .login-card {
-  background: linear-gradient(145deg, #11182a, #0d1423);
-  border: 1px solid #252d44;
-  border-radius: 24px;
+  box-sizing: border-box;
+  min-width: 0;
+  background: linear-gradient(155deg, #102131, #08131e 75%);
+  border: 1px solid #284357;
+  border-radius: 28px;
   padding: 36px;
-  box-shadow: 0 24px 70px #0003;
+  box-shadow:
+    0 24px 70px #0003,
+    0 0 60px #48c9cc08;
 }
 .card-tag {
   display: flex;

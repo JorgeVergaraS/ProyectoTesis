@@ -8,7 +8,7 @@
   transition: width 0.2s ease;
 }
 :host(.studio-open) {
-  width: min(560px, 100vw);
+  width: min(780px, 100vw);
 }
 .profile-panel {
   --profile-color: #8b5cf6;
@@ -17,7 +17,7 @@
   min-height: 0;
   overflow-y: auto;
   border-left: 1px solid #303745;
-  background: #151922;
+  background: linear-gradient(160deg, #102131, #08131e 70%);
   color: #f2f4fa;
   box-shadow: -22px 0 55px #00000035;
 }
@@ -58,7 +58,7 @@
   margin: 0 -22px;
   background:
     radial-gradient(circle at 72% 32%, #ffffff3d, transparent 24%),
-    linear-gradient(135deg, var(--profile-color), #d56fac);
+    linear-gradient(135deg, var(--profile-color), #47bdc3);
 }
 .avatar-row {
   position: relative;

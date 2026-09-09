@@ -1,5 +1,6 @@
 :host {
   display: block;
+  container-type: inline-size;
 }
 .studio {
   box-sizing: border-box;
@@ -43,7 +44,7 @@
 }
 .studio-intro h3 {
   margin: 12px 0 7px;
-  font-size: 21px;
+  font-size: clamp(22px, 4cqi, 32px);
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
@@ -192,7 +193,7 @@
 .preview-shell {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   margin-top: 16px;
   border: 1px solid var(--theme-border-strong);
   border-radius: 17px;
@@ -344,7 +345,75 @@
   font-size: 8px;
   text-transform: uppercase;
 }
-@media (max-width: 480px) {
+.preview-idle {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px 18px;
+  margin-top: 16px;
+  border: 1px solid var(--theme-border);
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 50% 20%, #46bdcb15, transparent 65%), var(--theme-surface-muted);
+  text-align: center;
+}
+.idle-orb {
+  width: 80px;
+  height: 80px;
+  border-radius: 38%;
+  background: radial-gradient(circle at 28% 24%, #d7fff4, #51c4d3 16%, #7856df 50%, #151830 80%);
+  box-shadow: 0 8px 40px #7960df20;
+}
+.preview-idle strong {
+  font-size: 15px;
+}
+.preview-idle > span:last-child {
+  max-width: 360px;
+  color: var(--theme-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.shared-audio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  margin-top: 14px;
+  border: 1px solid var(--theme-border);
+  border-radius: 14px;
+  background: var(--theme-surface-muted);
+  font-size: 12px;
+}
+.shared-audio.available {
+  border-color: var(--theme-border-strong);
+  background: var(--theme-accent-soft);
+}
+.shared-audio > div {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.shared-audio p {
+  margin: 6px 0 0;
+  color: var(--theme-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.shared-audio button {
+  min-height: 44px;
+  white-space: normal;
+}
+.studio button,
+.studio select {
+  min-height: 44px;
+}
+.studio button {
+  white-space: normal;
+}
+.studio select {
+  box-sizing: border-box;
+}
+@container (max-width: 480px) {
   .studio {
     padding: 12px;
   }

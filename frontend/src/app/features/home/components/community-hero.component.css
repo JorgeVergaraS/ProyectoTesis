@@ -1,0 +1,78 @@
+.community-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 46px);
+  border: 1px solid #30475e;
+  border-radius: 28px;
+  background: linear-gradient(120deg, #101d33, #17152e 60%, #10303c);
+}
+.hero-copy {
+  position: relative;
+  max-width: 720px;
+}
+.hero-copy .page-intro {
+  max-width: 540px;
+}
+.hero-copy button {
+  margin-top: 12px;
+  min-height: 44px;
+}
+.community-orbit {
+  position: absolute;
+  z-index: -1;
+  width: clamp(210px, 26vw, 370px);
+  aspect-ratio: 1;
+  right: -65px;
+  top: -55px;
+  border-radius: 42%;
+  transform: rotate(-18deg);
+  background: radial-gradient(circle at 30% 25%, #ccfff1, #54c7d2 15%, #7256e5 47%, #162743 80%);
+  opacity: 0.65;
+}
+.community-orbit span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 110px;
+  font-weight: 800;
+  color: #ffffff24;
+}
+@media (max-width: 1000px) {
+  .community-orbit {
+    opacity: 0.2;
+  }
+}
+@media (max-width: 600px) {
+  .community-hero {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+  .hero-copy h1 {
+    font-size: 29px;
+    letter-spacing: -1px;
+  }
+}
+
+.hero-copy h1 {
+  font-size: clamp(30px, 3vw, 46px);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  margin: 20px 0;
+}
+.hero-copy h1 span {
+  background: linear-gradient(100deg, #b299ff, #55d5da);
+  background-clip: text;
+  color: transparent;
+}
+.page-intro {
+  color: #a9b9cd;
+  line-height: 1.8;
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .hero-copy h1 {
+    font-size: 29px;
+  }
+}

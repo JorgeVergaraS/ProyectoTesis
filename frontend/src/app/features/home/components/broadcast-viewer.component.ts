@@ -1,4 +1,16 @@
-import { Component, ElementRef, effect, inject, input, viewChild, untracked } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  HostListener,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  viewChild,
+  untracked,
+} from '@angular/core';
 import type { RemoteTrack } from 'livekit-client';
 import { Broadcast } from '../../../core/media/broadcast-api.service';
 import { BroadcastMediaService } from '../../../core/media/broadcast-media.service';
@@ -6,70 +18,94 @@ import { BroadcastMediaService } from '../../../core/media/broadcast-media.servi
 @Component({
   selector: 'nexo-broadcast-viewer',
   providers: [BroadcastMediaService],
-  template: ` <section aria-label="Reproductor de transmisión">
-    <strong>{{ broadcast().title }}</strong>
-    <p role="status">{{ status() }}</p>
-    <video #video autoplay playsinline controls aria-label="Video en vivo"></video>
-    <div #audioContainer class="audio-tracks" aria-hidden="true"></div>
-    @if (media.audioBlocked()) {
-      <button class="primary-button" (click)="media.unlockAudio()">Activar audio</button>
-    }
-    @if (media.error()) {
-      <p role="alert">{{ media.error() }}</p>
-    }
-    @if (media.state() === 'ERROR') {
-      <button class="secondary-button" (click)="media.watch(broadcast())">Reintentar</button>
-    }
-  </section>`,
-  styles: [
-    `
-      :host {
-        display: block;
+  template: `
+    <section
+      #player
+      class="player"
+      [class.expanded]="expanded()"
+      aria-label="Reproductor de transmisión"
+    >
+      <header>
+        <div>
+          <span class="live-label">NEXO · EN DIRECTO</span>
+          <h3>{{ broadcast().title }}</h3>
+        </div>
+        <span class="status" role="status">{{ status() }}</span>
+      </header>
+      <div class="stage">
+        <video #video autoplay muted playsinline aria-label="Video en vivo"></video>
+        @if (!media.video()) {
+          <div class="placeholder">
+            <span class="preview-orb"></span>
+            <p>{{ status() }}</p>
+          </div>
+        }
+      </div>
+      <div #audioContainer class="audio-tracks" aria-hidden="true"></div>
+      <div class="controls">
+        <button type="button" (click)="toggleAudio()" [attr.aria-pressed]="muted()">
+          {{ muted() ? 'Activar sonido' : 'Silenciar sonido' }}
+        </button>
+        <label class="volume"
+          >Volumen<input
+            type="range"
+            min="0"
+            max="100"
+            [value]="volume()"
+            (input)="volume.set(+$any($event.target).value)"
+        /></label>
+        <button type="button" (click)="toggleFullscreen()">
+          {{ expanded() ? 'Salir de pantalla completa' : 'Pantalla completa' }}
+        </button>
+      </div>
+      @if (media.audioBlocked()) {
+        <button class="unlock" (click)="media.unlockAudio()">Activar audio recibido</button>
       }
-      section {
-        padding: 12px;
+      @if (media.state() === 'LIVE' && !media.audioTracks().length) {
+        <p class="hint">El emisor todavía no ha compartido una pista de audio.</p>
       }
-      video {
-        display: block;
-        width: 100%;
-        max-height: 45vh;
-        background: #080808;
-        border-radius: 12px;
+      @if (fullscreenNotice()) {
+        <p class="hint" role="status">{{ fullscreenNotice() }}</p>
       }
-      p {
-        font-size: 0.85rem;
+      @if (media.error()) {
+        <p role="alert" class="hint">{{ media.error() }}</p>
       }
-      button {
-        margin-top: 8px;
+      @if (media.state() === 'ERROR') {
+        <button (click)="media.watch(broadcast())">Reintentar</button>
       }
-      .audio-tracks {
-        display: none;
-      }
-    `,
-  ],
+    </section>
+  `,
+  styleUrl: './broadcast-viewer.component.css',
 })
 export class BroadcastViewerComponent {
   readonly broadcast = input.required<Broadcast>();
   readonly media = inject(BroadcastMediaService);
+  readonly expanded = signal(false);
+  readonly muted = signal(false);
+  readonly volume = signal(80);
+  readonly fullscreenNotice = signal('');
+  private readonly broadcastId = computed(() => this.broadcast().id);
+  private readonly player = viewChild<ElementRef<HTMLElement>>('player');
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
   private readonly audioContainer = viewChild<ElementRef<HTMLDivElement>>('audioContainer');
-  private attachedAudio = new Map<RemoteTrack, HTMLAudioElement>();
+  private readonly attachedAudio = new Map<RemoteTrack, HTMLAudioElement>();
   constructor() {
     effect(() => {
-      const broadcast = this.broadcast();
-      untracked(() => void this.media.watch(broadcast));
+      this.broadcastId();
+      untracked(() => void this.media.watch(this.broadcast()));
     });
     effect((cleanup) => {
       const track = this.media.video(),
         element = this.video()?.nativeElement;
       if (track && element) {
+        element.muted = true;
         track.attach(element);
         cleanup(() => track.detach(element));
       }
     });
     effect(() => {
-      const tracks = this.media.audioTracks();
-      const container = this.audioContainer()?.nativeElement;
+      const tracks = this.media.audioTracks(),
+        container = this.audioContainer()?.nativeElement;
       if (!container) return;
       for (const [track, element] of this.attachedAudio) {
         if (tracks.includes(track)) continue;
@@ -78,14 +114,61 @@ export class BroadcastViewerComponent {
         this.attachedAudio.delete(track);
       }
       for (const track of tracks) {
-        if (this.attachedAudio.has(track)) continue;
-        const element = document.createElement('audio');
-        element.autoplay = true;
-        track.attach(element);
-        container.appendChild(element);
-        this.attachedAudio.set(track, element);
+        let element = this.attachedAudio.get(track);
+        if (!element) {
+          element = document.createElement('audio');
+          element.autoplay = true;
+          track.attach(element);
+          container.appendChild(element);
+          this.attachedAudio.set(track, element);
+        }
+        element.muted = this.muted();
+        element.volume = this.volume() / 100;
       }
     });
+    inject(DestroyRef).onDestroy(() => {
+      for (const [track, element] of this.attachedAudio) {
+        track.detach(element);
+        element.remove();
+      }
+      this.attachedAudio.clear();
+    });
+  }
+  toggleAudio() {
+    this.muted.update((value) => !value);
+    if (!this.muted()) void this.media.unlockAudio();
+  }
+  async toggleFullscreen() {
+    const element = this.player()?.nativeElement;
+    if (!element) return;
+    if (this.expanded()) {
+      if (document.fullscreenElement === element) {
+        try {
+          await document.exitFullscreen();
+        } catch {
+          this.fullscreenNotice.set('Usa Escape para salir de pantalla completa.');
+        }
+      } else this.expanded.set(false);
+      return;
+    }
+    this.fullscreenNotice.set('');
+    if (element.requestFullscreen) {
+      try {
+        await element.requestFullscreen();
+        this.expanded.set(true);
+        return;
+      } catch {
+        /* Keep the same player in the enlarged fallback. */
+      }
+    }
+    this.expanded.set(true);
+    this.fullscreenNotice.set('Vista ampliada. Tu navegador no ofrece pantalla completa aquí.');
+  }
+  @HostListener('document:fullscreenchange') fullscreenChanged() {
+    this.expanded.set(document.fullscreenElement === this.player()?.nativeElement);
+  }
+  @HostListener('document:keydown.escape') escape() {
+    if (!document.fullscreenElement) this.expanded.set(false);
   }
   status() {
     switch (this.media.state()) {

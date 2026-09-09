@@ -15,6 +15,7 @@ class FakeStream {
 function fakeTrack(kind: 'audio' | 'video', deviceId: string): FakeTrack {
   return {
     kind,
+    id: deviceId,
     enabled: true,
     onended: null,
     stop: vi.fn(),
@@ -117,8 +118,9 @@ describe('MediaDeviceService', () => {
   it('changes microphones without requesting the screen picker again', async () => {
     const screen = fakeTrack('video', 'screen');
     const firstMicrophone = fakeTrack('audio', 'mic-1');
+    const systemAudio = fakeTrack('audio', 'system');
     const secondMicrophone = fakeTrack('audio', 'mic-2');
-    getDisplayMedia.mockResolvedValue(new FakeStream([screen]));
+    getDisplayMedia.mockResolvedValue(new FakeStream([screen, systemAudio]));
     getUserMedia
       .mockResolvedValueOnce(new FakeStream([firstMicrophone]))
       .mockResolvedValueOnce(new FakeStream([secondMicrophone]));
@@ -137,6 +139,31 @@ describe('MediaDeviceService', () => {
     expect(service.selectedAudioId()).toBe('mic-2');
     expect(secondMicrophone.enabled).toBe(false);
     expect(service.microphoneMuted()).toBe(true);
+    expect(systemAudio.stop).not.toHaveBeenCalled();
+    expect(systemAudio.enabled).toBe(true);
+    expect(service.systemAudioTrackIds()).toEqual(['system']);
+    expect(service.stream()?.getAudioTracks()).toEqual([systemAudio, secondMicrophone]);
+  });
+
+  it('controls screen sound and microphone independently', async () => {
+    const screen = fakeTrack('video', 'screen');
+    const system = fakeTrack('audio', 'system');
+    const mic = fakeTrack('audio', 'mic-1');
+    getDisplayMedia.mockResolvedValue(new FakeStream([screen, system]));
+    getUserMedia.mockResolvedValue(new FakeStream([mic]));
+    await service.start('screen');
+    expect(service.selectedAudioId()).toBe('mic-1');
+    service.toggleMicrophone();
+    expect(mic.enabled).toBe(false);
+    expect(system.enabled).toBe(true);
+    service.toggleSystemAudio();
+    expect(system.enabled).toBe(false);
+    service.toggleMicrophone();
+    expect(mic.enabled).toBe(true);
+    expect(system.enabled).toBe(false);
+    service.stop();
+    expect(service.systemAudioMuted()).toBe(false);
+    expect(service.systemAudioTrackIds()).toEqual([]);
   });
 
   it('releases a late stream when navigation cancels a pending permission request', async () => {

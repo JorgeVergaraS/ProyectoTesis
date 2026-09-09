@@ -136,7 +136,8 @@ export class BroadcastStudioComponent implements OnDestroy {
       stream,
       {
         frameRate: this.frameRate(),
-        audioEnabled: this.audioEnabled(),
+        // Publish the microphone track even when disabled so it can be unmuted live.
+        audioEnabled: true,
         screenAudioTrackIds: this.media.systemAudioTrackIds(),
       },
     );
@@ -161,6 +162,7 @@ export class BroadcastStudioComponent implements OnDestroy {
     this.notice.set('');
     try {
       await this.media.start(this.selectedSource(), '', '', this.frameRate());
+      if (!this.audioEnabled() && !this.media.microphoneMuted()) this.media.toggleMicrophone();
       this.state.set('PREVIEWING');
       this.notice.set('Vista previa privada. Nada se está transmitiendo ni grabando.');
     } catch (error: unknown) {
@@ -177,6 +179,11 @@ export class BroadcastStudioComponent implements OnDestroy {
     if (this.emitting()) return;
     const value = (event.target as HTMLSelectElement).value;
     await this.changeDevice(() => this.media.changeMicrophone(value));
+  }
+
+  toggleMicrophone(): void {
+    this.media.toggleMicrophone();
+    this.audioEnabled.set(!this.media.microphoneMuted());
   }
 
   async changeCamera(event: Event): Promise<void> {

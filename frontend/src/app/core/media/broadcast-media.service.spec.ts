@@ -95,6 +95,20 @@ describe('BroadcastMediaService', () => {
     expect(service.state()).toBe('ERROR');
     expect(sdk.rooms).toHaveLength(0);
   });
+  it('cancels an immediate watch before it connects', async () => {
+    const pending = service.watch(broadcast);
+    await service.stop();
+    await pending;
+    expect(api.access).not.toHaveBeenCalled();
+    expect(sdk.rooms).toHaveLength(0);
+    expect(service.state()).toBe('IDLE');
+  });
+  it('only connects the latest of two concurrent watch requests', async () => {
+    await Promise.all([service.watch(broadcast), service.watch({ ...broadcast, id: 'latest' })]);
+    expect(api.access).toHaveBeenCalledOnce();
+    expect(api.access).toHaveBeenCalledWith('latest');
+    expect(sdk.rooms).toHaveLength(1);
+  });
   it('does not connect after the viewer closes while access is pending', async () => {
     const access = new Subject<BroadcastAccess>();
     api.access.mockReturnValue(access);
@@ -112,10 +126,16 @@ describe('BroadcastMediaService', () => {
     const systemAudio = { id: 'system-audio', kind: 'audio', readyState: 'live' },
       microphone = { id: 'microphone', kind: 'audio', readyState: 'live' },
       video = { id: 'video', kind: 'video', readyState: 'live' };
-    await service.publish('channel', 'Test', 'SCREEN', {
-      getTracks: () => [video, systemAudio, microphone],
-      getAudioTracks: () => [systemAudio, microphone],
-    } as unknown as MediaStream, { screenAudioTrackIds: [systemAudio.id] });
+    await service.publish(
+      'channel',
+      'Test',
+      'SCREEN',
+      {
+        getTracks: () => [video, systemAudio, microphone],
+        getAudioTracks: () => [systemAudio, microphone],
+      } as unknown as MediaStream,
+      { screenAudioTrackIds: [systemAudio.id] },
+    );
     const room = sdk.rooms[0];
     expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
       video,

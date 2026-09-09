@@ -752,6 +752,21 @@ remota vencerá, como máximo, en ocho horas.
 
 ## Próximas etapas
 
+### Incremento visual y multimedia · `feat/experiencia-multimedia`
+
+- [x] Login, comunidades, perfil y estudio con identidad visual Nexo y ajustes responsive.
+- [x] Audio de pantalla y micrófono independientes, conservados al cambiar de micrófono.
+- [x] Vista previa real con aviso cuando la fuente no entrega audio compartido.
+- [x] Visor con volumen y fullscreen sin recrear video/conexión; prueba local de tres ciclos.
+- [ ] Publicación de este incremento en EC2 y aceptación con audio físico, móviles y redes reales.
+
+Ver [tickets, instrucciones, pruebas y capturas nuevas](docs/experiencia-multimedia.md).
+La captura de sonido depende de la fuente y los permisos del navegador; no se
+garantiza audio del sistema en todos los móviles. 30 FPS es el valor inicial;
+la resolución, fluidez y calidad recibidas dependen del dispositivo y la red.
+
+### Estado general
+
 - [x] Angular → Spring Boot → PostgreSQL local.
 - [x] Monolito modular, Flyway, health y Swagger.
 - [x] Comunidad y mensajería con perfiles demo independientes.
@@ -820,6 +835,7 @@ reconexión, mute, salida y transmisión de pantalla. Ver
 - [Verificación del estudio multimedia local](docs/multimedia-studio-verification.md).
 - [Transmisiones LiveKit: configuración, contratos y verificación](docs/broadcast-sfu-verification.md).
 - [Servicios actuales, flujo de pantalla y capturas multimedia](docs/transmisiones-y-servicios.md).
+- [Experiencia multimedia: diseño responsive, sonido compartido y fullscreen](docs/experiencia-multimedia.md).
 - [Fase 5: preparación, pruebas pendientes y reversión](docs/phase-5-readiness.md).
 - [Mockup interactivo de perfil, edición y transmisión](docs/nexo-profile-streaming-mockup.html).
 - [Plan de implementación de perfil y transmisiones](profile-streaming-implementation-plan.md).

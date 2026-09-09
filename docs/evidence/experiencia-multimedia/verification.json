@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-09-09T22:02:09.166Z",
+  "origin": "http://127.0.0.1:4200",
+  "browser": "152.0.7977.83",
+  "syntheticMedia": "640x360 at 10 FPS, generated audio; not real hardware",
+  "fullscreen": [
+    {
+      "round": 1,
+      "before": 2,
+      "expanded": 8,
+      "after": 12
+    },
+    {
+      "round": 2,
+      "before": 12,
+      "expanded": 18,
+      "after": 22
+    },
+    {
+      "round": 3,
+      "before": 22,
+      "expanded": 28,
+      "after": 32
+    }
+  ],
+  "checks": [
+    "CAMERA: audio/video, mute, read-only viewer and cleanup passed",
+    "SCREEN: audio/video, mute, read-only viewer and cleanup passed",
+    "Two audio tracks received; independent controls; fullscreen stable; HTTP503 resilience; responsive layouts; abandoned room cleanup"
+  ]
+}

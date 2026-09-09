@@ -41,6 +41,7 @@ import {
 import { ProfilePanelComponent } from '../../components/profile-panel.component';
 import { SettingsPanelComponent } from '../../components/settings-panel.component';
 import { ConversationBroadcastsComponent } from '../../components/conversation-broadcasts.component';
+import { CommunityHeroComponent } from '../../components/community-hero.component';
 
 type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
 
@@ -57,6 +58,7 @@ type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
     ProfilePanelComponent,
     SettingsPanelComponent,
     ConversationBroadcastsComponent,
+    CommunityHeroComponent,
     RouterLink,
   ],
   templateUrl: './home.component.html',

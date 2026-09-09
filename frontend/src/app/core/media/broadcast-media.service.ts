@@ -125,8 +125,8 @@ export class BroadcastMediaService implements OnDestroy {
 
   async watch(broadcast: Broadcast) {
     const stopping = this.stop();
-    await stopping;
     const version = this.version;
+    await stopping;
     if (version !== this.version) return;
     this.error.set('');
     this.state.set('CONNECTING');
@@ -150,7 +150,7 @@ export class BroadcastMediaService implements OnDestroy {
     const access = await firstValueFrom(this.api.access(id));
     this.check(version);
     if (access.role !== role) throw new Error('Rol no válido');
-    const room = new Room({ adaptiveStream: true, dynacast: true });
+    const room = new Room({ adaptiveStream: { pixelDensity: 1 }, dynacast: true });
     this.room = room;
     room.on(RoomEvent.Reconnecting, () => {
       if (this.room === room) this.state.set('RECONNECTING');
@@ -168,9 +168,7 @@ export class BroadcastMediaService implements OnDestroy {
       if (this.room !== room) return;
       if (track.kind === 'video') this.video.set(track);
       else if (track.kind === 'audio')
-        this.audioTracks.update((tracks) =>
-          tracks.includes(track) ? tracks : [...tracks, track],
-        );
+        this.audioTracks.update((tracks) => (tracks.includes(track) ? tracks : [...tracks, track]));
     });
     room.on(RoomEvent.TrackUnsubscribed, (track) => {
       track.detach();
