@@ -182,6 +182,7 @@ doc.add_paragraph("La URI nip.io es temporal y depende de la IP pública/elásti
 heading(doc, "12. Galería de capturas: MSAL, JWT y reflejo en Nexo")
 doc.add_paragraph("Esta sección reúne únicamente capturas de la configuración y del comportamiento visible de la aplicación. El JWT completo no se muestra por seguridad: la evidencia se limita a la configuración del scope, la sesión autenticada y el resultado que Nexo recibe después de la validación.")
 for filename, text in [
+    ("08-msal-microsoft-login-20260910.png", "Captura nueva en vivo: pantalla de Microsoft Entra abierta por MSAL desde el botón institucional de Nexo."),
     ("01-nexo-frontend-overview.png", "MSAL/Entra: registro Nexo Frontend activo, tenant y aplicación SPA configurada."),
     ("02-nexo-api-scope.png", "JWT/claims: Nexo Web expone el scope access_as_user que se solicita al access token."),
     ("04-nexo-login-rendered.png", "Aplicación: pantalla de acceso Nexo con el botón Continuar con Microsoft."),
@@ -193,6 +194,17 @@ for filename, text in [
         doc.add_picture(str(path), width=Inches(6.45))
         doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
         caption(doc, text)
+
+heading(doc, "13. Qué hace MSAL y cómo participa el JWT")
+numbered(doc, [
+    "MSAL es la biblioteca oficial de Microsoft para que la aplicación Angular delegue el inicio de sesión en Microsoft Entra ID. Nexo no recibe ni almacena la contraseña institucional.",
+    "Al pulsar Continuar con Microsoft, MSAL inicia Authorization Code + PKCE y abre la pantalla de Microsoft. La captura nueva muestra precisamente ese paso externo y seguro.",
+    "Después de autenticar al usuario, Microsoft redirige al redirect URI registrado de Nexo. MSAL procesa la respuesta, identifica la cuenta activa y conserva la sesión en su caché del navegador.",
+    "Cuando Nexo necesita consumir la API, MSAL intenta obtener silenciosamente un access token. Ese token es un JWT firmado por Microsoft y contiene claims como issuer, audience, expiración y scope.",
+    "El interceptor de Angular agrega Authorization: Bearer únicamente a las llamadas dirigidas a la API de Nexo. El frontend no decide permisos leyendo el token; el backend valida la firma con las claves JWK, issuer, audience, expiración y scopes.",
+    "Si todo es válido, Spring crea la identidad autenticada y Nexo refleja el resultado en /home mostrando el nombre y la etiqueta Microsoft Entra ID. Si la sesión expira, la interfaz solicita volver a iniciar sesión.",
+])
+doc.add_paragraph("Regla de seguridad para las evidencias: nunca se captura el JWT completo, cookies, códigos de autorización, contraseñas ni client secrets. La imagen JWT/claims del informe muestra la configuración del scope que autoriza el token, y la captura autenticada muestra únicamente el resultado visible en la aplicación.")
 
 footer = section.footer.paragraphs[0]
 footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
