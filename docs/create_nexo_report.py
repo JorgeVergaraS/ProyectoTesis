@@ -179,6 +179,21 @@ heading(doc, "11. Seguridad y límites de la evidencia")
 doc.add_paragraph("MSAL obtiene los tokens de Microsoft Entra mediante OAuth2/OIDC y el interceptor los adjunta a las solicitudes protegidas. El backend valida issuer, audience, firma y expiración del JWT. El client ID y el tenant ID son identificadores públicos; los secretos, contraseñas y tokens no se guardan en el repositorio ni en este documento.")
 doc.add_paragraph("La URI nip.io es temporal y depende de la IP pública/elástica de la instancia. Para un despliegue real se recomienda dominio propio, HTTPS con certificado administrado, API Gateway con JWT Authorizer y rotación de secretos. La validación descrita corresponde al alcance académico operativo.")
 
+heading(doc, "12. Galería de capturas: MSAL, JWT y reflejo en Nexo")
+doc.add_paragraph("Esta sección reúne únicamente capturas de la configuración y del comportamiento visible de la aplicación. El JWT completo no se muestra por seguridad: la evidencia se limita a la configuración del scope, la sesión autenticada y el resultado que Nexo recibe después de la validación.")
+for filename, text in [
+    ("01-nexo-frontend-overview.png", "MSAL/Entra: registro Nexo Frontend activo, tenant y aplicación SPA configurada."),
+    ("02-nexo-api-scope.png", "JWT/claims: Nexo Web expone el scope access_as_user que se solicita al access token."),
+    ("04-nexo-login-rendered.png", "Aplicación: pantalla de acceso Nexo con el botón Continuar con Microsoft."),
+    ("06-login-success.png", "Aplicación: retorno autenticado a Nexo; la interfaz identifica la sesión con Microsoft Entra ID."),
+    ("07-session-expired-msal.png", "MSAL: estado visible cuando la sesión expira y Nexo solicita iniciar sesión nuevamente."),
+]:
+    path = EVIDENCE / filename
+    if path.exists():
+        doc.add_picture(str(path), width=Inches(6.45))
+        doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        caption(doc, text)
+
 footer = section.footer.paragraphs[0]
 footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
 footer.add_run("Nexo — Evidencia de configuración frontend y Azure").font.size = Pt(8)
