@@ -114,7 +114,9 @@ h3 {
 .player:fullscreen,
 .player.expanded {
   width: 100%;
-  height: 100dvh;
+  width: var(--viewer-viewport-width, 100vw);
+  height: 100vh;
+  height: var(--viewer-viewport-height, 100dvh);
   max-height: none;
   margin: 0;
   border: 0;
@@ -122,11 +124,15 @@ h3 {
   display: flex;
   flex-direction: column;
   background: #020609;
+  overflow: hidden;
 }
 .player.expanded:not(:fullscreen) {
   position: fixed;
   inset: 0;
+  width: 100%;
   z-index: 1000;
+  max-width: none;
+  border-radius: 0;
 }
 .player:fullscreen .stage,
 .player.expanded .stage {
@@ -170,5 +176,24 @@ h3 {
   }
   .stage {
     aspect-ratio: 16/10;
+  }
+}
+@media (orientation: landscape) and (max-width: 900px) {
+  .player:fullscreen,
+  .player.expanded {
+    height: 100vh;
+    height: var(--viewer-viewport-height, 100dvh);
+  }
+  .player:fullscreen header,
+  .player.expanded header {
+    padding: max(8px, env(safe-area-inset-top)) 12px 8px;
+  }
+  .player:fullscreen .controls,
+  .player.expanded .controls {
+    padding: 8px max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+  .player:fullscreen .stage,
+  .player.expanded .stage {
+    min-height: 0;
   }
 }

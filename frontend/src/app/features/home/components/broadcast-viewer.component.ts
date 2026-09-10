@@ -84,6 +84,7 @@ export class BroadcastViewerComponent {
   readonly muted = signal(false);
   readonly volume = signal(80);
   readonly fullscreenNotice = signal('');
+  private orientationLocked = false;
   private readonly broadcastId = computed(() => this.broadcast().id);
   private readonly player = viewChild<ElementRef<HTMLElement>>('player');
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
@@ -145,30 +146,86 @@ export class BroadcastViewerComponent {
       if (document.fullscreenElement === element) {
         try {
           await document.exitFullscreen();
+          await this.unlockOrientation();
         } catch {
           this.fullscreenNotice.set('Usa Escape para salir de pantalla completa.');
         }
-      } else this.expanded.set(false);
+      } else {
+        this.expanded.set(false);
+        this.clearViewportSize();
+        await this.unlockOrientation();
+      }
       return;
     }
     this.fullscreenNotice.set('');
     if (element.requestFullscreen) {
       try {
-        await element.requestFullscreen();
+        await element.requestFullscreen({ navigationUI: 'hide' } as FullscreenOptions);
         this.expanded.set(true);
+        await this.lockOrientationForFullscreen();
         return;
       } catch {
         /* Keep the same player in the enlarged fallback. */
       }
     }
     this.expanded.set(true);
+    this.syncViewportSize();
     this.fullscreenNotice.set('Vista ampliada. Tu navegador no ofrece pantalla completa aquí.');
   }
   @HostListener('document:fullscreenchange') fullscreenChanged() {
     this.expanded.set(document.fullscreenElement === this.player()?.nativeElement);
+    if (document.fullscreenElement) this.syncViewportSize();
+    else {
+      this.clearViewportSize();
+      void this.unlockOrientation();
+    }
+  }
+  @HostListener('window:resize') viewportChanged() {
+    if (this.expanded()) this.syncViewportSize();
+  }
+  @HostListener('window:orientationchange') orientationChanged() {
+    if (!this.expanded()) return;
+    // Android browsers may dispatch orientationchange before updating the
+    // viewport dimensions. A frame gives the browser time to settle first.
+    requestAnimationFrame(() => this.syncViewportSize());
   }
   @HostListener('document:keydown.escape') escape() {
-    if (!document.fullscreenElement) this.expanded.set(false);
+    if (!document.fullscreenElement) {
+      this.expanded.set(false);
+      this.clearViewportSize();
+      void this.unlockOrientation();
+    }
+  }
+  private syncViewportSize() {
+    const element = this.player()?.nativeElement;
+    if (!element) return;
+    element.style.setProperty('--viewer-viewport-width', `${window.innerWidth}px`);
+    element.style.setProperty('--viewer-viewport-height', `${window.innerHeight}px`);
+  }
+  private clearViewportSize() {
+    const element = this.player()?.nativeElement;
+    element?.style.removeProperty('--viewer-viewport-width');
+    element?.style.removeProperty('--viewer-viewport-height');
+  }
+  private async lockOrientationForFullscreen() {
+    const orientation = screen.orientation as ScreenOrientation & {
+      lock?: (orientation: 'landscape' | 'portrait') => Promise<void>;
+    };
+    if (!orientation?.lock || window.matchMedia('(min-width: 768px)').matches) return;
+    try {
+      await orientation.lock('landscape');
+      this.orientationLocked = true;
+    } catch {
+      // Some browsers allow fullscreen but do not expose orientation locking.
+    }
+  }
+  private async unlockOrientation() {
+    if (!this.orientationLocked) return;
+    try {
+      screen.orientation.unlock();
+    } finally {
+      this.orientationLocked = false;
+    }
   }
   status() {
     switch (this.media.state()) {

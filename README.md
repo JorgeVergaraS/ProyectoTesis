@@ -758,6 +758,7 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Audio de pantalla y micrófono independientes, conservados al cambiar de micrófono.
 - [x] Vista previa real con aviso cuando la fuente no entrega audio compartido.
 - [x] Visor con volumen y fullscreen sin recrear video/conexión; prueba local de tres ciclos.
+- [x] Fullscreen responsive: recalcula el viewport en `resize` y `orientationchange`, con fallback a pantalla completa cuando el navegador rechaza la API nativa.
 - [x] Publicación de este incremento en EC2; queda pendiente la aceptación con audio físico, móviles y redes reales.
 
 Ver [tickets, instrucciones, pruebas y capturas nuevas](docs/experiencia-multimedia.md).

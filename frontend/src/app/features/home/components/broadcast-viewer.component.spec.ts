@@ -66,6 +66,23 @@ describe('BroadcastViewerComponent', () => {
     expect(media.watch).toHaveBeenCalledOnce();
     expect(media.video()!.detach).not.toHaveBeenCalled();
   });
+  it('requests hidden browser UI and attempts landscape locking on mobile', async () => {
+    const fixture = setup();
+    const player = fixture.nativeElement.querySelector('.player');
+    player.requestFullscreen = vi.fn().mockResolvedValue(undefined);
+    const lock = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(screen, 'orientation', {
+      configurable: true,
+      value: { lock, unlock: vi.fn() },
+    });
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockReturnValue({ matches: false } as MediaQueryList),
+    });
+    await fixture.componentInstance.toggleFullscreen();
+    expect(player.requestFullscreen).toHaveBeenCalledWith({ navigationUI: 'hide' });
+    expect(lock).toHaveBeenCalledWith('landscape');
+  });
   it('offers an enlarged fallback when native fullscreen is rejected and Escape closes it', async () => {
     const fixture = setup();
     fixture.nativeElement.querySelector('.player').requestFullscreen = vi

@@ -10,7 +10,7 @@ credenciales, esquema de base de datos, membresías, puertos ni recursos cloud.
 | --- | --- | --- |
 | NEXO-UX-01 | Implementado y probado localmente | Login, comunidades y perfil con identidad Nexo: azul nocturno, violeta/cian, formas orbitales y tarjetas adaptables. |
 | NEXO-MEDIA-01 | Implementado y probado localmente | Micrófono y sonido de pantalla independientes; cambiar micrófono conserva la pista compartida. |
-| NEXO-MEDIA-02 | Implementado y probado localmente | Reproductor con volumen, activación de audio y pantalla completa sin recrear video ni conexión. |
+| NEXO-MEDIA-02 | Implementado y probado localmente | Reproductor con volumen, activación de audio y pantalla completa sin recrear video ni conexión; el viewport se recalcula al girar Android. |
 | NEXO-MEDIA-03 | Implementado y probado localmente | Vista previa privada real, estado explícito de audio capturado y controles adaptados al ancho del estudio. |
 | NEXO-MEDIA-04 | Pendiente de aceptación manual | Audio físico de pestaña/PC, Safari/iPhone, Android y redes móviles reales. |
 | NEXO-UX-DEPLOY | Implementado; aceptación manual pendiente | Rama `feat/experiencia-multimedia` publicada en EC2 con commit `dee4fb0`; se conservaron los valores cloud de MSAL del entorno anterior. |
