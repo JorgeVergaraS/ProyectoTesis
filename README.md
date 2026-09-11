@@ -653,7 +653,7 @@ Servicios iniciados, desde la raíz en PowerShell:
 
 | Comprobación  | Resultado registrado                                                                             |
 | ------------- | ------------------------------------------------------------------------------------------------ |
-| Backend       | 7 de septiembre: `verify` completo con Docker y Java 21; 41 pruebas aprobadas, sin omisiones |
+| Backend       | 11 de septiembre: `test` completo con Docker y Java 21; 42 pruebas aprobadas, sin omisiones |
 | Frontend      | 7 de septiembre: 76 pruebas aprobadas en 22 archivos                                              |
 | Build Angular | Compilación de producción correcta                                                               |
 | Formato       | Prettier correcto                                                                                |
@@ -664,6 +664,11 @@ Testcontainers crea bases efímeras, sin tocar la demo. Los tests unitarios de v
 usan dobles de medios; la conexión real se comprobó aparte. No se evaluó de oído
 la calidad de voz ni se probaron redes remotas.
 [Evidencia de fotos y llamadas](docs/photos-and-calls-verification.md).
+
+Para repetir la validación manual de la API se incluye la colección
+[Nexo Cloud Native - Evidencia JWT](docs/postman/Nexo-Cloud-Native.postman_collection.json).
+Contiene health público (`200`), perfil sin Bearer (`401`) y perfil autenticado
+con la variable secreta `accessToken`; la colección no almacena JWT reales.
 
 La verificación del 7 de septiembre usó Maven 3.9.16 ya instalado (`bin/mvn.cmd verify`):
 el wrapper de Windows falló antes de arrancar Maven al evaluar `.Target[0]`.
