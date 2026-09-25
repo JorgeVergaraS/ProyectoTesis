@@ -1,6 +1,7 @@
 # RabbitMQ aplicado a Nexo
 
-Implementación local del 24 de septiembre de 2026, tomando como referencia
+Implementación iniciada localmente el 24 de septiembre de 2026 y desplegada en
+AWS el 25 de septiembre de 2026, tomando como referencia
 `Guia_EA2_Clase1_Pedidos360_RabbitMQ.pdf` y `powershell.txt`.
 
 ## Qué se incorporó
@@ -129,6 +130,48 @@ En esta máquina el puerto 8080 estaba ocupado por otro proyecto al verificar.
 La revisión visual usó backend 8081 y Angular 4201 con una base temporal. Para usar
 otros puertos en tu sesión, ajusta `SERVER_PORT`, el proxy de Angular y CORS juntos.
 
+## Despliegue comprobado en AWS
+
+La integración está activa en la instancia EC2 `nexo-backend-academico`, dentro de
+la red Docker privada `nexo-cloud`. Se reutilizó la dirección pública estable de
+Nexo: <https://34.196.97.226.nip.io>.
+
+- `nexo-rabbitmq` ejecuta RabbitMQ 4.2 con imagen Alpine, reinicio automático,
+  límite de memoria de 384 MiB y volumen persistente `nexo_rabbitmq_data`.
+- RabbitMQ no publica `5672` ni `15672` en el host. El backend se conecta mediante
+  el alias interno `nexo-rabbitmq:5672`; no fue necesario ampliar el Security Group.
+- La contraseña del broker se generó en la instancia, no se imprimió ni se añadió
+  al repositorio. Los archivos `/opt/nexo/rabbitmq.env` y `/opt/nexo/backend.env`
+  quedan con permisos `0600`.
+- El backend se reconstruyó desde el commit `d3324e2` de la rama
+  `feature/rabbitmq-responsive-aws`. El despliegue conservó una imagen de reversión
+  hasta que la nueva instancia superó readiness.
+- Flyway aplicó V11 en RDS. Después, Spring AMQP abrió la conexión y dejó un
+  consumidor activo en `nexo.message.created`.
+
+Validación observada después del despliegue:
+
+| Comprobación | Resultado |
+| --- | --- |
+| Readiness interno | `UP` |
+| Sitio HTTPS público | HTTP 200 |
+| `nexo.message.created` | durable, 1 consumidor |
+| `nexo.message.created.failed` | durable, 0 mensajes |
+| Puertos publicados por RabbitMQ | ninguno |
+| Migración | V11 aplicada correctamente en RDS |
+
+El frontend productivo se recompiló conservando la configuración real de Microsoft
+Entra, LiveKit y TURN. Se verificó el sitio desplegado en 320×568, 844×390 y
+768×1024 sin desbordamiento horizontal. Los paneles de llamada individual y grupal
+ahora limitan su altura, permiten desplazamiento interno, respetan áreas seguras y
+mantienen controles táctiles de 44 px. El estudio y el visor de pantalla compartida
+adaptan sus columnas y controles a contenedores estrechos y al modo horizontal.
+
+En Microsoft Entra se comprobó que `Nexo Frontend` sigue activo como SPA y mantiene
+la URI productiva `https://34.196.97.226.nip.io`. RabbitMQ no requiere otro registro,
+scope ni secreto en Azure; la autenticación continúa usando `Nexo Frontend` para la
+SPA y `Nexo Web` para el scope `access_as_user`.
+
 ## Demostración equivalente a la guía
 
 1. Ejecuta `.\scripts\start-rabbitmq.ps1 -PauseConsumer` y reinicia el backend.
@@ -182,7 +225,8 @@ volumen habría que medirlo y separar el proceso. Se conservan los avisos leído
 para deduplicar; falta una política de retención para operación prolongada.
 
 Desactivar `NEXO_EVENTS_ENABLED` deja de producir y consumir nuevos eventos; los
-pendientes existentes quedan guardados para reactivar. No se hizo despliegue en AWS.
+pendientes existentes quedan guardados para reactivar. En AWS esta variable está
+activa tanto para el productor como para el consumidor.
 
 Fundamento técnico: [fiabilidad de RabbitMQ](https://www.rabbitmq.com/docs/reliability)
 y [confirmaciones y retornos de Spring AMQP](https://docs.spring.io/spring-amqp/reference/amqp/template.html).
