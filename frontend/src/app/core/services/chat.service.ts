@@ -14,6 +14,12 @@ export class ChatService {
   workspace() {
     return this.http.get<Workspace>(this.base + '/workspace');
   }
+  readNotification(conversationId: string, messageId: string) {
+    return this.http.post<void>(
+      this.base + '/conversations/' + conversationId + '/notifications/' + messageId + '/read',
+      {},
+    );
+  }
   messages(id: string) {
     return this.http.get<Message[]>(this.base + '/conversations/' + id + '/messages');
   }

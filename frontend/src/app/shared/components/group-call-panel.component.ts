@@ -12,7 +12,12 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
       <section class="group-panel" aria-label="Llamada grupal">
         <header>
           <span><nexo-icon name="phone" /> LLAMADA GRUPAL</span>
-          <button class="icon-button" (click)="minimized.set(!minimized())">
+          <button
+            class="icon-button"
+            [attr.aria-label]="minimized() ? 'Expandir llamada grupal' : 'Minimizar llamada grupal'"
+            [attr.aria-pressed]="minimized()"
+            (click)="minimized.set(!minimized())"
+          >
             <nexo-icon name="chevron" />
           </button>
         </header>
@@ -55,6 +60,10 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
       bottom: 24px;
       box-sizing: border-box;
       width: min(420px, calc(100vw - 28px));
+      max-height: calc(100dvh - 48px);
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
       padding: 18px;
       border: 1px solid #665084;
       border-radius: 19px;
@@ -69,8 +78,9 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
       gap: 12px;
     }
     .actions button {
+      min-width: 0;
       flex: 1;
-      min-height: 40px;
+      min-height: 44px;
     }
     header span {
       font-size: 10px;
@@ -80,6 +90,7 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
     h2 {
       margin: 14px 0 6px;
       font-size: 19px;
+      overflow-wrap: anywhere;
     }
     p,
     small {
@@ -108,6 +119,7 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
     .group-broadcasts nexo-broadcast-studio,
     .group-broadcasts nexo-conversation-broadcasts {
       display: block;
+      min-width: 0;
       margin-top: 10px;
     }
     small {
@@ -118,13 +130,25 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
     @media (max-width: 480px) {
       .group-panel,
       .group-toast {
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
+        left: max(8px, env(safe-area-inset-left));
+        right: max(8px, env(safe-area-inset-right));
+        bottom: max(8px, env(safe-area-inset-bottom));
         width: auto;
-        max-height: calc(100dvh - 20px);
-        overflow: auto;
+        max-height: calc(
+          100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom))
+        );
         padding: 12px;
+      }
+    }
+    @media (orientation: landscape) and (max-height: 520px) {
+      .group-panel {
+        top: max(8px, env(safe-area-inset-top));
+        bottom: max(8px, env(safe-area-inset-bottom));
+        max-height: none;
+      }
+      h2 {
+        margin-top: 8px;
+        font-size: 16px;
       }
     }
   `,

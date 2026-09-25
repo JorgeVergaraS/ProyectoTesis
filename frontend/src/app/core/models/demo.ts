@@ -41,4 +41,13 @@ export interface Workspace {
   channels: Conversation[];
   directs: Conversation[];
   people: DemoUser[];
+  notifications?: MessageNotification[];
+}
+
+export interface MessageNotification {
+  messageId: string;
+  conversationId: string;
+  conversationTitle: string;
+  senderName: string;
+  sentAt: string;
 }

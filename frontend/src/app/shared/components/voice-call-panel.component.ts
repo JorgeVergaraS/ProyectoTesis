@@ -109,6 +109,8 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
       width: min(420px, calc(100vw - 28px));
       max-height: calc(100dvh - 48px);
       overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
       padding: 18px;
       border: 1px solid #665084;
       border-radius: 19px;
@@ -153,7 +155,7 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
     .call-actions button {
       min-width: 0;
       flex: 1;
-      min-height: 40px;
+      min-height: 44px;
       font-size: 11px;
       border-radius: 9px;
       padding: 9px;
@@ -223,12 +225,14 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
     }
     @media (max-width: 480px) {
       .voice-panel {
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
+        left: max(8px, env(safe-area-inset-left));
+        right: max(8px, env(safe-area-inset-right));
+        bottom: max(8px, env(safe-area-inset-bottom));
         width: auto;
         max-width: none;
-        max-height: calc(100dvh - 20px);
+        max-height: calc(
+          100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom))
+        );
         padding: 12px;
         border-radius: 16px;
       }
@@ -242,6 +246,25 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
       }
       .call-help {
         line-height: 1.55;
+      }
+      .call-toast {
+        left: max(8px, env(safe-area-inset-left));
+        right: max(8px, env(safe-area-inset-right));
+        bottom: max(8px, env(safe-area-inset-bottom));
+        max-width: none;
+      }
+    }
+    @media (orientation: landscape) and (max-height: 520px) {
+      .voice-panel {
+        top: max(8px, env(safe-area-inset-top));
+        bottom: max(8px, env(safe-area-inset-bottom));
+        max-height: none;
+      }
+      .call-person h2 {
+        font-size: 16px;
+      }
+      .call-actions {
+        margin-top: 10px;
       }
     }
   `,

@@ -35,6 +35,11 @@
       }
 
       <main class="workspace-main">
+        <nexo-message-notifications
+          [notifications]="notifications()"
+          [busy]="notificationBusy()"
+          (opened)="openNotification($event)"
+        />
         @if (connectionError()) {
           <div class="connection-banner" role="status">
             {{ connectionError() }}<button (click)="retry()">Reintentar</button>

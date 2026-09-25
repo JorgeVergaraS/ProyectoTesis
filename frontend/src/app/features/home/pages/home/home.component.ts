@@ -24,7 +24,13 @@ import {
 } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { ChatService } from '../../../../core/services/chat.service';
-import { Conversation, DemoUser, Message, Workspace } from '../../../../core/models/demo';
+import {
+  Conversation,
+  DemoUser,
+  Message,
+  MessageNotification,
+  Workspace,
+} from '../../../../core/models/demo';
 import { AvatarComponent } from '../../../../shared/components/avatar.component';
 import { IconComponent } from '../../../../shared/components/icon.component';
 import { MessageTextComponent } from '../../../../shared/components/message-text.component';
@@ -42,6 +48,7 @@ import { ProfilePanelComponent } from '../../components/profile-panel.component'
 import { SettingsPanelComponent } from '../../components/settings-panel.component';
 import { ConversationBroadcastsComponent } from '../../components/conversation-broadcasts.component';
 import { CommunityHeroComponent } from '../../components/community-hero.component';
+import { MessageNotificationsComponent } from '../../components/message-notifications.component';
 
 type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
 
@@ -59,6 +66,7 @@ type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
     SettingsPanelComponent,
     ConversationBroadcastsComponent,
     CommunityHeroComponent,
+    MessageNotificationsComponent,
     RouterLink,
   ],
   templateUrl: './home.component.html',
@@ -73,6 +81,8 @@ export class HomeComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   readonly workspace = signal<Workspace>({ channels: [], directs: [], people: [] });
+  readonly notifications = computed(() => this.workspace().notifications ?? []);
+  readonly notificationBusy = signal(false);
   readonly providerLabel = computed(() => {
     switch (this.auth.session.kind()) {
       case 'demo':
@@ -309,6 +319,36 @@ export class HomeComponent {
     );
     this.refreshWorkspace.next();
     this.refreshMessages.next();
+  }
+  async openNotification(notification: MessageNotification): Promise<void> {
+    if (this.notificationBusy()) return;
+    const conversation = [...this.workspace().channels, ...this.workspace().directs].find(
+      (item) => item.id === notification.conversationId && item.joined,
+    );
+    if (!conversation) {
+      this.actionError.set('Esta conversación ya no está disponible.');
+      this.refreshWorkspace.next();
+      return;
+    }
+    this.select(conversation);
+    this.notificationBusy.set(true);
+    this.actionError.set('');
+    try {
+      await firstValueFrom(
+        this.chat.readNotification(notification.conversationId, notification.messageId),
+      );
+      this.workspace.update((workspace) => ({
+        ...workspace,
+        notifications: workspace.notifications?.filter(
+          (item) => item.messageId !== notification.messageId,
+        ),
+      }));
+      this.refreshWorkspace.next();
+    } catch {
+      this.actionError.set('No pudimos marcar el aviso como leído. Vuelve a intentarlo.');
+    } finally {
+      this.notificationBusy.set(false);
+    }
   }
   async membership(conversation: Conversation, join: boolean): Promise<void> {
     if (this.actionBusy()) return;

@@ -2,6 +2,7 @@ package com.nexo.messaging.repository;
 
 import com.nexo.messaging.dto.ConversationView;
 import com.nexo.messaging.dto.MessageView;
+import com.nexo.messaging.dto.NotificationView;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -14,7 +15,12 @@ import org.springframework.web.server.ResponseStatusException;
 @Repository
 public class ChatRepository {
     private final JdbcClient jdbc;
-    public ChatRepository(JdbcClient jdbc) { this.jdbc = jdbc; }
+    private final boolean eventsEnabled;
+    public ChatRepository(JdbcClient jdbc,
+            @org.springframework.beans.factory.annotation.Value("${nexo.events.enabled:false}") boolean eventsEnabled) {
+        this.jdbc = jdbc;
+        this.eventsEnabled = eventsEnabled;
+    }
 
     public List<ConversationView> conversations(UUID userId) {
         return jdbc.sql("""
@@ -95,12 +101,17 @@ public class ChatRepository {
     }
 
     public MessageView send(UUID conversation, UUID user, UUID clientId, String body) {
-        jdbc.sql("""
+        UUID messageId = UUID.randomUUID();
+        int inserted = jdbc.sql("""
                 INSERT INTO nexo.messages(id,conversation_id,sender_id,client_id,body)
                 VALUES (:id,:conversation,:user,:client,:body)
                 ON CONFLICT (conversation_id,sender_id,client_id) DO NOTHING
-                """).param("id", UUID.randomUUID()).param("conversation", conversation).param("user", user)
+                """).param("id", messageId).param("conversation", conversation).param("user", user)
                 .param("client", clientId).param("body", body).update();
+        if (eventsEnabled && inserted == 1) {
+            jdbc.sql("INSERT INTO nexo.message_outbox(message_id) VALUES (:id)")
+                    .param("id", messageId).update();
+        }
         return jdbc.sql("""
                 SELECT m.*,u.display_name,u.color,u.avatar_version FROM nexo.messages m JOIN nexo.users u ON u.id=m.sender_id
                 WHERE m.conversation_id=:conversation AND m.sender_id=:user AND m.client_id=:client
@@ -118,6 +129,32 @@ public class ChatRepository {
                 .query(UUID.class)
                 .optional()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    public List<NotificationView> notifications(UUID user) {
+        return jdbc.sql("""
+                SELECT m.id, m.conversation_id, m.sent_at, sender.display_name,
+                  CASE WHEN c.kind='DIRECT' THEN sender.display_name ELSE c.title END AS title
+                FROM nexo.message_notifications n
+                JOIN nexo.messages m ON m.id=n.message_id
+                JOIN nexo.conversations c ON c.id=m.conversation_id
+                JOIN nexo.users sender ON sender.id=m.sender_id
+                JOIN nexo.conversation_members member
+                  ON member.conversation_id=c.id AND member.user_id=n.user_id
+                WHERE n.user_id=:user AND n.read_at IS NULL AND member.joined_at<=m.sent_at
+                ORDER BY m.sent_at DESC, m.id DESC LIMIT 50
+                """).param("user", user).query((rs, row) -> new NotificationView(
+                        rs.getObject("id", UUID.class), rs.getObject("conversation_id", UUID.class),
+                        rs.getString("title"), rs.getString("display_name"),
+                        rs.getTimestamp("sent_at").toInstant())).list();
+    }
+
+    public void readNotification(UUID conversation, UUID message, UUID user) {
+        jdbc.sql("""
+                UPDATE nexo.message_notifications n SET read_at=COALESCE(read_at, now())
+                FROM nexo.messages m WHERE n.message_id=m.id AND m.conversation_id=:conversation
+                  AND n.message_id=:message AND n.user_id=:user
+                """).param("conversation", conversation).param("message", message).param("user", user).update();
     }
 
     public MessageView edit(UUID conversation, UUID message, String body) {

@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { BroadcastApiService } from '../../../../core/media/broadcast-api.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { DemoUser, Workspace } from '../../../../core/models/demo';
@@ -82,6 +82,7 @@ describe('HomeComponent', () => {
       of({ ...ownMessage, body }),
     ),
     deleteMessage: vi.fn(() => of(undefined)),
+    readNotification: vi.fn(() => of(undefined)),
   };
   const calls = { occupied: signal(false), start: vi.fn(), hangUp: vi.fn() };
   beforeEach(() => {
@@ -110,6 +111,35 @@ describe('HomeComponent', () => {
         },
       ],
     });
+  });
+  it('opens a notification and only removes it after the server accepts it', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(HomeComponent);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(0);
+    const component = fixture.componentInstance;
+    const notification = {
+      messageId: 'notice-id',
+      conversationId: 'development-id',
+      conversationTitle: 'desarrollo',
+      senderName: 'Jean',
+      sentAt: '2026-09-24T12:00:00Z',
+    };
+    component.workspace.set({ ...workspace, notifications: [notification] });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Avisos de mensajes');
+    chat.readNotification.mockReturnValueOnce(throwError(() => new Error('offline')));
+    await component.openNotification(notification);
+    expect(component.notifications()).toHaveLength(1);
+    expect(component.actionError()).toContain('No pudimos marcar');
+    await component.openNotification(notification);
+    expect(component.activeId()).toBe('development-id');
+    expect(component.notifications()).toHaveLength(0);
+    expect(chat.readNotification).toHaveBeenCalledWith('development-id', 'notice-id');
+    expect(component.notificationBusy()).toBe(false);
+    fixture.destroy();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
   it('loads the real workspace for an authenticated Microsoft user', async () => {
     vi.useFakeTimers();

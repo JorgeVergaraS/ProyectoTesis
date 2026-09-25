@@ -101,6 +101,12 @@ public class AuthenticatedChatController {
         chat.delete(conversationId, messageId, principal(authentication).userId());
     }
 
+    @PostMapping("/conversations/{id}/notifications/{messageId}/read")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void readNotification(Authentication authentication, @PathVariable UUID id, @PathVariable UUID messageId) {
+        chat.readNotification(id, messageId, principal(authentication).userId());
+    }
+
     private NexoPrincipal principal(Authentication authentication) {
         return currentUser.require(authentication);
     }

@@ -20,6 +20,9 @@ header {
   padding: 18px 20px;
   background: linear-gradient(110deg, #161a35, #0b2330);
 }
+header > div {
+  min-width: 0;
+}
 h3 {
   font-size: 16px;
   margin: 5px 0 0;
@@ -125,6 +128,8 @@ h3 {
   flex-direction: column;
   background: #020609;
   overflow: hidden;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 .player.expanded:not(:fullscreen) {
   position: fixed;
@@ -178,6 +183,18 @@ h3 {
     aspect-ratio: 16/10;
   }
 }
+@media (max-width: 360px) {
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .status {
+    white-space: normal;
+  }
+  .controls button:last-child {
+    margin-left: 0;
+  }
+}
 @media (orientation: landscape) and (max-width: 900px) {
   .player:fullscreen,
   .player.expanded {
@@ -190,7 +207,8 @@ h3 {
   }
   .player:fullscreen .controls,
   .player.expanded .controls {
-    padding: 8px max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    padding: 8px max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
   }
   .player:fullscreen .stage,
   .player.expanded .stage {
