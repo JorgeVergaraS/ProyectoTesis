@@ -165,7 +165,9 @@ flowchart LR
     end
     AU --> DB[(PostgreSQL · Docker)]
     U --> DB
-    C --> DB
+    C -->|Mensajes, outbox y avisos| DB
+    C -->|Publica eventos pendientes| MQ[[RabbitMQ · cola durable]]
+    MQ -->|Consume y crea avisos| C
     R --> RAM[Estado temporal de llamadas directas]
     T --> DB
     T -->|Control de salas| SFU[LiveKit · perfil media]
@@ -184,7 +186,8 @@ flowchart LR
   controlada por el backend.
 - **user:** conserva perfiles y procesa fotos. JPA administra usuarios;
   JdbcClient guarda y consulta los bytes del avatar.
-- **messaging:** workspace autenticado, conversaciones, miembros y mensajes.
+- **messaging:** workspace autenticado, conversaciones, miembros, mensajes y avisos
+  asíncronos mediante outbox y RabbitMQ.
   Consultas parametrizadas, transacciones y restricciones de base controlan
   permisos e idempotencia.
 - **realtime:** intercambia SDP entre participantes autorizados. El audio viaja
@@ -837,6 +840,7 @@ reconexión, mute, salida y transmisión de pantalla. Ver
 - [Backend](backend/README.md) y [frontend](frontend/README.md).
 - [Git Pattern y GitHub](docs/git-workflow.md).
 - [ADR: monolito modular y repositorios separados](docs/architecture/ADR-001-modular-monolith-and-polyrepo.md).
+- [Arquitectura de RabbitMQ para avisos de mensajes](docs/architecture/rabbitmq-message-notifications.md).
 - [Matriz de cumplimiento cloud-native](docs/cloud-native-compliance-matrix.md).
 - [Contribución](CONTRIBUTING.md) y [seguridad](SECURITY.md).
 - [Verificación actual de fotos y voz](docs/photos-and-calls-verification.md).
