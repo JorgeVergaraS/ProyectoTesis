@@ -833,6 +833,7 @@ reconexión, mute, salida y transmisión de pantalla. Ver
 ## Documentación y licencia
 
 - [RabbitMQ aplicado a Nexo: avisos, funcionamiento y demostración](docs/rabbitmq-en-nexo.md).
+- [RabbitMQ en Nexo: explicación y evidencia visual](docs/rabbitmq-explicacion-evidencia.md).
 - [Backend](backend/README.md) y [frontend](frontend/README.md).
 - [Git Pattern y GitHub](docs/git-workflow.md).
 - [ADR: monolito modular y repositorios separados](docs/architecture/ADR-001-modular-monolith-and-polyrepo.md).
