@@ -66,26 +66,14 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
                 [class.focused]="expandedVideo() === 'remote'"
                 [class.picture-in-picture]="!!expandedVideo() && expandedVideo() !== 'remote'"
               >
-                @if (voice.remoteCameraEnabled()) {
-                  <video
-                    #remoteVideo
-                    autoplay
-                    muted
-                    playsinline
-                    aria-label="Video de la otra persona"
-                  ></video>
-                  <span class="video-label">{{
-                    voice.target()?.displayName || 'Otra persona'
-                  }}</span>
-                  <button
-                    type="button"
-                    class="video-expand"
-                    aria-label="Ampliar video de la otra persona"
-                    (click)="toggleVideoSize('remote')"
-                  >
-                    {{ expandedVideo() === 'remote' ? 'Reducir' : 'Ampliar' }}
-                  </button>
-                } @else {
+                <video
+                  #remoteVideo
+                  autoplay
+                  muted
+                  playsinline
+                  aria-label="Video de la otra persona"
+                ></video>
+                @if (!voice.remoteCameraEnabled()) {
                   <div class="video-placeholder">
                     @if (voice.remoteStream()?.getVideoTracks()?.length) {
                       La otra persona tiene la cámara apagada.
@@ -94,32 +82,40 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
                     }
                   </div>
                 }
+                <span class="video-label">{{ voice.target()?.displayName || 'Otra persona' }}</span>
+                <button
+                  type="button"
+                  class="video-expand"
+                  aria-label="Ampliar video de la otra persona"
+                  (click)="toggleVideoSize('remote')"
+                >
+                  {{ expandedVideo() === 'remote' ? 'Reducir' : 'Ampliar' }}
+                </button>
               </div>
               <div
                 class="video-tile"
                 [class.focused]="expandedVideo() === 'local'"
                 [class.picture-in-picture]="!!expandedVideo() && expandedVideo() !== 'local'"
               >
-                @if (voice.localStream()?.getVideoTracks()?.length) {
-                  <video
-                    #localVideo
-                    autoplay
-                    muted
-                    playsinline
-                    aria-label="Vista previa de tu cámara"
-                  ></video>
-                  <span class="video-label">Tú</span>
-                  <button
-                    type="button"
-                    class="video-expand"
-                    aria-label="Ampliar tu cámara"
-                    (click)="toggleVideoSize('local')"
-                  >
-                    {{ expandedVideo() === 'local' ? 'Reducir' : 'Ampliar' }}
-                  </button>
-                } @else {
+                <video
+                  #localVideo
+                  autoplay
+                  muted
+                  playsinline
+                  aria-label="Vista previa de tu cámara"
+                ></video>
+                @if (!voice.cameraEnabled()) {
                   <div class="video-placeholder">Tu cámara está apagada</div>
                 }
+                <span class="video-label">Tú</span>
+                <button
+                  type="button"
+                  class="video-expand"
+                  aria-label="Ampliar tu cámara"
+                  (click)="toggleVideoSize('local')"
+                >
+                  {{ expandedVideo() === 'local' ? 'Reducir' : 'Ampliar' }}
+                </button>
               </div>
               @if (expandedVideo()) {
                 <button class="video-close" type="button" (click)="closeExpandedVideo()">
@@ -277,6 +273,13 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
       object-fit: cover;
       border-radius: inherit;
       background: #060a12;
+    }
+    .video-placeholder {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: #060a1299;
     }
     .video-label {
       position: absolute;

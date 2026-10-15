@@ -503,6 +503,8 @@ y video se combinan aunque WebRTC las entregue por separado. **Ampliar** abre cu
 de los videos con la otra persona en miniatura; cerrar la vista o pulsar Escape regresa a
 la llamada. En móvil se adapta al viewport y conserva una ampliación en página cuando no
 hay Fullscreen API. Ambos participantes deben aceptar el video y mantener su cámara activa.
+Los mosaicos y controles **Ampliar** permanecen disponibles mientras llega el video remoto;
+el mosaico indica si la otra cámara sigue conectando o está apagada.
 Si el navegador bloquea el autoplay, pulsar
 **Activar audio recibido**. El micrófono del destinatario se solicita al aceptar.
 El aviso entrante es visual/sonoro según las preferencias. La llamada permanece al navegar entre rutas. No se graba.

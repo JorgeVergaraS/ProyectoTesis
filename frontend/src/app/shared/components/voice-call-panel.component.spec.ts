@@ -91,4 +91,20 @@ describe('VoiceCallPanelComponent', () => {
         .textContent,
     ).toContain('Tú');
   });
+
+  it('keeps video tiles and expand controls available while the remote camera is still joining', () => {
+    voice.remoteCameraEnabled.set(false);
+    voice.remoteStream.set({ getVideoTracks: () => [] } as unknown as MediaStream);
+    const fixture = TestBed.createComponent(VoiceCallPanelComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.call-video-grid video')).toHaveLength(2);
+    expect(
+      fixture.nativeElement.querySelector('button[aria-label="Ampliar video de la otra persona"]'),
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('button[aria-label="Ampliar tu cámara"]'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Esperando el video de la otra persona');
+  });
 });
