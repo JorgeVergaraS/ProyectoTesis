@@ -757,11 +757,11 @@ y [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 | No se ve un canal           | El usuario debe unirse; permisos aplicados por servidor           |
 | Mensajes no instantáneos    | Polling de 2 s, conexión y membresía                              |
 | Sin micrófono               | Permisos del navegador y localhost/HTTPS                          |
-| La llamada vence al negociar ICE | Confirmar que la ruta `/api/calls/ice-config` o `/api/demo/calls/ice-config` devuelve TURN; revisar Coturn, DNS y puertos relay. |
+| La llamada vence al negociar ICE | Confirmar que la ruta `/api/calls/ice-config` o `/api/demo/calls/ice-config` devuelve TURN UDP/TCP; revisar Coturn, DNS y los puertos 3478 UDP/TCP y 49160–49200 UDP. |
 | Sin cámara                  | Cerrar otras aplicaciones, revisar el dispositivo y sus permisos  |
 | No permite compartir pantalla | Usar un navegador compatible en localhost/HTTPS                 |
 | Conectado pero sin sonido   | Dispositivo, mute, audífonos y activar audio recibido             |
-| Falla entre dispositivos    | Probar dos cuentas en redes distintas y revisar candidatos ICE; demo también requiere TURN configurado |
+| Falla entre dispositivos    | Probar dos cuentas en redes distintas y revisar candidatos ICE; TURN ofrece UDP y TCP, pero aún requiere pruebas reales en Wi-Fi y datos móviles |
 | Foto rechazada              | JPG/PNG válido dentro de límites de tamaño y dimensiones          |
 | `npm.ps1` bloqueado         | Usar `npm.cmd`, no cambiar políticas del equipo                   |
 | Testcontainers no inicia    | Motor Docker Linux activo y accesible                             |

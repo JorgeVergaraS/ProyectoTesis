@@ -2,6 +2,7 @@ package com.nexo.realtime.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -29,8 +30,13 @@ public class TurnCredentialService {
         long expiresAt = Instant.now().plusSeconds(3600).getEpochSecond();
         if (url.isBlank() || secret.length() < 32) return new IceConfig(List.of(), expiresAt);
         String username = expiresAt + ":" + userId;
+        List<String> urls = Arrays.stream(url.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .toList();
+        if (urls.isEmpty()) return new IceConfig(List.of(), expiresAt);
         return new IceConfig(
-                List.of(new IceServer(List.of(url), username, hmac(username))), expiresAt);
+                List.of(new IceServer(urls, username, hmac(username))), expiresAt);
     }
 
     private String hmac(String username) {

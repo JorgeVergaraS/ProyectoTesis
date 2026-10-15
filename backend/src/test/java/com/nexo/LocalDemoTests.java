@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(properties = {
         "spring.config.import=",
-        "NEXO_TURN_URL=turn:turn.example.test:3478?transport=udp",
+        "NEXO_TURN_URL=turn:turn.example.test:3478?transport=udp,turn:turn.example.test:3478?transport=tcp",
         "NEXO_TURN_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef"
 })
 @AutoConfigureMockMvc
@@ -87,6 +87,8 @@ class LocalDemoTests {
         assertThat(config.get("iceServers").size()).isEqualTo(1);
         assertThat(config.at("/iceServers/0/urls/0").asText())
                 .isEqualTo("turn:turn.example.test:3478?transport=udp");
+        assertThat(config.at("/iceServers/0/urls/1").asText())
+                .isEqualTo("turn:turn.example.test:3478?transport=tcp");
         assertThat(config.at("/iceServers/0/username").asText()).contains(JORGE);
         assertThat(config.at("/iceServers/0/credential").asText()).isNotBlank();
         assertThat(config.get("expiresAt").asLong()).isGreaterThan(Instant.now().getEpochSecond());

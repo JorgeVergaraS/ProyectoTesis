@@ -13,8 +13,24 @@ El laboratorio anterior fue eliminado. Esta rama reconstruye recursos nuevos en
 - SSM Session Manager para operar la instancia, sin puerto SSH público.
 - S3 privado para el paquete de código; SSM SecureString para configuración privada.
 - API Gateway HTTP con Lambda authorizer; Spring vuelve a validar JWT en cada servicio.
-- WebRTC: TCP 7881 y UDP 7882, 3478, 49160–49200. TURN usa credenciales temporales
-  HMAC entregadas por el backend autenticado; se deniegan destinos privados y metadatos EC2.
+
+| Protocolo/puerto | Alcance | Servicio |
+| --- | --- | --- |
+| TCP 80/443 | Público | Web, API y señalización HTTPS/WSS de LiveKit |
+| TCP 7881, UDP 7882 | Público | Transporte RTC de LiveKit para audio y transmisiones |
+| UDP 3478 | Público | Listener TURN/STUN de Coturn (ya aplicado en AWS) |
+| TCP 3478 | Público | Respaldo TURN para redes que bloquean UDP (pendiente de aplicar al grupo EC2) |
+| UDP 49160–49200 | Público | Asignaciones relay de Coturn (ya aplicado en AWS) |
+| TCP 15672/15692/15693 | Grupo de observabilidad | Consola de RabbitMQ y métricas Prometheus |
+| TCP 9092 | Solo grupo de aplicación | Kafka desde los servicios Nexo |
+| TCP 5432 | Solo grupo de aplicación | PostgreSQL/RDS |
+
+TURN usa credenciales HMAC temporales entregadas por el backend autenticado; no debe
+funcionar como relay anónimo. El estado consultado en AWS el 15 de octubre de 2026
+mostró TCP 3478 ausente; la rama añade la regla y anuncia UDP/TCP, pero la regla
+pública de TCP requiere confirmación antes de aplicarse. Las llamadas aún necesitan
+prueba real entre redes distintas; TURN sobre TCP 3478 no cubre redes que solo permiten
+TLS por 443.
 
 Los dos nodos RabbitMQ comparten una EC2: cumplen la demostración de clúster, pero
 no ofrecen tolerancia a la caída del host. Single-AZ y tamaños pequeños son decisiones

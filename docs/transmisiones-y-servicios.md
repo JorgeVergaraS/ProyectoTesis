@@ -34,17 +34,22 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
 - Una transmisión es de un anfitrión hacia varios espectadores. Puede abrirse dentro
   de una llamada grupal, pero conserva sala, permisos y ciclo de vida independientes.
 - La validación principal está hecha en localhost y en sesiones del mismo equipo.
-- HTTPS/WSS y TURN están configurados en la EC2 académica; falta cerrar la aceptación
-  multimedia entre varios dispositivos y redes externas.
+- HTTPS/WSS y TURN por UDP están activos en la EC2 académica. La consulta de AWS del
+  15 de octubre de 2026 confirmó UDP 3478 y el rango relay UDP 49160–49200; TCP 3478
+  todavía no está habilitado y requiere el despliegue de esta rama.
 - Las sesiones demo autenticadas solicitan credenciales TURN temporales en
   `/api/demo/calls/ice-config`, igual que las cuentas autenticadas en
-  `/api/calls/ice-config`. Sin una URL y secreto TURN válidos, la llamada conserva
-  STUN como alternativa; esto no garantiza el cruce de NAT restrictivos.
+  `/api/calls/ice-config`. TURN anuncia candidatos UDP y TCP en el puerto 3478 para
+  redes que bloquean uno de esos transportes. Sin una URL y secreto TURN válidos, la
+  llamada conserva STUN como alternativa; esto no garantiza el cruce de NAT restrictivos.
+- Tras el despliegue, el cliente solicitará candidatos TURN por UDP y TCP. Esto amplía
+  la compatibilidad, aunque no cubre redes que solo permiten TURN/TLS por 443.
 - El aviso de tiempo agotado durante la recolección ICE ya describe una negociación
   de red lenta, sin afirmar que TURN falló cuando todavía no se confirmó esa causa.
 - Compartir pantalla se ofrece mediante el estudio LiveKit vinculado a la llamada o
   conversación. La llamada directa sigue siendo solo audio; la captura depende de
-  `getDisplayMedia` y no está disponible en todos los navegadores móviles.
+  `getDisplayMedia`, HTTPS y permisos del navegador. Algunos navegadores móviles no
+  permiten compartir pantalla; esa limitación no se puede eliminar desde el servidor.
 - La transmisión no se graba ni se almacena como archivo.
 
 ## 2. Capturas de la interfaz
