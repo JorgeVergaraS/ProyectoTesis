@@ -2,7 +2,7 @@
 
 Fecha de actualización: 15 de octubre de 2026
 
-Rama de trabajo: `feature/responsive-calls-screen-share`
+Rama de trabajo: `fix/turn-tcp-fallback`
 
 Estado: despliegue académico en EC2 con LiveKit, preparado para aceptación entre dispositivos y redes.
 
@@ -34,19 +34,20 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
 - Una transmisión es de un anfitrión hacia varios espectadores. Puede abrirse dentro
   de una llamada grupal, pero conserva sala, permisos y ciclo de vida independientes.
 - La validación principal está hecha en localhost y en sesiones del mismo equipo.
-- HTTPS/WSS y las reglas de TURN por UDP están en AWS. La revisión del 15 de octubre
-  de 2026 encontró Coturn enlazado a loopback/interfaz Docker, no al IP privado de la
-  EC2; TCP 3478 tampoco está habilitado y el runtime solo anuncia TURN UDP. Esta rama
-  corrige el enlace y mapeo EIP/IP privado, anuncia UDP/TCP y prepara la regla TCP.
+- HTTPS/WSS y las reglas TURN UDP/TCP están en AWS. El 15 de octubre de 2026 se corrigió
+  Coturn para escuchar en el IP privado de la EC2 y anunciar el EIP; UDP/TCP 3478 acepta
+  conexiones y el backend está saludable. La negociación muestra por separado micrófono,
+  carga ICE, búsqueda de ruta y señalización, con límites de espera y liberación de medios.
 - Las sesiones demo autenticadas solicitan credenciales TURN temporales en
   `/api/demo/calls/ice-config`, igual que las cuentas autenticadas en
   `/api/calls/ice-config`. TURN anuncia candidatos UDP y TCP en el puerto 3478 para
   redes que bloquean uno de esos transportes. Sin una URL y secreto TURN válidos, la
   llamada conserva STUN como alternativa; esto no garantiza el cruce de NAT restrictivos.
-- Tras el despliegue, el cliente solicitará candidatos TURN por UDP y TCP. Esto amplía
-  la compatibilidad, aunque no cubre redes que solo permiten TURN/TLS por 443.
-- El aviso de tiempo agotado durante la recolección ICE ya describe una negociación
-  de red lenta, sin afirmar que TURN falló cuando todavía no se confirmó esa causa.
+- El cliente solicita candidatos TURN por UDP y TCP. Esto amplía la compatibilidad,
+  aunque no cubre redes que solo permiten TURN/TLS por 443.
+- Las pruebas automatizadas de voz cubren negociación simulada, timeout de permisos,
+  cancelación y bloqueo de WebRTC; falta completar una prueba de audio real entre PC y
+  celular en redes distintas.
 - Compartir pantalla se ofrece mediante el estudio LiveKit vinculado a la llamada o
   conversación. La llamada directa sigue siendo solo audio; la captura depende de
   `getDisplayMedia`, HTTPS y permisos del navegador. Algunos navegadores móviles no

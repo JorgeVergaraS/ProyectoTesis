@@ -102,6 +102,7 @@ describe('VoiceCallService', () => {
   });
   afterEach(() => {
     TestBed.resetTestingModule();
+    vi.restoreAllMocks();
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
@@ -257,6 +258,23 @@ describe('VoiceCallService', () => {
     expect(track.stop).toHaveBeenCalled();
     expect(FakePeer.instances).toHaveLength(0);
     expect(http.post.mock.calls.some(([url]) => url.endsWith('/calls'))).toBe(false);
+  });
+
+  it('fails cleanly when the browser WebRTC negotiation never resolves', async () => {
+    vi.spyOn(FakePeer.prototype, 'setLocalDescription').mockImplementation(
+      () => new Promise<void>(() => {}),
+    );
+
+    const starting = service.start(person);
+    expect(service.setupPhase()).toBe('microphone');
+    await vi.advanceTimersByTimeAsync(10000);
+    await starting;
+
+    expect(service.busy()).toBe(false);
+    expect(service.setupPhase()).toBe('idle');
+    expect(service.error()).toContain('La negociación de audio no respondió');
+    expect(http.post.mock.calls.some(([url]) => url.endsWith('/calls'))).toBe(false);
+    expect(track.stop).toHaveBeenCalled();
   });
 
   it('ignores an old empty poll arriving after an outgoing invitation was created', async () => {

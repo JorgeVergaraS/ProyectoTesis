@@ -289,7 +289,16 @@ export class VoiceCallPanelComponent {
   }
   status(): string {
     if (this.voice.waitingForMicrophone()) return 'Esperando permiso del micrófono…';
-    if (this.voice.busy()) return 'Preparando micrófono y conexión…';
+    if (this.voice.busy()) {
+      const phases = {
+        idle: 'Preparando llamada…',
+        microphone: 'Solicitando acceso al micrófono…',
+        ice: 'Consultando servidores de conexión…',
+        gathering: 'Buscando una ruta de audio…',
+        signaling: 'Conectando con la otra persona…',
+      } as const;
+      return phases[this.voice.setupPhase()];
+    }
     if (this.voice.connection() === 'connected')
       return 'Audio conectado · ' + this.voice.duration();
     if (this.voice.connection() === 'disconnected') return 'Reconectando audio…';

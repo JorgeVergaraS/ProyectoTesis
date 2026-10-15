@@ -32,6 +32,8 @@ interface IceConfig {
   iceServers: RTCIceServer[];
 }
 
+type CallSetupPhase = 'idle' | 'microphone' | 'ice' | 'gathering' | 'signaling';
+
 @Injectable({ providedIn: 'root' })
 export class VoiceCallService {
   private readonly http = inject(HttpClient);
@@ -41,6 +43,7 @@ export class VoiceCallService {
   readonly call = signal<VoiceCall | null>(null);
   readonly target = signal<DemoUser | null>(null);
   readonly busy = signal(false);
+  readonly setupPhase = signal<CallSetupPhase>('idle');
   readonly waitingForMicrophone = signal(false);
   readonly muted = signal(false);
   readonly connection = signal<RTCPeerConnectionState>('new');
@@ -98,6 +101,7 @@ export class VoiceCallService {
           this.call.set(null);
           this.target.set(null);
           this.busy.set(false);
+          this.setupPhase.set('idle');
           this.localCallId = null;
           this.dismissedId = null;
           this.notice.set('');
@@ -194,13 +198,18 @@ export class VoiceCallService {
     const id = crypto.randomUUID();
     this.localCallId = id;
     this.busy.set(true);
+    this.setupPhase.set('microphone');
     this.target.set(person);
     this.error.set('');
     this.notice.set('');
     try {
       const peer = await this.preparePeer(operation);
-      const offer = await this.description(peer, await peer.createOffer());
+      const offer = await this.description(
+        peer,
+        await this.withDeadline(peer.createOffer(), 10000),
+      );
       this.assertCurrent(operation);
+      this.setupPhase.set('signaling');
       const call = await firstValueFrom(
         this.http
           .post<VoiceCall>(
@@ -228,7 +237,10 @@ export class VoiceCallService {
         await this.endRemote(id);
       }
     } finally {
-      if (operation === this.generation) this.busy.set(false);
+      if (operation === this.generation) {
+        this.busy.set(false);
+        this.setupPhase.set('idle');
+      }
     }
   }
 
@@ -245,6 +257,7 @@ export class VoiceCallService {
     }
     const operation = ++this.generation;
     this.busy.set(true);
+    this.setupPhase.set('signaling');
     this.error.set('');
     this.localCallId = call.id;
     try {
@@ -261,9 +274,13 @@ export class VoiceCallService {
       this.call.set(accepted);
       const peer = await this.preparePeer(operation);
       if (!call.offer) throw new Error('Missing offer');
-      await peer.setRemoteDescription({ type: 'offer', sdp: call.offer });
-      const answer = await this.description(peer, await peer.createAnswer());
+      await this.withDeadline(peer.setRemoteDescription({ type: 'offer', sdp: call.offer }), 10000);
+      const answer = await this.description(
+        peer,
+        await this.withDeadline(peer.createAnswer(), 10000),
+      );
       this.assertCurrent(operation);
+      this.setupPhase.set('signaling');
       const updated = await firstValueFrom(
         this.http
           .post<VoiceCall>(this.base + '/' + call.id + '/answer', { answer }, this.requestOptions)
@@ -274,7 +291,10 @@ export class VoiceCallService {
     } catch (error) {
       if (operation === this.generation) await this.hangUp(this.mediaError(error));
     } finally {
-      if (operation === this.generation) this.busy.set(false);
+      if (operation === this.generation) {
+        this.busy.set(false);
+        this.setupPhase.set('idle');
+      }
     }
   }
 
@@ -304,6 +324,7 @@ export class VoiceCallService {
     this.generation++;
     this.releaseMedia();
     this.busy.set(false);
+    this.setupPhase.set('idle');
     this.call.set(null);
     this.target.set(null);
     this.localCallId = null;
@@ -323,6 +344,7 @@ export class VoiceCallService {
   }
 
   private async preparePeer(operation: number): Promise<RTCPeerConnection> {
+    this.setupPhase.set('microphone');
     this.waitingForMicrophone.set(true);
     let expired = false;
     let deadline: ReturnType<typeof setTimeout> | undefined;
@@ -358,8 +380,12 @@ export class VoiceCallService {
       throw new Error('Operation cancelled');
     }
     this.microphone = stream;
+    this.setupPhase.set('ice');
+    const iceServers = await this.iceServers();
+    this.assertCurrent(operation);
+    this.setupPhase.set('gathering');
     const peer = new RTCPeerConnection({
-      iceServers: await this.iceServers(),
+      iceServers,
       iceTransportPolicy: environment.voiceIceTransportPolicy,
     });
     this.peer = peer;
@@ -399,7 +425,7 @@ export class VoiceCallService {
     peer: RTCPeerConnection,
     description: RTCSessionDescriptionInit,
   ): Promise<string> {
-    await peer.setLocalDescription(description);
+    await this.withDeadline(peer.setLocalDescription(description), 10000);
     if (peer.iceGatheringState !== 'complete') {
       await new Promise<void>((resolve, reject) => {
         const finish = () => {
@@ -422,6 +448,22 @@ export class VoiceCallService {
     }
     if (!peer.localDescription?.sdp) throw new Error('Missing local description');
     return peer.localDescription.sdp;
+  }
+  private async withDeadline<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
+    let deadline: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        promise,
+        new Promise<never>((_, reject) => {
+          deadline = setTimeout(
+            () => reject(new Error('WebRTC operation timed out')),
+            milliseconds,
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(deadline);
+    }
   }
   private assertCurrent(operation: number): void {
     if (operation !== this.generation) throw new Error('Operation cancelled');
@@ -481,6 +523,9 @@ export class VoiceCallService {
     this.connection.set('new');
   }
   private mediaError(error: unknown): string {
+    if (error instanceof Error && error.message === 'WebRTC operation timed out') {
+      return 'La negociación de audio no respondió. Inténtalo de nuevo y, si persiste, cambia entre Wi-Fi y datos móviles.';
+    }
     if (error instanceof Error && error.message === 'ICE timeout') {
       if (!this.turnAvailable()) {
         return 'El micrófono funciona, pero Nexo no entregó un servidor TURN. Revisa la configuración de llamadas o inicia sesión de nuevo.';
