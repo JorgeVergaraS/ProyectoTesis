@@ -20,6 +20,9 @@ Requiere Node 24/npm 11 y Spring Boot; `local-demo` habilita además los perfile
 - `core/services`: clientes de chat, perfil y health, además de la preferencia visual
   persistente.
 - `core/realtime`: WebRTC de audio, permiso del micrófono y señalización HTTP.
+- `core/realtime/call-notification.service.ts`: timbre de llamada entrante con preferencia local
+  y avisos opcionales del navegador. El usuario habilita permisos desde **Notificaciones**; el
+  aviso del sistema oculta el nombre de quien llama y el timbre se detiene al responder o terminar.
 - `shared/components`: avatares, iconos, enlaces seguros y panel de voz.
 - `features/auth`: selector visual de perfiles.
 - `features/home`: inicio, comunidades, bandeja, mensajes, personas y panel de perfil
@@ -47,7 +50,8 @@ npm run test:ci
 npm run build
 ```
 
-71 pruebas en veintiún archivos. Los tests unitarios de voz y estudio simulan medios;
+La suite automatizada cubre los servicios y componentes de la aplicación. Los tests unitarios de
+voz y estudio simulan medios;
 la conectividad WebRTC real se verifica por separado y el estudio requiere una prueba manual
 con dispositivos reales. `npm run format` aplica
 Prettier. El build de producción genera `dist/nexo`, que no se versiona.

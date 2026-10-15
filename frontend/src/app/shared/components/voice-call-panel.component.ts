@@ -4,6 +4,7 @@ import { AvatarComponent } from './avatar.component';
 import { IconComponent } from './icon.component';
 import { BroadcastStudioComponent } from '../../features/home/components/broadcast-studio.component';
 import { ConversationBroadcastsComponent } from '../../features/home/components/conversation-broadcasts.component';
+import { CallNotificationService } from '../../core/realtime/call-notification.service';
 
 @Component({
   selector: 'nexo-voice-call-panel',
@@ -271,10 +272,16 @@ import { ConversationBroadcastsComponent } from '../../features/home/components/
 })
 export class VoiceCallPanelComponent {
   readonly voice = inject(VoiceCallService);
+  private readonly callAlerts = inject(CallNotificationService);
   readonly minimized = signal(false);
   readonly audioBlocked = signal(false);
   readonly audio = viewChild<ElementRef<HTMLAudioElement>>('remoteAudio');
   constructor() {
+    effect(() => {
+      const call = this.voice.call();
+      const incomingId = call && !call.outgoing && call.status === 'RINGING' ? call.id : null;
+      this.callAlerts.syncIncomingCall(incomingId);
+    });
     effect(() => {
       const element = this.audio()?.nativeElement;
       const stream = this.voice.remoteStream();

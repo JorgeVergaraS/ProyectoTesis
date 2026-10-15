@@ -127,7 +127,7 @@ describe('HomeComponent', () => {
     };
     component.workspace.set({ ...workspace, notifications: [notification] });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Avisos de mensajes');
+    expect(fixture.nativeElement.textContent).toContain('Notificaciones');
     chat.readNotification.mockReturnValueOnce(throwError(() => new Error('offline')));
     await component.openNotification(notification);
     expect(component.notifications()).toHaveLength(1);
