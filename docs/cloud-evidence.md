@@ -1,6 +1,6 @@
 # Evidencia de reconstrucción del laboratorio
 
-Fecha: 14/15 de octubre de 2026 (Santiago/UTC). El laboratorio anterior fue eliminado.
+Fecha: 15 de octubre de 2026 (Santiago/UTC). El laboratorio anterior fue eliminado y se reconstruyó la infraestructura descrita abajo.
 
 | Elemento | Resultado verificado |
 | --- | --- |
@@ -14,7 +14,10 @@ Fecha: 14/15 de octubre de 2026 (Santiago/UTC). El laboratorio anterior fue elim
 | Gateway protegido | `GET /api/users/me` sin token → 401; con el flujo Microsoft de la cuenta de prueba, Nexo abre el espacio de usuario |
 | Backend | Contenedor `healthy`; frontend, event-worker y administración RabbitMQ iniciados |
 | RabbitMQ | Dos nodos reportados `healthy`; clúster comprobado con `rabbitmq-diagnostics cluster_status` |
-| Kafka y Grafana | No desplegados en este stack; la guía EA3 no es evidencia de implementación |
+| Kafka, RabbitMQ UI y Grafana | Desplegados en la EC2 `i-01a80e38ee7c425c0` (`t3.large`), EIP `52.45.123.118`, disco `gp3` cifrado de 40 GiB; IMDSv2 obligatorio |
+| Consolas HTTPS | `https://rabbit.52.45.123.118.nip.io`, `https://kafka.52.45.123.118.nip.io`, `https://grafana.52.45.123.118.nip.io`; certificados Let's Encrypt válidos; las tres responden HTTP 401 sin autenticación Basic |
+| Límites de red | 80/443 públicos; Kafka 9092 solo desde el SG de aplicación; RabbitMQ y métricas accesibles solo desde la instancia de observabilidad |
+| Stack de observabilidad | Kafka, Kafbat UI, Grafana, Prometheus, Kafka Exporter, Node Exporter y Caddy iniciados; Prometheus se corrigió para cargar el objetivo de scrape en el arranque |
 | LiveKit | Contenedor en ejecución; validar reunión real y relé TURN desde redes distintas |
 | TURN | Coturn 4.18 en ejecución después de retirar la opción no reconocida `--no-dtls`; queda pendiente probar una llamada con relay TURN desde redes distintas |
 | Git | Rama `fix/microsoft-multitenant-auth` publicada; commits `ea428cf` (autenticación) y `c17ce9f` (ruta del gateway) |
@@ -63,3 +66,14 @@ No se presenta la suite remota como aprobada.
 
 Los secretos, las credenciales temporales, los JWT y los object ID privados del
 administrador no forman parte de esta evidencia.
+
+La guía [de consolas](observability-stack.md) tiene los pasos para revisar la
+cola de RabbitMQ, el tópico y consumer group de Kafka, y el dashboard de Grafana.
+La protección Basic Auth se guarda como parámetro `SecureString` en SSM
+(`/nexo/observability/auth`); la clave no se copia a documentación ni capturas.
+La publicación de los paneles depende de DNS wildcard de `nip.io`, y algunas
+políticas de navegador pueden bloquear ese dominio antes de abrir la conexión.
+El despliegue confirma infraestructura y acceso HTTPS, pero no demuestra por sí
+solo un evento de chat recorriendo RabbitMQ → Kafka → consumidor ni series
+temporales ya recogidas. Esas pruebas y las capturas de las consolas quedan
+pendientes de poder abrir y autenticar los paneles en el navegador.

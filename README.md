@@ -109,7 +109,7 @@ instalación nueva.
 | Llamadas   | Voz directa P2P y salas grupales de canal mediante LiveKit; mute, salida y contador de participantes         | Sin video; las salas grupales requieren LiveKit disponible                       |
 | Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
 | Transmisiones | Cámara/pantalla, micrófono opcional y 15/30/60 FPS mediante LiveKit; visor en canal o llamada | 60 FPS es un objetivo dependiente del dispositivo/red; pendientes medios físicos y redes externas |
-| Operación  | EC2, RDS, Docker con reinicio automático, Caddy HTTPS, health, Actuator y Swagger                            | Acceso directo vía proxy; falta API Gateway y observabilidad centralizada        |
+| Operación  | EC2, RDS, Docker con reinicio automático, Caddy HTTPS, health, Actuator y Swagger; EC2 dedicada para RabbitMQ UI, Kafka y Grafana | Prueba integrada de extremo a extremo y capturas de consolas pendientes        |
 
 <a id="stack"></a>
 
@@ -125,7 +125,7 @@ instalación nueva.
 | API             | Spring Web, Bean Validation, DTOs y errores uniformes                |
 | Seguridad       | Spring Security, JWT local/Entra, scopes/roles y bearer demo aislado |
 | Persistencia    | PostgreSQL 17.10, JPA/Hibernate, JdbcClient y Flyway                 |
-| Observabilidad  | Actuator y springdoc OpenAPI 2.8.17                                  |
+| Observabilidad  | Actuator, springdoc OpenAPI 2.8.17; RabbitMQ, Kafka/Kafbat UI, Prometheus y Grafana en AWS Academy |
 | Pruebas         | JUnit 5, Spring Security Test, Testcontainers, Vitest y jsdom        |
 | Infraestructura | Docker Compose; backend Docker opcional                              |
 
@@ -628,6 +628,8 @@ resume los datos persistidos que se observaron en el código, el alcance de Micr
 sign-in y las decisiones operativas/jurídicas que faltan para preparar el servicio.
 La [guía de consolas de RabbitMQ, Kafka y Grafana](docs/observability-stack.md)
 describe las URL, el flujo de eventos, la topología y el procedimiento de despliegue.
+El estado de AWS comprobado y los límites de la evidencia están en [docs/cloud-evidence.md](docs/cloud-evidence.md).
+Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). Solicitan la autenticación básica almacenada en SSM; las capturas quedan pendientes porque el navegador de esta sesión bloqueó esos subdominios.
 
 <a id="pruebas"></a>
 

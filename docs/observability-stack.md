@@ -2,6 +2,8 @@
 
 Esta rama añade una instancia dedicada para exponer las consolas con HTTPS y autenticación básica, y mantiene Kafka y métricas privadas dentro de la VPC. El script solo muestra un plan por defecto; `--apply` crea recursos y reglas de red.
 
+Aplicado el 15 de octubre de 2026 en AWS Academy us-east-1: EC2 `i-01a80e38ee7c425c0`, `t3.large`, EIP `52.45.123.118`, volumen `gp3` cifrado de 40 GiB. URLs: `https://rabbit.52.45.123.118.nip.io`, `https://kafka.52.45.123.118.nip.io` y `https://grafana.52.45.123.118.nip.io`.
+
 ## Diseño
 
 - **RabbitMQ:** consola Management detrás de Caddy y usuario dedicado con etiqueta `monitoring`. Prometheus lee métricas por una red privada. El puerto 5672 queda privado para la aplicación.
@@ -35,7 +37,9 @@ Reemplazar `<EIP>` con la dirección que informa el script:
 - `https://kafka.<EIP>.nip.io` — tópico, particiones, mensajes y grupos de consumo en Kafbat UI.
 - `https://grafana.<EIP>.nip.io` — dashboard **Nexo Messaging** con métricas RabbitMQ/Kafka y estado del host.
 
-Las tres URLs solicitan las credenciales Basic Auth. RabbitMQ vuelve a autenticar con el usuario restringido `monitoring`; Kafka UI y Grafana tienen además su propio control de acceso y registro público desactivado. En Kafbat, abrir el clúster **Nexo**, el tópico `nexo.messages.v1` y el consumer group `nexo-analytics`. Generar actividad de chat para observar el paso RabbitMQ → Kafka → consumidor y el cambio de lag/offset. Las métricas necesitan tiempo para las primeras recolecciones de Prometheus.
+Las tres URLs solicitan las credenciales Basic Auth. Sin autenticar, cada endpoint respondió HTTP 401 y la verificación TLS pasó. RabbitMQ vuelve a autenticar con el usuario restringido `monitoring`; Kafka UI y Grafana tienen además su propio control de acceso y registro público desactivado. En Kafbat, abrir el clúster **Nexo**, el tópico `nexo.messages.v1` y el consumer group `nexo-analytics`. Generar actividad de chat para observar el paso RabbitMQ → Kafka → consumidor y el cambio de lag/offset. Las métricas necesitan tiempo para las primeras recolecciones de Prometheus.
+
+El navegador controlado para esta sesión bloqueó los tres subdominios `nip.io` con `ERR_BLOCKED_BY_CLIENT` antes de mostrar sus páginas. Por eso todavía no hay capturas reales autenticadas que adjuntar: una captura de la página de bloqueo o una imagen generada no sería evidencia de las consolas. Cuando los dominios puedan abrirse en un navegador permitido, guardar capturas de RabbitMQ, Kafbat UI y Grafana en `docs/screenshots/observability/` y enlazarlas desde el README. No capturar el diálogo Basic Auth ni revelar el secreto almacenado en SSM.
 
 ## Verificación y límites
 

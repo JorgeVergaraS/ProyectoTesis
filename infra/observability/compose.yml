@@ -66,15 +66,12 @@ services:
     mem_limit: 768m
     command:
       - --config.file=/etc/prometheus/prometheus.yml
-      - --config.expand-env
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=15d
       - --web.enable-lifecycle
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
-    environment:
-      APP_PRIVATE_IP: ${APP_PRIVATE_IP:?Set APP_PRIVATE_IP}
     extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on: [kafka-exporter]
 

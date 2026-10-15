@@ -82,6 +82,7 @@ systemctl enable --now docker
 mkdir -p /opt/nexo-observability /usr/local/lib/docker/cli-plugins
 printf '%s' "$ASSET_B64" | base64 -d | tar -xz -C /opt/nexo-observability
 unset ASSET_B64
+sed -i "s|\${APP_PRIVATE_IP}|${APP_PRIVATE_IP}|g" /opt/nexo-observability/prometheus.yml
 tmp=$(mktemp -d)
 cd "$tmp"
 curl -fsSLO https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64
