@@ -7,16 +7,22 @@ Fecha: 14/15 de octubre de 2026 (Santiago/UTC). El laboratorio anterior fue elim
 | EC2 | `i-0a46872627fb175f6`, `t3.medium`, encendida, IMDSv2 obligatorio, SSM online |
 | RDS | `nexo-academic`, PostgreSQL 17.11, disponible, almacenamiento cifrado, sin acceso público |
 | Conexión a RDS | Grupo `nexo-academic-db`, TCP 5432 solo desde `nexo-academic-app` |
-| Frontend previsto | `https://3.230.182.219.nip.io` |
+| Frontend HTTPS | `https://3.230.182.219.nip.io` → HTTP 200 verificado desde fuera de EC2; Caddy sirve el frontend |
 | Gateway | `https://rmpyzo64z2.execute-api.us-east-1.amazonaws.com` |
 | Gateway sin JWT | `GET /api/users/me` → 401 |
 | Gateway JWT inválido | `GET /api/users/me` → 403 |
 | Entra | Nueva URL HTTPS registrada como redirección SPA de Nexo Frontend, autorizada y guardada |
-| Git | Rama `feature/ep3-ep4-cloud-compliance` publicada |
+| Backend | Contenedor `healthy`; frontend, event-worker y administración RabbitMQ iniciados |
+| RabbitMQ | Dos nodos reportados `healthy`; clúster comprobado con `rabbitmq-diagnostics cluster_status` |
+| LiveKit | Contenedor en ejecución; validar reunión real y relé TURN desde redes distintas |
+| TURN | Coturn 4.18 en ejecución después de retirar la opción no reconocida `--no-dtls`; queda pendiente probar una llamada con relay TURN desde redes distintas |
+| Git | Rama `feature/rabbitmq-reliable-messaging-ep3-ep4` publicada |
 
-El arranque del software está en verificación. La existencia de infraestructura no
-acredita todavía el recorrido autenticado de mensajes en la nube ni audio entre
-dos dispositivos. Actualizar esta evidencia después de completar las pruebas públicas.
+El frontend público, el backend, el clúster RabbitMQ de dos nodos y TURN están en
+marcha. La existencia de infraestructura no acredita por sí sola el recorrido
+autenticado de mensajes ni audio entre dos dispositivos; mantener pendiente la
+prueba integrada con usuarios reales, autenticación, eventos y relé TURN desde
+redes distintas.
 
 ## Validación local
 

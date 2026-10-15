@@ -56,9 +56,7 @@ services:
     command:
       - -n
       - --log-file=stdout
-      - --no-cli
       - --no-tls
-      - --no-dtls
       - --fingerprint
       - --use-auth-secret
       - --static-auth-secret=${NEXO_TURN_SECRET:-}

@@ -1,6 +1,6 @@
 # Implementación EP3/EP4 de Nexo
 
-Rama: `feature/ep3-ep4-cloud-compliance`. Fecha: 14 de octubre de 2026.
+Rama: `feature/rabbitmq-reliable-messaging-ep3-ep4`. Fecha: 14 de octubre de 2026.
 
 ## Arquitectura entregada
 
