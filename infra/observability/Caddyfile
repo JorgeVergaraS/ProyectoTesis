@@ -1,0 +1,22 @@
+rabbit.{$OBS_DOMAIN} {
+	basicauth {
+		{$OBS_USERNAME} {$OBS_PASSWORD_HASH}
+	}
+	reverse_proxy {$APP_PRIVATE_IP}:15672 {
+		header_up Authorization "Basic {$RABBITMQ_AUTH_B64}"
+	}
+}
+
+kafka.{$OBS_DOMAIN} {
+	basicauth {
+		{$OBS_USERNAME} {$OBS_PASSWORD_HASH}
+	}
+	reverse_proxy kafka-ui:8080
+}
+
+grafana.{$OBS_DOMAIN} {
+	basicauth {
+		{$OBS_USERNAME} {$OBS_PASSWORD_HASH}
+	}
+	reverse_proxy grafana:3000
+}

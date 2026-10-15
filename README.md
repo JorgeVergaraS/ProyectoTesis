@@ -623,6 +623,12 @@ El backend valida firma, issuer, audience, expiración y permiso; para identidad
 Microsoft persiste `oid` sin guardar contraseña. La demo continúa separada mediante
 el perfil `local-demo`. Leer [SECURITY.md](SECURITY.md).
 
+La [revisión de privacidad y preparación para la Ley 21.719](docs/privacidad-y-ley-21719.md)
+resume los datos persistidos que se observaron en el código, el alcance de Microsoft
+sign-in y las decisiones operativas/jurídicas que faltan para preparar el servicio.
+La [guía de consolas de RabbitMQ, Kafka y Grafana](docs/observability-stack.md)
+describe las URL, el flujo de eventos, la topología y el procedimiento de despliegue.
+
 <a id="pruebas"></a>
 
 ## Pruebas y CI
