@@ -28,7 +28,7 @@ public class CallController {
             @NotBlank @Size(max=64000) String offer) {}
     public record AnswerRequest(@NotBlank @Size(max=64000) String answer) {}
     public record CandidatesRequest(
-            @NotNull @Size(min = 1, max = 32) List<@NotNull @Valid CallService.IceCandidate> candidates) {}
+            @NotNull @Size(min = 1, max = 32) @Valid List<CallService.IceCandidate> candidates) {}
     private CallService.Actor actor(DemoPrincipal principal, UUID callSession) {
         String sessionKey = principal.tokenHash() + ":" + (callSession == null ? "legacy" : callSession);
         return new CallService.Actor(principal.userId(), sessionKey);

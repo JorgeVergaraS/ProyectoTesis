@@ -42,7 +42,7 @@ public class AuthenticatedCallController {
 
     public record AnswerRequest(@NotBlank @Size(max = 64000) String answer) {}
     public record CandidatesRequest(
-            @NotNull @Size(min = 1, max = 32) List<@NotNull @Valid CallService.IceCandidate> candidates) {}
+            @NotNull @Size(min = 1, max = 32) @Valid List<CallService.IceCandidate> candidates) {}
 
     @GetMapping("/ice-config")
     public TurnCredentialService.IceConfig iceConfig(Authentication authentication) {
