@@ -74,13 +74,7 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
                   aria-label="Video de la otra persona"
                 ></video>
                 @if (!voice.remoteCameraEnabled()) {
-                  <div class="video-placeholder">
-                    @if (voice.remoteStream()?.getVideoTracks()?.length) {
-                      La otra persona tiene la cámara apagada.
-                    } @else {
-                      Esperando el video de la otra persona…
-                    }
-                  </div>
+                  <div class="video-placeholder">{{ remoteVideoHint() }}</div>
                 }
                 <span class="video-label">{{ voice.target()?.displayName || 'Otra persona' }}</span>
                 <button
@@ -520,6 +514,9 @@ export class VoiceCallPanelComponent {
       const element = this.remoteVideo()?.nativeElement;
       const stream = this.voice.remoteStream();
       if (!element) return;
+      // Keep the video renderer silent; incoming audio has one dedicated output below.
+      element.muted = true;
+      element.volume = 0;
       element.srcObject = stream;
       if (stream) void element.play().catch(() => undefined);
     });
@@ -527,6 +524,8 @@ export class VoiceCallPanelComponent {
       const element = this.localVideo()?.nativeElement;
       const stream = this.voice.localStream();
       if (!element) return;
+      element.muted = true;
+      element.volume = 0;
       element.srcObject = stream;
       if (stream) void element.play().catch(() => undefined);
     });
@@ -534,7 +533,12 @@ export class VoiceCallPanelComponent {
       const element = this.audio()?.nativeElement;
       const stream = this.voice.remoteStream();
       if (!element) return;
-      element.srcObject = stream;
+      // Do not attach the combined audio/video stream to both renderers. This
+      // guarantees that the remote audio can only be played by this element.
+      const audioTracks = stream?.getAudioTracks() ?? [];
+      element.srcObject = audioTracks.length ? new MediaStream(audioTracks) : null;
+      element.muted = false;
+      element.volume = 1;
       if (stream) void this.playAudio();
       else {
         if (!element.paused) element.pause();
@@ -576,6 +580,15 @@ export class VoiceCallPanelComponent {
     } catch {
       this.audioBlocked.set(true);
     }
+  }
+  remoteVideoHint(): string {
+    const tracks = this.voice.remoteStream()?.getVideoTracks() ?? [];
+    if (tracks.some((track) => track.readyState === 'live' && track.muted)) {
+      return 'Conectando el video de la otra persona…';
+    }
+    return tracks.length
+      ? 'La cámara de la otra persona está apagada.'
+      : 'Esperando el video de la otra persona…';
   }
   async toggleVideoSize(participant: 'local' | 'remote'): Promise<void> {
     if (this.expandedVideo() === participant) {
