@@ -50,6 +50,7 @@ export class MediaDeviceService {
     videoDeviceId = '',
     frameRate: BroadcastFrameRate = 30,
     includeMicrophone = true,
+    includeSystemAudio = true,
   ): Promise<MediaStream> {
     if (source === 'camera' && !this.cameraSupported) throw new Error('camera-unsupported');
     if (source === 'screen' && !this.screenSupported) throw new Error('screen-unsupported');
@@ -79,24 +80,29 @@ export class MediaDeviceService {
       } else {
         const display = await this.mediaDevices!.getDisplayMedia({
           video: this.videoConstraint('', frameRate),
-          audio: true,
-          systemAudio: 'include',
+          audio: includeSystemAudio,
+          systemAudio: includeSystemAudio ? 'include' : 'exclude',
           surfaceSwitching: 'include',
         } as DisplayMediaStreamOptions);
         acquired.push(display);
         if (version !== this.requestVersion) throw new Error('request-cancelled');
-        screenAudioIds = display.getAudioTracks().map((track) => track.id);
+        const displayAudioTracks = includeSystemAudio ? display.getAudioTracks() : [];
+        if (!includeSystemAudio) display.getAudioTracks().forEach((track) => track.stop());
+        screenAudioIds = displayAudioTracks.map((track) => track.id);
         if (!display.getVideoTracks().length) throw new Error('screen-unavailable');
-        const microphone = includeMicrophone
-          ? await this.mediaDevices!.getUserMedia({
-              audio: this.deviceConstraint(audioDeviceId),
-              video: false,
-            })
-          : null;
+        // A tab/system track often already contains the presenter's voice. Do not
+        // mix it with the local mic by default: that creates audible doubling/echo.
+        const microphone =
+          includeMicrophone && screenAudioIds.length === 0
+            ? await this.mediaDevices!.getUserMedia({
+                audio: this.deviceConstraint(audioDeviceId),
+                video: false,
+              })
+            : null;
         if (microphone) acquired.push(microphone);
         stream = new MediaStream([
           ...display.getVideoTracks(),
-          ...display.getAudioTracks(),
+          ...displayAudioTracks,
           ...(microphone?.getAudioTracks() ?? []),
         ]);
       }
@@ -232,7 +238,10 @@ export class MediaDeviceService {
     this.stream.set(stream);
     this.source.set(source);
     this.stopReason.set(null);
-    this.microphoneMuted.set(false);
+    const hasMicrophone = stream
+      .getAudioTracks()
+      .some((track) => !this.systemAudioTrackIds().includes(track.id));
+    this.microphoneMuted.set(!hasMicrophone);
     this.selectedAudioId.set(
       stream
         .getAudioTracks()

@@ -104,13 +104,10 @@ describe('MediaDeviceService', () => {
     expect(service.stream()?.getAudioTracks()).toEqual([]);
   });
 
-  it('combines a shared screen with the microphone and stops when sharing ends', async () => {
+  it('uses shared system audio instead of mixing it with the microphone', async () => {
     const screen = fakeTrack('video', 'screen');
     const systemAudio = fakeTrack('audio', 'system');
-    const microphone = fakeTrack('audio', 'mic-1');
     getDisplayMedia.mockResolvedValue(new FakeStream([screen, systemAudio]));
-    getUserMedia.mockResolvedValue(new FakeStream([microphone]));
-
     await service.start('screen');
 
     expect(getDisplayMedia).toHaveBeenCalledWith({
@@ -119,38 +116,42 @@ describe('MediaDeviceService', () => {
       systemAudio: 'include',
       surfaceSwitching: 'include',
     });
-    expect(service.stream()?.getTracks()).toHaveLength(3);
+    expect(getUserMedia).not.toHaveBeenCalled();
+    expect(service.stream()?.getTracks()).toEqual([screen, systemAudio]);
+    expect(service.microphoneMuted()).toBe(true);
     screen.onended?.call(screen, new Event('ended'));
     expect(service.stopReason()).toBe('source-ended');
     expect(service.stream()).toBeNull();
     expect(screen.stop).toHaveBeenCalledOnce();
     expect(systemAudio.stop).toHaveBeenCalledOnce();
-    expect(microphone.stop).toHaveBeenCalledOnce();
   });
 
-  it('keeps captured tab audio but does not duplicate the call microphone while screen sharing in-call', async () => {
+  it('disables screen audio and microphone while screen sharing in-call', async () => {
     const screen = fakeTrack('video', 'screen');
     const systemAudio = fakeTrack('audio', 'system');
     getDisplayMedia.mockResolvedValue(new FakeStream([screen, systemAudio]));
 
-    await service.start('screen', '', '', 30, false);
+    await service.start('screen', '', '', 30, false, false);
 
+    expect(getDisplayMedia).toHaveBeenCalledWith({
+      video: { frameRate: { ideal: 30, max: 30 } },
+      audio: false,
+      systemAudio: 'exclude',
+      surfaceSwitching: 'include',
+    });
     expect(getUserMedia).not.toHaveBeenCalled();
-    expect(service.stream()?.getTracks()).toEqual([screen, systemAudio]);
-    expect(service.systemAudioTrackIds()).toEqual(['system']);
+    expect(service.stream()?.getTracks()).toEqual([screen]);
+    expect(systemAudio.stop).toHaveBeenCalledOnce();
+    expect(service.systemAudioTrackIds()).toEqual([]);
   });
 
   it('changes microphones without requesting the screen picker again', async () => {
     const screen = fakeTrack('video', 'screen');
-    const firstMicrophone = fakeTrack('audio', 'mic-1');
     const systemAudio = fakeTrack('audio', 'system');
     const secondMicrophone = fakeTrack('audio', 'mic-2');
     getDisplayMedia.mockResolvedValue(new FakeStream([screen, systemAudio]));
-    getUserMedia
-      .mockResolvedValueOnce(new FakeStream([firstMicrophone]))
-      .mockResolvedValueOnce(new FakeStream([secondMicrophone]));
+    getUserMedia.mockResolvedValue(new FakeStream([secondMicrophone]));
     await service.start('screen');
-    service.toggleMicrophone();
 
     await service.changeMicrophone('mic-2');
 
@@ -159,7 +160,7 @@ describe('MediaDeviceService', () => {
       audio: { deviceId: { exact: 'mic-2' } },
       video: false,
     });
-    expect(firstMicrophone.stop).toHaveBeenCalledOnce();
+    expect(getUserMedia).toHaveBeenCalledOnce();
     expect(screen.stop).not.toHaveBeenCalled();
     expect(service.selectedAudioId()).toBe('mic-2');
     expect(secondMicrophone.enabled).toBe(false);
@@ -170,25 +171,18 @@ describe('MediaDeviceService', () => {
     expect(service.stream()?.getAudioTracks()).toEqual([systemAudio, secondMicrophone]);
   });
 
-  it('controls screen sound and microphone independently', async () => {
+  it('falls back to the microphone when no shared screen audio is captured', async () => {
     const screen = fakeTrack('video', 'screen');
-    const system = fakeTrack('audio', 'system');
     const mic = fakeTrack('audio', 'mic-1');
-    getDisplayMedia.mockResolvedValue(new FakeStream([screen, system]));
+    getDisplayMedia.mockResolvedValue(new FakeStream([screen]));
     getUserMedia.mockResolvedValue(new FakeStream([mic]));
     await service.start('screen');
     expect(service.selectedAudioId()).toBe('mic-1');
     service.toggleMicrophone();
     expect(mic.enabled).toBe(false);
-    expect(system.enabled).toBe(true);
-    service.toggleSystemAudio();
-    expect(system.enabled).toBe(false);
-    service.toggleMicrophone();
-    expect(mic.enabled).toBe(true);
-    expect(system.enabled).toBe(false);
+    expect(service.systemAudioTrackIds()).toEqual([]);
     service.stop();
     expect(service.systemAudioMuted()).toBe(false);
-    expect(service.systemAudioTrackIds()).toEqual([]);
   });
 
   it('releases a late stream when navigation cancels a pending permission request', async () => {

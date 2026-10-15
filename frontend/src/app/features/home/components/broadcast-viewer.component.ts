@@ -90,7 +90,11 @@ export class BroadcastViewerComponent {
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
   private readonly audioContainer = viewChild<ElementRef<HTMLDivElement>>('audioContainer');
   private readonly attachedAudio = new Map<RemoteTrack, HTMLAudioElement>();
+  private readonly viewportResize = () => {
+    if (this.expanded()) this.syncViewportSize();
+  };
   constructor() {
+    window.visualViewport?.addEventListener('resize', this.viewportResize);
     effect(() => {
       this.broadcastId();
       untracked(() => void this.media.watch(this.broadcast()));
@@ -128,6 +132,7 @@ export class BroadcastViewerComponent {
       }
     });
     inject(DestroyRef).onDestroy(() => {
+      window.visualViewport?.removeEventListener('resize', this.viewportResize);
       for (const [track, element] of this.attachedAudio) {
         track.detach(element);
         element.remove();
@@ -199,8 +204,15 @@ export class BroadcastViewerComponent {
   private syncViewportSize() {
     const element = this.player()?.nativeElement;
     if (!element) return;
-    element.style.setProperty('--viewer-viewport-width', `${window.innerWidth}px`);
-    element.style.setProperty('--viewer-viewport-height', `${window.innerHeight}px`);
+    const viewport = window.visualViewport;
+    element.style.setProperty(
+      '--viewer-viewport-width',
+      `${viewport?.width ?? window.innerWidth}px`,
+    );
+    element.style.setProperty(
+      '--viewer-viewport-height',
+      `${viewport?.height ?? window.innerHeight}px`,
+    );
   }
   private clearViewportSize() {
     const element = this.player()?.nativeElement;

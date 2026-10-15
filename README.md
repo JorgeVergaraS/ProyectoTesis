@@ -505,8 +505,11 @@ El aviso entrante es visual/sonoro según las preferencias. La llamada permanece
 **Estudio local:** la vista previa tampoco se graba ni se transmite. Al volver,
 cerrar el perfil, cambiar de ruta o terminar manualmente, Nexo detiene todos los
 tracks. Compartir pantalla completa puede exponer notificaciones; es preferible
-elegir una ventana concreta. **Iniciar transmisión** publica cámara/pantalla y micrófono
-en la conversación elegida cuando LiveKit está habilitado. Los demás miembros pueden abrir
+elegir una ventana concreta. **Iniciar transmisión** oculta la vista previa local y publica
+cámara/pantalla con una sola fuente de audio: audio de pestaña/sistema si el navegador lo entrega,
+o micrófono como alternativa. Así se evita mezclar la voz capturada por ambos caminos. Durante una
+llamada, la transmisión de pantalla no vuelve a publicar audio: la voz permanece en WebRTC.
+Los demás miembros pueden abrir
 **Ver transmisión** desde el canal. Consulta la [guía de transmisión local](docs/broadcast-sfu-verification.md).
 
 En cloud se configuran STUN y TURN para las llamadas directas; la aceptación final
@@ -795,10 +798,12 @@ remota vencerá, como máximo, en ocho horas.
 ### Incremento visual y multimedia · `feat/experiencia-multimedia`
 
 - [x] Login, comunidades, perfil y estudio con identidad visual Nexo y ajustes responsive.
-- [x] Audio de pantalla y micrófono independientes, conservados al cambiar de micrófono.
+- [x] Una sola fuente de audio durante la transmisión: audio de pantalla o micrófono alternativo, nunca ambos simultáneamente.
+- [x] El audio de llamada se mantiene solo en WebRTC al transmitir pantalla desde una llamada.
+- [x] La vista previa privada se oculta al iniciar la emisión; el visor conserva controles táctiles y ocupa el viewport móvil en pantalla completa.
 - [x] Vista previa real con aviso cuando la fuente no entrega audio compartido.
 - [x] Visor con volumen y fullscreen sin recrear video/conexión; prueba local de tres ciclos.
-- [x] Fullscreen responsive: recalcula el viewport en `resize` y `orientationchange`, con fallback a pantalla completa cuando el navegador rechaza la API nativa.
+- [x] Fullscreen responsive: recalcula `visualViewport` en `resize` y `orientationchange`, con fallback expandido cuando el navegador rechaza la API nativa.
 - [x] Publicación de este incremento en EC2; queda pendiente la aceptación con audio físico, móviles y redes reales.
 
 Ver [tickets, instrucciones, pruebas y capturas nuevas](docs/experiencia-multimedia.md).

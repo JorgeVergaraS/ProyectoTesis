@@ -10,9 +10,8 @@
     </p>
     @if (inCall()) {
       <p class="studio-message success" role="status">
-        El audio de la llamada sigue por WebRTC. El estudio no vuelve a capturar tu micrófono, para
-        evitar eco; si compartes una pestaña, puedes incluir su audio desde el selector del
-        navegador.
+        El audio de la llamada sigue únicamente por WebRTC. Para evitar eco y audio duplicado, el
+        estudio desactiva tanto el micrófono como el audio del sistema mientras estás en llamada.
       </p>
     }
   </div>
@@ -74,7 +73,7 @@
         <span class="source-icon"><nexo-icon name="monitor" /></span>
         <strong>Pantalla</strong>
         <small>{{
-          media.screenSupported ? 'Pantalla, audio compartido y micrófono' : 'No disponible'
+          media.screenSupported ? 'Pantalla y una fuente de audio' : 'No disponible'
         }}</small>
       </button>
     </div>
@@ -113,7 +112,7 @@
               [checked]="audioEnabled()"
               (change)="audioEnabled.set($any($event.target).checked)"
             />
-            Micrófono
+            Audio de transmisión
           </span>
         </label>
       }
@@ -134,20 +133,22 @@
       (click)="prepare()"
     >
       <nexo-icon [name]="selectedSource() === 'camera' ? 'camera' : 'monitor'" />
-      {{ state() === 'CONNECTING' ? 'Esperando permisos…' : 'Preparar vista previa' }}
+      {{ state() === 'CONNECTING' ? 'Esperando permisos…' : 'Preparar transmisión' }}
     </button>
   } @else {
-    <div class="preview-shell">
-      <video #preview muted autoplay playsinline aria-label="Vista previa multimedia"></video>
-      <span class="local-badge"><i></i> {{ emitting() ? 'En vivo' : 'Solo tú' }}</span>
-      <span class="source-badge">
-        <nexo-icon [name]="media.source() === 'camera' ? 'camera' : 'monitor'" />
-        {{ media.source() === 'camera' ? 'Cámara' : 'Pantalla' }}
-      </span>
-    </div>
+    @if (!emitting()) {
+      <div class="preview-shell">
+        <video #preview muted autoplay playsinline aria-label="Vista previa multimedia"></video>
+        <span class="local-badge"><i></i> {{ emitting() ? 'En vivo' : 'Solo tú' }}</span>
+        <span class="source-badge">
+          <nexo-icon [name]="media.source() === 'camera' ? 'camera' : 'monitor'" />
+          {{ media.source() === 'camera' ? 'Cámara' : 'Pantalla' }}
+        </span>
+      </div>
+    }
 
     <div class="device-controls">
-      @if (!inCall()) {
+      @if (!inCall() && media.systemAudioTrackIds().length === 0) {
         <label>
           <span><nexo-icon name="mic" /> Micrófono</span>
           <select
@@ -212,8 +213,8 @@
             {{
               media.systemAudioTrackIds().length
                 ? media.systemAudioMuted()
-                  ? 'Silenciado. El micrófono se controla por separado.'
-                  : 'Audio capturado. Se compartirá con tus espectadores.'
+                  ? 'Audio de pantalla silenciado.'
+                  : 'Audio de pantalla activo. El micrófono no se captura a la vez para evitar eco.'
                 : 'No se recibió audio. Finaliza la vista previa, elige una pestaña y marca Compartir audio en el selector del navegador.'
             }}
           </p>
@@ -232,7 +233,7 @@
     }
 
     <div class="studio-actions">
-      @if (!inCall()) {
+      @if (!inCall() && media.systemAudioTrackIds().length === 0) {
         <button
           type="button"
           class="secondary-button"

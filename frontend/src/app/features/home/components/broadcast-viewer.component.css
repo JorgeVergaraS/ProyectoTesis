@@ -116,9 +116,11 @@ h3 {
 }
 .player:fullscreen,
 .player.expanded {
+  box-sizing: border-box;
   width: 100%;
   width: var(--viewer-viewport-width, 100vw);
   height: 100vh;
+  height: 100svh;
   height: var(--viewer-viewport-height, 100dvh);
   max-height: none;
   margin: 0;
@@ -128,6 +130,7 @@ h3 {
   flex-direction: column;
   background: #020609;
   overflow: hidden;
+  overscroll-behavior: contain;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
@@ -135,7 +138,7 @@ h3 {
   position: fixed;
   inset: 0;
   width: 100%;
-  z-index: 1000;
+  z-index: 2147483000;
   max-width: none;
   border-radius: 0;
 }
@@ -151,6 +154,10 @@ h3 {
 }
 .controls {
   flex-shrink: 0;
+}
+.player:fullscreen .controls,
+.player.expanded .controls {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 @media (max-width: 520px) {
   header {
@@ -171,6 +178,8 @@ h3 {
     flex: 1;
     font-size: 11px;
     padding: 8px;
+    min-height: 44px;
+    touch-action: manipulation;
   }
   .volume {
     width: 100%;

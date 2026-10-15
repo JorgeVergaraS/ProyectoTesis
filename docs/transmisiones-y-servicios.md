@@ -59,8 +59,11 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
   cancelación y bloqueo de WebRTC; falta completar una prueba de audio real entre PC y
   celular en redes distintas.
 - Compartir pantalla se ofrece mediante el estudio LiveKit vinculado a la llamada o
-  conversación. El estudio no vuelve a capturar el micrófono cuando hay una llamada WebRTC activa;
-  la voz continúa por la llamada y el estudio transmite video/pantalla y el audio opcional de pestaña.
+  conversación. El audio de la llamada continúa únicamente por WebRTC. Mientras la llamada está
+  activa, el estudio no solicita ni publica micrófono ni audio del sistema. Fuera de una llamada,
+  si el navegador entrega audio de pestaña/sistema, este se usa como fuente única; si no entrega
+  audio, Nexo usa el micrófono como alternativa. No mezcla ambos caminos para prevenir voz duplicada
+  y eco. Al iniciar la emisión, la vista previa local se oculta.
   La captura depende de
   `getDisplayMedia`, HTTPS y permisos del navegador. Algunos navegadores móviles no
   permiten compartir pantalla; esa limitación no se puede eliminar desde el servidor.
@@ -98,6 +101,8 @@ actual. El destino ya no se elige manualmente: se transmite a los participantes 
 
 El estudio muestra una vista previa privada antes de emitir. Permite seleccionar pantalla o
 cámara, revisar el micrófono, elegir dispositivos, ajustar FPS y activar o desactivar el audio.
+Al iniciar la emisión, la vista previa local desaparece para evitar una segunda reproducción de la
+fuente. El visor mantiene el audio separado del video y sus controles de volumen.
 
 ![Estudio multimedia con pantalla y audio](images/broadcast/04-estudio-pantalla-audio.png)
 
@@ -140,8 +145,9 @@ real de la pantalla del equipo.
    - `15 FPS`: menor consumo de CPU y red.
    - `30 FPS`: opción recomendada para la mayoría de presentaciones.
    - `60 FPS`: mayor fluidez para demostraciones, animaciones o videojuegos.
-4. Activar **Micrófono** si se desea transmitir la voz. El audio está activado por defecto.
-5. Pulsar **Preparar vista previa**.
+4. Mantener activado **Micrófono** si se desea transmitir audio. Nexo usa una sola fuente de audio:
+   el audio de pestaña/pantalla cuando el navegador lo entrega, o el micrófono como alternativa.
+5. Pulsar **Preparar transmisión**.
 6. En el diálogo del navegador, elegir una ventana, pestaña o pantalla concreta.
 7. Revisar la imagen, el medidor del micrófono y el dispositivo de audio.
 8. Seleccionar la conversación de destino, salvo que la transmisión se haya abierto desde
@@ -150,8 +156,14 @@ real de la pantalla del equipo.
 10. Para terminar, pulsar **Finalizar transmisión** o detener el uso compartido desde el
     control del navegador.
 
-La vista previa está silenciada localmente para evitar eco. Esto no impide que el micrófono
-se publique a los espectadores cuando el audio está activado.
+La vista previa está silenciada localmente para evitar eco. Al pulsar **Iniciar transmisión**,
+la vista previa propia se oculta. Si el navegador entrega audio de la pestaña/pantalla, ese audio
+se publica como fuente única; el micrófono no se mezcla con él. Si no hay audio compartido, Nexo
+usa el micrófono como alternativa.
+
+En dispositivos móviles, las opciones para compartir pantalla dependen de que el navegador las
+ofrezca. El visor se adapta al viewport disponible; pantalla completa nativa se usa cuando es
+compatible y se aplica una vista ampliada como fallback.
 
 ### Dentro de una llamada
 
