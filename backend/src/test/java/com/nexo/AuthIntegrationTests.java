@@ -397,7 +397,7 @@ class AuthIntegrationTests {
                         .header("Authorization", "Bearer " + callerToken)
                         .header("X-Nexo-Call-Session", callerSession)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"candidates":[{"candidate":"candidate:1 1 UDP 2122260223 192.0.2.10 50000 typ host","sdpMid":"0","sdpMLineIndex":0}]}"""))
+                        .content("{\"candidates\":[{\"candidate\":\"candidate:1 1 UDP 2122260223 192.0.2.10 50000 typ host\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0}] }"))
                 .andExpect(status().isOk());
         mvc.perform(get("/api/calls/current")
                         .header("Authorization", "Bearer " + calleeToken)
@@ -415,7 +415,7 @@ class AuthIntegrationTests {
                         .header("Authorization", "Bearer " + calleeToken)
                         .header("X-Nexo-Call-Session", calleeSession)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"candidates":[{"candidate":null}]}"""))
+                        .content("{\"candidates\":[{\"candidate\":null}] }"))
                 .andExpect(status().isOk());
         mvc.perform(get("/api/calls/current")
                         .header("Authorization", "Bearer " + callerToken)
