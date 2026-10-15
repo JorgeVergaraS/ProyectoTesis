@@ -106,10 +106,16 @@ instalación nueva.
 | Apariencia | Temas predeterminado, OLED y claro; botones Mate, Style SkayGlass y Y2K 2000; configuración junto al nombre | Preferencias locales de cada navegador, sin sincronización entre dispositivos    |
 | Enlaces    | Reconoce `http://`, `https://` y `www.`                                                                     | Sin previews ni verificación de reputación                                       |
 | Perfil     | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada                         | Sin campos institucionales ni configuración de privacidad                        |
-| Llamadas   | Voz directa P2P y salas grupales de canal mediante LiveKit; mute, salida y contador de participantes         | Sin video; las salas grupales requieren LiveKit disponible                       |
+| Llamadas   | Voz directa P2P y salas grupales de canal mediante LiveKit; mute, salida y contador de participantes         | Sin video; la llamada entre redes diferentes requiere validar ambos dispositivos |
 | Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
 | Transmisiones | Cámara/pantalla, micrófono opcional y 15/30/60 FPS mediante LiveKit; visor en canal o llamada | 60 FPS es un objetivo dependiente del dispositivo/red; pendientes medios físicos y redes externas |
 | Operación  | EC2, RDS, Docker con reinicio automático, Caddy HTTPS, health, Actuator y Swagger; EC2 dedicada para RabbitMQ UI, Kafka y Grafana | Prueba integrada de extremo a extremo y capturas de consolas pendientes        |
+
+**Estado de llamadas en AWS (15-10-2026):** TURN está publicado por UDP y TCP en
+3478, con relay UDP 49160–49200; Coturn escucha en la interfaz privada de EC2 y
+anuncia la IP elástica. Probé el handshake TCP desde CloudShell y el health del
+backend; falta completar una llamada real entre PC y celular en redes distintas.
+Consulta [puertos y procedimiento de verificación](docs/cloud-deployment.md#estado-realtime-verificado-15-10-2026).
 
 <a id="stack"></a>
 

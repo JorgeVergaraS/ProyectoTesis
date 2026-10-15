@@ -19,7 +19,7 @@ El laboratorio anterior fue eliminado. Esta rama reconstruye recursos nuevos en
 | TCP 80/443 | Público | Web, API y señalización HTTPS/WSS de LiveKit |
 | TCP 7881, UDP 7882 | Público | Transporte RTC de LiveKit para audio y transmisiones |
 | UDP 3478 | Público | Listener TURN/STUN de Coturn (ya aplicado en AWS) |
-| TCP 3478 | Público | Respaldo TURN para redes que bloquean UDP (pendiente de aplicar al grupo EC2) |
+| TCP 3478 | Público | Respaldo TURN para redes que bloquean UDP (aplicado y verificado) |
 | UDP 49160–49200 | Público | Asignaciones relay de Coturn (ya aplicado en AWS) |
 | TCP 15672/15692/15693 | Grupo de observabilidad | Consola de RabbitMQ y métricas Prometheus |
 | TCP 9092 | Solo grupo de aplicación | Kafka desde los servicios Nexo |
@@ -29,10 +29,26 @@ TURN usa credenciales HMAC temporales entregadas por el backend autenticado; no 
 funcionar como relay anónimo. La revisión de AWS del 15 de octubre de 2026 encontró
 que Coturn estaba escuchando en loopback y la interfaz Docker, en vez del IP privado
 de la EC2; también faltaba TCP 3478 y la URL TURN solo anunciaba UDP. La rama configura
-la interfaz privada y el mapeo EIP/IP privado, anuncia UDP/TCP y añade la regla TCP;
-la regla pública de TCP requiere confirmación antes de aplicarse. Las llamadas aún
-necesitan prueba real entre redes distintas; TURN sobre TCP 3478 no cubre redes que
-solo permiten TLS por 443.
+la interfaz privada y el mapeo EIP/IP privado, anuncia UDP/TCP y aplica ambas reglas.
+Tras el despliegue, verifiqué el listener UDP/TCP en `172.31.76.163:3478`, el acceso
+TCP desde CloudShell y el health `UP` del backend. Las llamadas todavía necesitan una
+prueba real entre redes distintas; TURN por TCP 3478 no cubre redes que solo permiten
+TURN/TLS por 443.
+
+<a id="estado-realtime-verificado-15-10-2026"></a>
+
+## Estado realtime verificado (15-10-2026)
+
+- EC2: Coturn (`coturn/coturn:4.18.0-r0-alpine`) en ejecución, enlazado a la IP
+  privada de la ENI. El EIP se publica mediante `--external-ip=PUBLIC/PRIVATE`.
+- Security Group: entrada UDP y TCP 3478 desde `0.0.0.0/0`; UDP relay 49160–49200.
+- Cliente Nexo: el backend entrega URLs TURN UDP y TCP con credenciales HMAC de una
+  hora; no se publica un usuario/contraseña estáticos.
+- Pruebas realizadas: listeners UDP/TCP confirmados con `ss`, conexión TCP externa
+  probada desde CloudShell y `/api/public/health` devolvió `{"status":"UP","service":"nexo-backend"}`.
+- Pendiente de evidencia: llamada con audio entre un PC y un celular en redes
+  distintas. La conectividad del puerto no garantiza que el micrófono, ICE y el
+  trayecto de audio completen la sesión en cada red.
 
 Los dos nodos RabbitMQ comparten una EC2: cumplen la demostración de clúster, pero
 no ofrecen tolerancia a la caída del host. Single-AZ y tamaños pequeños son decisiones
