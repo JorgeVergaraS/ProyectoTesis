@@ -2,6 +2,7 @@ package com.nexo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = "spring.config.import=")
+@SpringBootTest(properties = {
+        "spring.config.import=",
+        "NEXO_TURN_URL=turn:turn.example.test:3478?transport=udp",
+        "NEXO_TURN_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef"
+})
 @AutoConfigureMockMvc
 @ActiveProfiles({"local-demo", "test"})
 @Testcontainers
@@ -68,6 +73,23 @@ class LocalDemoTests {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.displayName").value("Jean"));
         assertThat(jdbc.queryForList("SELECT token_hash FROM nexo.demo_sessions", String.class))
                 .doesNotContain(first, second).allMatch(value -> value.length() == 64);
+    }
+
+    @Test
+    void demoIceConfigRequiresSessionAndReturnsTemporaryTurnCredentials() throws Exception {
+        String token = login(JORGE);
+        mvc.perform(get("/api/demo/calls/ice-config"))
+                .andExpect(status().isUnauthorized());
+        JsonNode config = json.readTree(mvc.perform(get("/api/demo/calls/ice-config")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(config.get("iceServers").size()).isEqualTo(1);
+        assertThat(config.at("/iceServers/0/urls/0").asText())
+                .isEqualTo("turn:turn.example.test:3478?transport=udp");
+        assertThat(config.at("/iceServers/0/username").asText()).contains(JORGE);
+        assertThat(config.at("/iceServers/0/credential").asText()).isNotBlank();
+        assertThat(config.get("expiresAt").asLong()).isGreaterThan(Instant.now().getEpochSecond());
     }
 
     @Test

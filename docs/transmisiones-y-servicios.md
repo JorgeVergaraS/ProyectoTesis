@@ -1,8 +1,8 @@
 # Nexo · Servicios actuales y transmisiones multimedia
 
-Fecha de actualización: 8 de septiembre de 2026
+Fecha de actualización: 15 de octubre de 2026
 
-Rama de trabajo: `feat/despliegue-cloud`
+Rama de trabajo: `feature/responsive-calls-screen-share`
 
 Estado: despliegue académico en EC2 con LiveKit, preparado para aceptación entre dispositivos y redes.
 
@@ -36,6 +36,15 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
 - La validación principal está hecha en localhost y en sesiones del mismo equipo.
 - HTTPS/WSS y TURN están configurados en la EC2 académica; falta cerrar la aceptación
   multimedia entre varios dispositivos y redes externas.
+- Las sesiones demo autenticadas solicitan credenciales TURN temporales en
+  `/api/demo/calls/ice-config`, igual que las cuentas autenticadas en
+  `/api/calls/ice-config`. Sin una URL y secreto TURN válidos, la llamada conserva
+  STUN como alternativa; esto no garantiza el cruce de NAT restrictivos.
+- El aviso de tiempo agotado durante la recolección ICE ya describe una negociación
+  de red lenta, sin afirmar que TURN falló cuando todavía no se confirmó esa causa.
+- Compartir pantalla se ofrece mediante el estudio LiveKit vinculado a la llamada o
+  conversación. La llamada directa sigue siendo solo audio; la captura depende de
+  `getDisplayMedia` y no está disponible en todos los navegadores móviles.
 - La transmisión no se graba ni se almacena como archivo.
 
 ## 2. Capturas de la interfaz

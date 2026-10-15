@@ -422,29 +422,39 @@
   height: 14px;
 }
 .future-card {
-  border: 1px solid #342747;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #4b3c67;
   border-radius: 13px;
-  background: radial-gradient(ellipse at 100% 0, #522c8133, transparent 70%), #0f0d1b;
-  padding: 18px;
+  background:
+    radial-gradient(ellipse at 100% 0, #7543ba42, transparent 65%),
+    linear-gradient(145deg, #151328, #0c111d 78%);
+  box-shadow:
+    inset 0 1px 0 #ffffff0d,
+    0 14px 32px #05030d45;
+  padding: 19px;
   margin-top: 14px;
 }
 .future-icon {
-  color: #b699e3;
+  color: #d4b6ff;
   display: inline-flex;
   margin-right: 9px;
   vertical-align: middle;
+  filter: drop-shadow(0 0 9px #a577e980);
 }
 .future-tag {
-  color: #9a86b8;
-  font-size: 8px;
-  letter-spacing: 1px;
+  color: #c4a6ed;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 1.15px;
 }
 .future-card h3 {
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.65;
-  margin: 15px 0 8px;
-  color: #d1c3e5;
+  font-size: 18px;
+  font-weight: 560;
+  line-height: 1.45;
+  letter-spacing: -0.35px;
+  margin: 17px 0 9px;
+  color: #eee6ff;
 }
 .future-card p,
 .local-note p {
@@ -452,6 +462,9 @@
   line-height: 1.8;
   color: #9a94ae;
   margin: 0;
+}
+.future-card p {
+  color: #b2acc4;
 }
 .local-note {
   display: flex;

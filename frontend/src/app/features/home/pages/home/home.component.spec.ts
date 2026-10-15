@@ -151,6 +151,8 @@ describe('HomeComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Jorge');
     expect(fixture.nativeElement.textContent).toContain('Microsoft Entra ID');
     expect(fixture.nativeElement.textContent).toContain('general');
+    expect(fixture.nativeElement.textContent).toContain('Los mensajes se almacenan en Nexo');
+    expect(fixture.nativeElement.textContent).not.toContain('espacio de prueba local');
     fixture.destroy();
     vi.clearAllTimers();
     vi.useRealTimers();

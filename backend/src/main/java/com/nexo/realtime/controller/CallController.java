@@ -2,6 +2,7 @@ package com.nexo.realtime.controller;
 
 import com.nexo.auth.demo.DemoPrincipal;
 import com.nexo.realtime.service.CallService;
+import com.nexo.realtime.service.TurnCredentialService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,13 +18,22 @@ import org.springframework.web.bind.annotation.*;
 @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "demoSession")
 public class CallController {
     private final CallService calls;
-    public CallController(CallService calls) { this.calls = calls; }
+    private final TurnCredentialService turn;
+    public CallController(CallService calls, TurnCredentialService turn) {
+        this.calls = calls;
+        this.turn = turn;
+    }
     public record StartRequest(@NotNull UUID id, @NotNull UUID calleeId, UUID conversationId,
             @NotBlank @Size(max=64000) String offer) {}
     public record AnswerRequest(@NotBlank @Size(max=64000) String answer) {}
     private CallService.Actor actor(DemoPrincipal principal, UUID callSession) {
         String sessionKey = principal.tokenHash() + ":" + (callSession == null ? "legacy" : callSession);
         return new CallService.Actor(principal.userId(), sessionKey);
+    }
+
+    @GetMapping("/ice-config")
+    public TurnCredentialService.IceConfig iceConfig(@AuthenticationPrincipal DemoPrincipal me) {
+        return turn.credentials(me.userId());
     }
 
     @GetMapping("/current")

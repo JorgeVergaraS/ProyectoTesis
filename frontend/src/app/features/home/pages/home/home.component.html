@@ -290,11 +290,17 @@
                   <nexo-conversation-broadcasts [conversationId]="conversation.id" />
                   <div class="conversation-notice">
                     <nexo-icon name="info" />
-                    <p>
-                      Este es tu espacio de prueba local. Los mensajes se guardan en tu equipo.<span
-                        >No compartas información sensible.</span
-                      >
-                    </p>
+                    @if (auth.session.kind() === 'demo') {
+                      <p>
+                        Estás usando una cuenta de demostración. Evita incluir datos personales o
+                        sensibles.
+                      </p>
+                    } @else {
+                      <p>
+                        Esta conversación solo está disponible para sus participantes. Los mensajes
+                        se almacenan en Nexo y no tienen cifrado de extremo a extremo.
+                      </p>
+                    }
                   </div>
                   @if (messagesLoading()) {
                     <p class="messages-loading" role="status">Cargando mensajes…</p>
@@ -629,13 +635,16 @@
                 </section>
                 <section class="future-card">
                   <span class="future-icon"><nexo-icon name="phone" /></span
-                  ><span class="future-tag">LLAMADAS DE VOZ</span>
-                  <h3>De un mensaje<br />a una buena charla.</h3>
+                  ><span class="future-tag">LLAMADAS Y TRANSMISIONES</span>
+                  <h3>Hablen y compartan<br />lo que están creando.</h3>
                   <p>
                     @if (conversation.kind === 'CHANNEL') {
-                      Habla con los miembros conectados del canal mediante una sala LiveKit.
+                      Voz grupal en vivo y transmisión de cámara o pantalla para los miembros del
+                      canal.
                     } @else {
-                      Llama a otra persona con el micrófono de tu equipo. El video queda pendiente.
+                      Llama con audio y abre una transmisión para compartir cámara o pantalla desde
+                      el panel de llamada. La captura de pantalla depende del navegador y puede no
+                      estar disponible en algunos móviles.
                     }
                   </p>
                   @if (conversation.kind === 'CHANNEL' && conversation.joined) {

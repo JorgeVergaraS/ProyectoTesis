@@ -47,6 +47,7 @@ export class VoiceCallService {
   readonly remoteStream = signal<MediaStream | null>(null);
   readonly notice = signal('');
   readonly error = signal('');
+  readonly turnAvailable = signal(false);
   readonly available =
     typeof RTCPeerConnection !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
   readonly occupied = computed(() => this.busy() || !!this.call());
@@ -414,7 +415,7 @@ export class VoiceCallService {
         const timerId = setTimeout(() => {
           finish();
           reject(new Error('ICE timeout'));
-        }, 10000);
+        }, 20000);
         peer.addEventListener('icegatheringstatechange', changed);
         changed();
       });
@@ -427,21 +428,32 @@ export class VoiceCallService {
   }
   private async iceServers(): Promise<RTCIceServer[]> {
     const fallback: RTCIceServer[] = [...environment.voiceIceServers];
-    if (this.session.kind() === 'demo') return fallback;
     try {
       const config = await firstValueFrom(
         this.http.get<IceConfig>(this.base + '/ice-config').pipe(timeout(5000)),
       );
       const dynamic = Array.isArray(config?.iceServers) ? config.iceServers : [];
-      if (!dynamic.length) return fallback;
+      if (!dynamic.length) {
+        this.turnAvailable.set(this.hasTurnServer(fallback));
+        return fallback;
+      }
       const stunOnlyFallback = fallback.filter((server) => {
         const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
         return urls.every((url) => !url.startsWith('turn:') && !url.startsWith('turns:'));
       });
-      return [...stunOnlyFallback, ...dynamic];
+      const servers = [...stunOnlyFallback, ...dynamic];
+      this.turnAvailable.set(this.hasTurnServer(servers));
+      return servers;
     } catch {
+      this.turnAvailable.set(this.hasTurnServer(fallback));
       return fallback;
     }
+  }
+  private hasTurnServer(servers: RTCIceServer[]): boolean {
+    return servers.some((server) => {
+      const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+      return urls.some((url) => url.startsWith('turn:') || url.startsWith('turns:'));
+    });
   }
   private async endRemote(id: string): Promise<void> {
     try {
@@ -469,8 +481,12 @@ export class VoiceCallService {
     this.connection.set('new');
   }
   private mediaError(error: unknown): string {
-    if (error instanceof Error && error.message === 'ICE timeout')
-      return 'El micrófono está disponible, pero no se pudo conectar con el servidor de audio TURN. Intenta nuevamente o cambia de red.';
+    if (error instanceof Error && error.message === 'ICE timeout') {
+      if (!this.turnAvailable()) {
+        return 'El micrófono funciona, pero Nexo no entregó un servidor TURN. Revisa la configuración de llamadas o inicia sesión de nuevo.';
+      }
+      return 'El micrófono está disponible, pero la negociación de red tardó demasiado. Comprueba tu conexión e inténtalo otra vez.';
+    }
     if (error instanceof DOMException && ['NotAllowedError', 'SecurityError'].includes(error.name))
       return 'Permite el micrófono en el navegador para realizar la llamada.';
     if (error instanceof DOMException && error.name === 'NotFoundError')

@@ -8,6 +8,7 @@ import { VoiceCall, VoiceCallService } from './voice-call.service';
 
 class FakePeer {
   static instances: FakePeer[] = [];
+  static configs: RTCConfiguration[] = [];
   connectionState = 'new';
   iceGatheringState = 'complete';
   localDescription: RTCSessionDescriptionInit | null = null;
@@ -24,8 +25,9 @@ class FakePeer {
   async setRemoteDescription(value: RTCSessionDescriptionInit) {
     this.remoteDescription = value;
   }
-  constructor() {
+  constructor(config?: RTCConfiguration) {
     FakePeer.instances.push(this);
+    FakePeer.configs.push(config ?? {});
   }
 }
 
@@ -55,6 +57,7 @@ describe('VoiceCallService', () => {
   beforeEach(async () => {
     vi.useFakeTimers();
     FakePeer.instances = [];
+    FakePeer.configs = [];
     token.set('demo-token');
     kind.set('demo');
     currentUser.set({ ...person, id: 'jorge' });
@@ -129,6 +132,35 @@ describe('VoiceCallService', () => {
     expect(service.remoteStream()).toBeNull();
     expect(service.call()).toBeNull();
     expect(http.post.mock.calls.some(([url]) => url.endsWith('/end'))).toBe(true);
+  });
+
+  it('loads short-lived TURN settings for a signed-in demo session', async () => {
+    http.get.mockImplementation((url: string) => {
+      if (url.endsWith('/ice-config'))
+        return of({
+          iceServers: [
+            {
+              urls: ['turn:relay.example:3478?transport=udp'],
+              username: 'expiry:user',
+              credential: 'signed',
+            },
+          ],
+        });
+      return of(server);
+    });
+
+    await service.start(person);
+
+    expect(http.get.mock.calls.some(([url]) => url === '/api/demo/calls/ice-config')).toBe(true);
+    expect(service.turnAvailable()).toBe(true);
+    expect(FakePeer.configs[0]?.iceServers).toEqual([
+      { urls: 'stun:stun.l.google.com:19302' },
+      {
+        urls: ['turn:relay.example:3478?transport=udp'],
+        username: 'expiry:user',
+        credential: 'signed',
+      },
+    ]);
   });
 
   it('does not request a microphone for an incoming call until it is accepted', async () => {

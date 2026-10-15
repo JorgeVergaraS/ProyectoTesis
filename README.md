@@ -529,6 +529,7 @@ con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 | GET           | `/api/conversations/{id}/members`         | Participantes; exige membresía                                                      |
 | GET / POST    | `/api/conversations/{id}/messages`        | Consultar / enviar; identidad derivada del token                                    |
 | GET           | `/api/calls/current`                      | Llamada de voz de esta pestaña autenticada; cuerpo vacío si no existe               |
+| GET           | `/api/calls/ice-config`                   | STUN y credenciales TURN temporales de la cuenta autenticada                         |
 | POST          | `/api/calls`                              | Crear llamada con `id`, `calleeId` y oferta SDP de solo audio                       |
 | POST          | `/api/calls/{id}/accept`                  | Reclamar la llamada entrante desde esta pestaña                                     |
 | POST          | `/api/calls/{id}/answer`                  | Publicar la respuesta SDP del destinatario                                          |
@@ -548,6 +549,7 @@ con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 | POST / DELETE | `/api/demo/me/avatar`                     | Multipart `file` / quitar foto propia                                               |
 | GET           | `/api/demo/avatars/{userId}/{version}`    | PNG público de demo, versión vigente                                                |
 | GET           | `/api/demo/calls/current`                 | Llamada de sesión; cuerpo vacío si no existe                                        |
+| GET           | `/api/demo/calls/ice-config`              | Credenciales TURN temporales para la sesión demo autenticada                        |
 | POST          | `/api/demo/calls`                         | Crear con `id`, `calleeId` y `offer` SDP                                            |
 | POST          | `/api/demo/calls/{id}/accept`             | Reclamar llamada para esta sesión                                                   |
 | POST          | `/api/demo/calls/{id}/answer`             | Respuesta SDP del destinatario                                                      |
@@ -755,10 +757,11 @@ y [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 | No se ve un canal           | El usuario debe unirse; permisos aplicados por servidor           |
 | Mensajes no instantáneos    | Polling de 2 s, conexión y membresía                              |
 | Sin micrófono               | Permisos del navegador y localhost/HTTPS                          |
+| La llamada vence al negociar ICE | Confirmar que la ruta `/api/calls/ice-config` o `/api/demo/calls/ice-config` devuelve TURN; revisar Coturn, DNS y puertos relay. |
 | Sin cámara                  | Cerrar otras aplicaciones, revisar el dispositivo y sus permisos  |
 | No permite compartir pantalla | Usar un navegador compatible en localhost/HTTPS                 |
 | Conectado pero sin sonido   | Dispositivo, mute, audífonos y activar audio recibido             |
-| Falla entre dispositivos    | Fuera del alcance verificado; falta STUN/TURN y hosting seguro    |
+| Falla entre dispositivos    | Probar dos cuentas en redes distintas y revisar candidatos ICE; demo también requiere TURN configurado |
 | Foto rechazada              | JPG/PNG válido dentro de límites de tamaño y dimensiones          |
 | `npm.ps1` bloqueado         | Usar `npm.cmd`, no cambiar políticas del equipo                   |
 | Testcontainers no inicia    | Motor Docker Linux activo y accesible                             |
