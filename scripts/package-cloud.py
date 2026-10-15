@@ -7,7 +7,7 @@ root = Path(__file__).resolve().parents[1]
 target = root / ".tmp" / "nexo-source.zip"
 target.parent.mkdir(exist_ok=True)
 excluded = {"node_modules", "target", "dist", ".angular", ".git", ".tmp", ".tools", "coverage", "__pycache__"}
-roots = ["backend", "event-support", "event-worker", "rabbit-admin", "frontend", "infra", ".mvn"]
+roots = ["backend", "event-support", "event-worker", "rabbit-admin", "frontend", "infra", "scripts", ".mvn"]
 with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
     for directory in roots:
         for path in (root / directory).rglob("*"):

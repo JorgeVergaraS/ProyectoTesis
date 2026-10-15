@@ -30,6 +30,8 @@ python scripts/package-cloud.py
 python infra/aws/deploy.py
 python infra/aws/deploy.py --apply --bundle .tmp/nexo-source.zip
 python infra/aws/deploy.py --apply --stage gateway
+# Actualizar código y servicios sin recrear la base ni la instancia:
+python infra/aws/deploy.py --apply --stage release --bundle .tmp/nexo-source.zip
 ```
 
 Por defecto el script solo consulta y muestra el plan. `--apply` crea recursos y

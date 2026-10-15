@@ -112,7 +112,8 @@ migraciones aplicadas. Las colas conservan nombres reconocibles, pero la nueva
 topología utiliza un DLX explícito. Si se migra un broker antiguo con argumentos
 de cola diferentes, no borrar ni purgar sus mensajes para resolver un error de
 precondición: preparar un vhost nuevo o drenar y migrar de forma controlada.
-El AWS Academy inspeccionado actualmente está vacío.
+El AWS Academy se encontró vacío antes de la reconstrucción; los recursos nuevos
+y sus comprobaciones se registran en [la evidencia cloud](cloud-evidence.md).
 
 El consumidor incrustado del backend se conserva para compatibilidad local.
 La plataforma configura `NEXO_EVENTS_CONSUMER_ENABLED=false`; solo event-worker
@@ -141,7 +142,6 @@ administrador (incluida integración RabbitMQ real), 89 frontend y 2 de segurida
 del autorizador. Build Angular y formato correctos. Dos nodos RabbitMQ en el
 mismo clúster, tres consumidores, tres proyecciones y tres DLQ comprobados.
 
-La recreación cloud se realiza aparte mediante `infra/aws/deploy.py`. La ausencia
-de recursos EC2/RDS del laboratorio nuevo se comprobó en la consola. Hasta capturar
-el resultado del despliegue y repetir las pruebas por su URL vigente, este documento
-no acredita que la infraestructura nueva esté operativa.
+La recreación cloud se realiza mediante `infra/aws/deploy.py`. EC2 y RDS ya están
+creados; consultar [la evidencia cloud](cloud-evidence.md) para distinguir los
+resultados verificados de las pruebas públicas que todavía estén pendientes.

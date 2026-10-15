@@ -116,10 +116,6 @@ set -euo pipefail
 dnf install -y docker python3 unzip
 systemctl enable --now docker
 mkdir -p /usr/local/lib/docker/cli-plugins /opt/nexo
-curl --fail --location https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
-curl --fail --location https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64.sha256 -o /tmp/compose.sha256
-cd /usr/local/lib/docker/cli-plugins && sha256sum -c /tmp/compose.sha256
-chmod 755 /usr/local/lib/docker/cli-plugins/docker-compose
 for i in $(seq 1 180); do
   if aws ssm get-parameter --region {REGION} --name {PARAMETER} --with-decryption --query Parameter.Value --output text > /opt/nexo/runtime.json 2>/dev/null; then break; fi
   sleep 10
@@ -128,9 +124,10 @@ chmod 600 /opt/nexo/runtime.json
 aws s3 cp s3://{bucket}/nexo-source.zip /opt/nexo/source.zip --region {REGION}
 cd /opt/nexo
 unzip -q -o source.zip
+sh infra/aws/install-build-tools.sh
 python3 infra/aws/write_env.py runtime.json .env
-docker compose -f compose.platform.yml --profile web --profile media build --no-cache backend
-docker compose -f compose.platform.yml --profile web --profile media build event-worker rabbit-admin web
+export COMPOSE_PARALLEL_LIMIT=1
+for service in backend event-worker rabbit-admin web; do docker compose -f compose.platform.yml --profile web --profile media build $service; done
 docker compose -f compose.platform.yml --profile web --profile media up -d
 """
         instance = ec2.run_instances(ImageId=ami, InstanceType="t3.medium", MinCount=1, MaxCount=1,
@@ -198,35 +195,73 @@ def gateway(state):
             "AllowHeaders": ["Authorization", "Content-Type"], "AllowMethods": ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"]})
         state.update(api=result["ApiId"], gateway=result["ApiEndpoint"])
         save(state)
+    try:
         functions.add_permission(FunctionName=function_name, StatementId=NAME + "-gateway", Action="lambda:InvokeFunction",
             Principal="apigateway.amazonaws.com", SourceArn=f"arn:aws:execute-api:{REGION}:{state['account']}:{state['api']}/authorizers/*")
-        authorizer = api.create_authorizer(ApiId=state["api"], Name="Nexo JWT validation", AuthorizerType="REQUEST",
+    except functions.exceptions.ResourceConflictException:
+        pass
+    existing_authorizers = api.get_authorizers(ApiId=state["api"]).get("Items", [])
+    authorizer = next((a for a in existing_authorizers if a["Name"] == "Nexo-JWT-validation"), None)
+    if authorizer is None:
+        authorizer = api.create_authorizer(ApiId=state["api"], Name="Nexo-JWT-validation", AuthorizerType="REQUEST",
             AuthorizerUri=f"arn:aws:apigateway:{REGION}:lambda:path/2015-03-31/functions/{function['FunctionArn']}/invocations",
             IdentitySource=["$request.header.Authorization"], AuthorizerPayloadFormatVersion="2.0",
             EnableSimpleResponses=True, AuthorizerResultTtlInSeconds=0)
+    existing_integrations = api.get_integrations(ApiId=state["api"]).get("Items", [])
+    integration = next((i for i in existing_integrations if i.get("IntegrationUri") == state["origin"]), None)
+    if integration is None:
         integration = api.create_integration(ApiId=state["api"], IntegrationType="HTTP_PROXY", IntegrationMethod="ANY",
             IntegrationUri=state["origin"], PayloadFormatVersion="1.0",
             RequestParameters={"overwrite:header.x-nexo-origin": state["secrets"]["GATEWAY_ORIGIN_SECRET"]})
-        for route in ["ANY /api/{proxy+}"]:
+    routes = {r["RouteKey"] for r in api.get_routes(ApiId=state["api"]).get("Items", [])}
+    for route in ["ANY /api/{proxy+}"]:
+        if route not in routes:
             api.create_route(ApiId=state["api"], RouteKey=route, Target="integrations/" + integration["IntegrationId"],
                 AuthorizationType="CUSTOM", AuthorizerId=authorizer["AuthorizerId"])
-        for route in ["GET /api/public/health", "POST /api/auth/login", "POST /api/auth/register", "GET /api/avatars/{proxy+}", "OPTIONS /{proxy+}"]:
+    for route in ["GET /api/public/health", "POST /api/auth/login", "POST /api/auth/register", "GET /api/avatars/{proxy+}", "OPTIONS /{proxy+}"]:
+        if route not in routes:
             api.create_route(ApiId=state["api"], RouteKey=route, Target="integrations/" + integration["IntegrationId"], AuthorizationType="NONE")
+    if not any(s["StageName"] == "$default" for s in api.get_stages(ApiId=state["api"]).get("Items", [])):
         api.create_stage(ApiId=state["api"], StageName="$default", AutoDeploy=True,
             DefaultRouteSettings={"ThrottlingBurstLimit": 100, "ThrottlingRateLimit": 50.0})
     state["runtime"]["API_UPSTREAM"] = state["gateway"]
     ssm.put_parameter(Name=PARAMETER, Type="SecureString", Value=json.dumps(state["runtime"]), Overwrite=True)
     save(state)
     command = client("ssm").send_command(InstanceIds=[state["instance"]], DocumentName="AWS-RunShellScript",
-        Parameters={"commands": [f"aws ssm get-parameter --region {REGION} --name {PARAMETER} --with-decryption --query Parameter.Value --output text > /opt/nexo/runtime.json",
+        Parameters={"commands": ["cloud-init status --wait >/dev/null 2>&1 || true", f"aws ssm get-parameter --region {REGION} --name {PARAMETER} --with-decryption --query Parameter.Value --output text > /opt/nexo/runtime.json",
             "cd /opt/nexo && python3 infra/aws/write_env.py runtime.json .env && docker compose -f compose.platform.yml --profile web up -d web"]})
     print(json.dumps({"gateway": state["gateway"], "frontend": state["frontend"], "refreshCommand": command["Command"]["CommandId"]}))
+
+
+def release(args, state):
+    """Refresh source and media without recreating EC2/RDS or resetting the gateway."""
+    env = state["runtime"]
+    configure_media(state, env)
+    if args.admin_object_id:
+        env["NEXO_ADMIN_OBJECT_IDS"] = args.admin_object_id
+    client("s3").upload_file(str(args.bundle), state["bucket"], "nexo-source.zip")
+    client("ssm").put_parameter(Name=PARAMETER, Type="SecureString", Value=json.dumps(env), Overwrite=True)
+    save(state)
+    commands = ["set -eu", "cloud-init status --wait >/dev/null 2>&1 || true", "cd /opt/nexo",
+        f"aws s3 cp s3://{state['bucket']}/nexo-source.zip source.zip --region {REGION}",
+        "unzip -q -o source.zip", "sh infra/aws/install-build-tools.sh",
+        f"aws ssm get-parameter --region {REGION} --name {PARAMETER} --with-decryption --query Parameter.Value --output text > runtime.json",
+        "chmod 600 runtime.json", "python3 infra/aws/write_env.py runtime.json .env",
+        "export COMPOSE_PARALLEL_LIMIT=1",
+        "for service in backend event-worker rabbit-admin web; do docker compose -f compose.platform.yml --profile web --profile media build $service; done",
+        "docker compose -f compose.platform.yml --profile web --profile media up -d --no-build",
+        "docker compose -f compose.platform.yml --profile web --profile media ps"]
+    result = client("ssm").send_command(InstanceIds=[state["instance"]], DocumentName="AWS-RunShellScript",
+        TimeoutSeconds=3600, Parameters={"commands": commands, "executionTimeout": ["3600"]})
+    state["release_command"] = result["Command"]["CommandId"]
+    save(state)
+    print(json.dumps({"releaseCommand": state["release_command"], "frontend": state["frontend"]}))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--apply", action="store_true")
-    parser.add_argument("--stage", choices=["infrastructure", "gateway"], default="infrastructure")
+    parser.add_argument("--stage", choices=["infrastructure", "gateway", "release"], default="infrastructure")
     parser.add_argument("--bundle", type=Path, default=Path("nexo-source.zip"))
     parser.add_argument("--admin-object-id", default="")
     args = parser.parse_args()
@@ -236,6 +271,9 @@ def main():
     if args.stage == "infrastructure":
         if not args.bundle.is_file(): parser.error("Bundle does not exist")
         infrastructure(args, state)
+    elif args.stage == "release":
+        if not args.bundle.is_file(): parser.error("Bundle does not exist")
+        release(args, state)
     else:
         gateway(state)
 
