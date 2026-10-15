@@ -1,6 +1,6 @@
 # Consolas de RabbitMQ, Kafka y Grafana
 
-Esta rama añade una instancia dedicada para exponer las consolas con HTTPS y autenticación básica, y mantiene Kafka y métricas privadas dentro de la VPC. El script solo muestra un plan por defecto; `--apply` crea recursos y reglas de red.
+Esta rama añade una instancia dedicada para exponer las consolas con HTTPS, y mantiene Kafka y métricas privadas dentro de la VPC. Kafka UI y Grafana usan autenticación básica en Caddy; RabbitMQ usa su propio inicio de sesión Management. El script solo muestra un plan por defecto; `--apply` crea recursos y reglas de red.
 
 Aplicado el 15 de octubre de 2026 en AWS Academy us-east-1: EC2 `i-01a80e38ee7c425c0`, `t3.large`, EIP `52.45.123.118`, volumen `gp3` cifrado de 40 GiB. URLs: `https://rabbit.52.45.123.118.nip.io`, `https://kafka.52.45.123.118.nip.io` y `https://grafana.52.45.123.118.nip.io`.
 
@@ -10,8 +10,8 @@ Aplicado el 15 de octubre de 2026 en AWS Academy us-east-1: EC2 `i-01a80e38ee7c4
 - **Kafka:** broker KRaft de un nodo, tópico `nexo.messages.v1`, Kafbat UI y exporter. El puerto 9092 solo admite conexiones del grupo de seguridad de la app.
 - **Flujo de eventos:** el puente consume el UUID de evento de RabbitMQ y publica en Kafka tipo de evento, ruta y fecha, sin cuerpo de chat, correo, token ni identificador de usuario. Entrega al menos una vez; tras un corte podría duplicar un UUID.
 - **Grafana/Prometheus:** Prometheus retiene 15 días y Grafana incluye un dashboard provisionado de mensajes en cola, particiones, offsets y consumer lag. Kafka conserva eventos 14 días.
-- **Red:** solo 80/443 de la instancia de observabilidad quedan públicos, con HTTPS de Caddy y usuario/contraseña. La consola RabbitMQ no se publica directamente; Kafka, Prometheus y métricas quedan privados.
-- **Credenciales:** un usuario aleatorio se guarda como `SecureString` en `/nexo/observability/auth`; no se imprime durante el despliegue. La contraseña también se usa para la etiqueta de monitoreo de RabbitMQ. Cualquier persona con el secreto podrá autenticarse en las tres consolas.
+- **Red:** solo 80/443 de la instancia de observabilidad quedan públicos. La consola RabbitMQ no se publica directamente; Kafka, Prometheus y métricas quedan privados.
+- **Credenciales:** las credenciales se guardan como `SecureString` en `/nexo/observability/auth`; no se imprimen durante el despliegue. La credencial de RabbitMQ corresponde a un usuario con etiqueta `monitoring`, y Kafka UI/Grafana usan el usuario y contraseña de acceso del proxy.
 
 ## Despliegue desde AWS CloudShell
 
@@ -37,9 +37,9 @@ Reemplazar `<EIP>` con la dirección que informa el script:
 - `https://kafka.<EIP>.nip.io` — tópico, particiones, mensajes y grupos de consumo en Kafbat UI.
 - `https://grafana.<EIP>.nip.io` — dashboard **Nexo Messaging** con métricas RabbitMQ/Kafka y estado del host.
 
-Las tres URLs solicitan las credenciales Basic Auth. Sin autenticar, cada endpoint respondió HTTP 401 y la verificación TLS pasó. RabbitMQ vuelve a autenticar con el usuario restringido `monitoring`; Kafka UI y Grafana tienen además su propio control de acceso y registro público desactivado. En Kafbat, abrir el clúster **Nexo**, el tópico `nexo.messages.v1` y el consumer group `nexo-analytics`. Generar actividad de chat para observar el paso RabbitMQ → Kafka → consumidor y el cambio de lag/offset. Las métricas necesitan tiempo para las primeras recolecciones de Prometheus.
+RabbitMQ pasa por HTTPS a Management sin Basic Auth en Caddy; RabbitMQ valida el usuario restringido `monitoring`. Kafka y Grafana mantienen la protección Basic Auth del proxy, además de los controles propios de Grafana. En Kafbat, abrir el clúster **Nexo**, el tópico `nexo.messages.v1` y el consumer group `nexo-analytics`. Generar actividad de chat para observar el paso RabbitMQ → Kafka → consumidor y el cambio de lag/offset. Las métricas necesitan tiempo para las primeras recolecciones de Prometheus.
 
-Las capturas reales compartidas desde Chrome están enlazadas en el README. Kafbat UI muestra el clúster **Nexo** en línea; RabbitMQ muestra el desafío Basic Auth; Grafana muestra `ERR_TOO_MANY_REDIRECTS` antes de aplicar la corrección. La EC2 de observabilidad acepta la credencial RabbitMQ directamente y por Caddy. Cierra las pestañas de RabbitMQ y vuelve a probar en una ventana privada para descartar la autenticación Basic Auth almacenada por Chrome; no se rotó la contraseña.
+Las capturas reales compartidas desde Chrome están enlazadas en el README. Kafbat UI muestra el clúster **Nexo** en línea; RabbitMQ tuvo un bucle de desafíos Basic Auth en Chrome. Se retiró ese control del proxy de RabbitMQ para que valide directamente el usuario de Management. SSM confirmó `401` sin credenciales y `200` con el usuario de monitoreo en `/` y `/api/overview`; la captura en Chrome después del cambio sigue pendiente.
 
 El bucle de Grafana se corrigió agregando `GF_SERVER_DOMAIN` junto con `GF_SERVER_ROOT_URL`, recreando sólo el contenedor de Grafana en la EC2 existente. SSM confirmó el dominio esperado, el contenedor `Up` y una petición autenticada a `/api/health` con el resultado `GRAFANA_HEALTH_OK`. Las capturas anteriores se conservan como evidencia histórica del fallo; recarga el panel para comprobar el estado actual. No incluir el diálogo Basic Auth ni revelar el secreto SSM en evidencia final.
 

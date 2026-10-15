@@ -1,10 +1,6 @@
 rabbit.{$OBS_DOMAIN} {
-	basicauth {
-		{$OBS_USERNAME} {$OBS_PASSWORD_HASH}
-	}
-	reverse_proxy {$APP_PRIVATE_IP}:15672 {
-		header_up Authorization "Basic {$RABBITMQ_AUTH_B64}"
-	}
+	# RabbitMQ Management validates its own monitoring user over HTTPS.
+	reverse_proxy {$APP_PRIVATE_IP}:15672
 }
 
 kafka.{$OBS_DOMAIN} {

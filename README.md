@@ -629,11 +629,11 @@ sign-in y las decisiones operativas/jurídicas que faltan para preparar el servi
 La [guía de consolas de RabbitMQ, Kafka y Grafana](docs/observability-stack.md)
 describe las URL, el flujo de eventos, la topología y el procedimiento de despliegue.
 El estado de AWS comprobado y los límites de la evidencia están en [docs/cloud-evidence.md](docs/cloud-evidence.md).
-Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). Solicitan la autenticación básica almacenada en SSM. Tras la captura del bucle de Grafana, se configuró `GF_SERVER_DOMAIN`, se recreó el contenedor y SSM verificó que `/api/health` responde correctamente. La captura de Grafana de abajo es el estado anterior al arreglo; recarga el enlace para probarlo. En RabbitMQ, el servidor aceptó la misma credencial desde la EC2 y a través del proxy; si Chrome rechaza el acceso, prueba en una ventana privada para evitar credenciales Basic Auth antiguas.
+Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). Kafka UI y Grafana solicitan la autenticación básica del proxy, guardada en SSM; RabbitMQ ahora valida directamente por HTTPS la cuenta nativa de Management. SSM verificó RabbitMQ con 401 sin credenciales y 200 con la cuenta de monitoreo tanto en `/` como en `/api/overview`; aún falta confirmar el inicio desde el navegador después de recargar. Tras el bucle anterior de Grafana, se configuró `GF_SERVER_DOMAIN`, se recreó el contenedor y SSM verificó que `/api/health` responde correctamente. La captura de Grafana de abajo es evidencia histórica del error anterior.
 
 ### Evidencia visual de observabilidad
 
-Estas capturas reales fueron compartidas desde Chrome durante el diagnóstico. Kafka UI muestra el clúster **Nexo** en línea; la captura RabbitMQ registra el desafío Basic Auth del navegador y la captura Grafana registra el bucle antes de corregir el dominio. No representan capturas de una sesión RabbitMQ/Grafana autenticada ni el estado actual de Grafana.
+Estas capturas reales fueron compartidas desde Chrome durante el diagnóstico. Kafka UI muestra el clúster **Nexo** en línea; la captura RabbitMQ documenta el desafío de autenticación anterior a la corrección y la captura Grafana registra el bucle anterior al cambio de dominio. No representan sesiones autenticadas ni el estado actual de los paneles.
 
 | Servicio | Captura |
 | --- | --- |

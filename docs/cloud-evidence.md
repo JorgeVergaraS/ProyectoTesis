@@ -15,8 +15,8 @@ Fecha: 15 de octubre de 2026 (Santiago/UTC). El laboratorio anterior fue elimina
 | Backend | Contenedor `healthy`; frontend, event-worker y administración RabbitMQ iniciados |
 | RabbitMQ | Dos nodos reportados `healthy`; clúster comprobado con `rabbitmq-diagnostics cluster_status` |
 | Kafka, RabbitMQ UI y Grafana | Desplegados en la EC2 `i-01a80e38ee7c425c0` (`t3.large`), EIP `52.45.123.118`, disco `gp3` cifrado de 40 GiB; IMDSv2 obligatorio |
-| Consolas HTTPS | `https://rabbit.52.45.123.118.nip.io`, `https://kafka.52.45.123.118.nip.io`, `https://grafana.52.45.123.118.nip.io`; certificados Let's Encrypt válidos; las tres responden HTTP 401 sin autenticación Basic |
-| Diagnóstico de paneles | Capturas de Chrome: Kafbat en línea, desafío Basic Auth RabbitMQ y error anterior de redirección en Grafana. SSM confirmó acceso autenticado a RabbitMQ directo y a través de Caddy; después de agregar `GF_SERVER_DOMAIN` y recrear sólo Grafana, confirmó contenedor `Up` y respuesta `GRAFANA_HEALTH_OK` desde `/api/health`. |
+| Consolas HTTPS | `https://rabbit.52.45.123.118.nip.io`, `https://kafka.52.45.123.118.nip.io`, `https://grafana.52.45.123.118.nip.io`; certificados Let's Encrypt válidos. RabbitMQ: 401 sin credenciales y 200 con la cuenta de monitoreo en `/` y `/api/overview`. Kafka y Grafana usan Basic Auth de Caddy. |
+| Diagnóstico de paneles | Capturas de Chrome: Kafbat en línea, desafío Basic Auth RabbitMQ y error anterior de redirección en Grafana. Para corregir el bucle de RabbitMQ se quitó Basic Auth del proxy RabbitMQ; SSM confirmó su API con la credencial de monitoreo. Después de agregar `GF_SERVER_DOMAIN` y recrear sólo Grafana, SSM confirmó contenedor `Up` y respuesta `GRAFANA_HEALTH_OK` desde `/api/health`. Sigue pendiente validar RabbitMQ en Chrome. |
 | Límites de red | 80/443 públicos; Kafka 9092 solo desde el SG de aplicación; RabbitMQ y métricas accesibles solo desde la instancia de observabilidad |
 | Stack de observabilidad | Kafka, Kafbat UI, Grafana, Prometheus, Kafka Exporter, Node Exporter y Caddy iniciados; Prometheus se corrigió para cargar el objetivo de scrape en el arranque |
 | LiveKit | Contenedor en ejecución; validar reunión real y relé TURN desde redes distintas |
@@ -70,8 +70,8 @@ administrador no forman parte de esta evidencia.
 
 La guía [de consolas](observability-stack.md) tiene los pasos para revisar la
 cola de RabbitMQ, el tópico y consumer group de Kafka, y el dashboard de Grafana.
-La protección Basic Auth se guarda como parámetro `SecureString` en SSM
-(`/nexo/observability/auth`); la clave no se copia a documentación ni capturas.
+Las credenciales de consola se guardan como parámetro `SecureString` en SSM
+(`/nexo/observability/auth`); los valores no se copian a documentación ni capturas.
 La publicación de los paneles depende de DNS wildcard de `nip.io`, y algunas
 políticas de navegador pueden bloquear ese dominio antes de abrir la conexión.
 El despliegue confirma infraestructura y acceso HTTPS, pero no demuestra por sí
