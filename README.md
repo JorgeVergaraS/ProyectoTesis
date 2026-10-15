@@ -629,7 +629,17 @@ sign-in y las decisiones operativas/jurídicas que faltan para preparar el servi
 La [guía de consolas de RabbitMQ, Kafka y Grafana](docs/observability-stack.md)
 describe las URL, el flujo de eventos, la topología y el procedimiento de despliegue.
 El estado de AWS comprobado y los límites de la evidencia están en [docs/cloud-evidence.md](docs/cloud-evidence.md).
-Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). Solicitan la autenticación básica almacenada en SSM; las capturas quedan pendientes porque el navegador de esta sesión bloqueó esos subdominios.
+Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). Solicitan la autenticación básica almacenada en SSM. Las capturas de diagnóstico disponibles están abajo; falta una sesión autenticada de RabbitMQ y Grafana.
+
+### Evidencia visual de observabilidad
+
+Estas capturas reales fueron compartidas desde Chrome durante el diagnóstico. Kafka UI muestra el clúster **Nexo** en línea; RabbitMQ aún está en el desafío de autenticación y Grafana muestra el bucle que se está corrigiendo. No representan capturas de una sesión RabbitMQ/Grafana autenticada.
+
+| Servicio | Captura |
+| --- | --- |
+| Kafka UI (Kafbat) | ![Kafbat UI: clúster Nexo en línea](docs/screenshots/observability/kafbat-ui-kafka-online.png) |
+| RabbitMQ | ![RabbitMQ: desafío de autenticación del navegador](docs/screenshots/observability/rabbitmq-auth-challenge.png) |
+| Grafana | ![Grafana: error ERR_TOO_MANY_REDIRECTS](docs/screenshots/observability/grafana-redirect-loop.png) |
 
 <a id="pruebas"></a>
 

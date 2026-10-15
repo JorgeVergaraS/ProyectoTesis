@@ -39,7 +39,7 @@ Reemplazar `<EIP>` con la dirección que informa el script:
 
 Las tres URLs solicitan las credenciales Basic Auth. Sin autenticar, cada endpoint respondió HTTP 401 y la verificación TLS pasó. RabbitMQ vuelve a autenticar con el usuario restringido `monitoring`; Kafka UI y Grafana tienen además su propio control de acceso y registro público desactivado. En Kafbat, abrir el clúster **Nexo**, el tópico `nexo.messages.v1` y el consumer group `nexo-analytics`. Generar actividad de chat para observar el paso RabbitMQ → Kafka → consumidor y el cambio de lag/offset. Las métricas necesitan tiempo para las primeras recolecciones de Prometheus.
 
-El navegador controlado para esta sesión bloqueó los tres subdominios `nip.io` con `ERR_BLOCKED_BY_CLIENT` antes de mostrar sus páginas. Por eso todavía no hay capturas reales autenticadas que adjuntar: una captura de la página de bloqueo o una imagen generada no sería evidencia de las consolas. Cuando los dominios puedan abrirse en un navegador permitido, guardar capturas de RabbitMQ, Kafbat UI y Grafana en `docs/screenshots/observability/` y enlazarlas desde el README. No capturar el diálogo Basic Auth ni revelar el secreto almacenado en SSM.
+Las capturas reales compartidas desde Chrome están enlazadas en el README: Kafbat UI muestra el clúster **Nexo** en línea; RabbitMQ se queda en el desafío Basic Auth; Grafana presenta `ERR_TOO_MANY_REDIRECTS`. Desde SSM se comprobó que la autenticación RabbitMQ funciona desde la instancia de observabilidad hasta el nodo y a través del proxy, así que el problema restante está en la autenticación/cache del navegador. No incluir el diálogo Basic Auth ni revelar el secreto SSM en evidencia final.
 
 ## Verificación y límites
 
