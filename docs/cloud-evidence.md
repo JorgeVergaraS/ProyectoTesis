@@ -16,7 +16,7 @@ Fecha: 15 de octubre de 2026 (Santiago/UTC). El laboratorio anterior fue elimina
 | RabbitMQ | Dos nodos reportados `healthy`; clúster comprobado con `rabbitmq-diagnostics cluster_status` |
 | Kafka, RabbitMQ UI y Grafana | Desplegados en la EC2 `i-01a80e38ee7c425c0` (`t3.large`), EIP `52.45.123.118`, disco `gp3` cifrado de 40 GiB; IMDSv2 obligatorio |
 | Consolas HTTPS | `https://rabbit.52.45.123.118.nip.io`, `https://kafka.52.45.123.118.nip.io`, `https://grafana.52.45.123.118.nip.io`; certificados Let's Encrypt válidos; las tres responden HTTP 401 sin autenticación Basic |
-| Diagnóstico de paneles | Capturas de Chrome muestran Kafbat en línea, el desafío Basic Auth de RabbitMQ y `ERR_TOO_MANY_REDIRECTS` en Grafana. Una prueba autenticada por SSM desde la EC2 observabilidad llegó al endpoint de RabbitMQ directamente y a través de Caddy. |
+| Diagnóstico de paneles | Capturas de Chrome: Kafbat en línea, desafío Basic Auth RabbitMQ y error anterior de redirección en Grafana. SSM confirmó acceso autenticado a RabbitMQ directo y a través de Caddy; después de agregar `GF_SERVER_DOMAIN` y recrear sólo Grafana, confirmó contenedor `Up` y respuesta `GRAFANA_HEALTH_OK` desde `/api/health`. |
 | Límites de red | 80/443 públicos; Kafka 9092 solo desde el SG de aplicación; RabbitMQ y métricas accesibles solo desde la instancia de observabilidad |
 | Stack de observabilidad | Kafka, Kafbat UI, Grafana, Prometheus, Kafka Exporter, Node Exporter y Caddy iniciados; Prometheus se corrigió para cargar el objetivo de scrape en el arranque |
 | LiveKit | Contenedor en ejecución; validar reunión real y relé TURN desde redes distintas |

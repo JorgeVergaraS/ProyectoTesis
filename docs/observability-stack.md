@@ -39,7 +39,9 @@ Reemplazar `<EIP>` con la dirección que informa el script:
 
 Las tres URLs solicitan las credenciales Basic Auth. Sin autenticar, cada endpoint respondió HTTP 401 y la verificación TLS pasó. RabbitMQ vuelve a autenticar con el usuario restringido `monitoring`; Kafka UI y Grafana tienen además su propio control de acceso y registro público desactivado. En Kafbat, abrir el clúster **Nexo**, el tópico `nexo.messages.v1` y el consumer group `nexo-analytics`. Generar actividad de chat para observar el paso RabbitMQ → Kafka → consumidor y el cambio de lag/offset. Las métricas necesitan tiempo para las primeras recolecciones de Prometheus.
 
-Las capturas reales compartidas desde Chrome están enlazadas en el README: Kafbat UI muestra el clúster **Nexo** en línea; RabbitMQ se queda en el desafío Basic Auth; Grafana presenta `ERR_TOO_MANY_REDIRECTS`. Desde SSM se comprobó que la autenticación RabbitMQ funciona desde la instancia de observabilidad hasta el nodo y a través del proxy, así que el problema restante está en la autenticación/cache del navegador. No incluir el diálogo Basic Auth ni revelar el secreto SSM en evidencia final.
+Las capturas reales compartidas desde Chrome están enlazadas en el README. Kafbat UI muestra el clúster **Nexo** en línea; RabbitMQ muestra el desafío Basic Auth; Grafana muestra `ERR_TOO_MANY_REDIRECTS` antes de aplicar la corrección. La EC2 de observabilidad acepta la credencial RabbitMQ directamente y por Caddy. Cierra las pestañas de RabbitMQ y vuelve a probar en una ventana privada para descartar la autenticación Basic Auth almacenada por Chrome; no se rotó la contraseña.
+
+El bucle de Grafana se corrigió agregando `GF_SERVER_DOMAIN` junto con `GF_SERVER_ROOT_URL`, recreando sólo el contenedor de Grafana en la EC2 existente. SSM confirmó el dominio esperado, el contenedor `Up` y una petición autenticada a `/api/health` con el resultado `GRAFANA_HEALTH_OK`. Las capturas anteriores se conservan como evidencia histórica del fallo; recarga el panel para comprobar el estado actual. No incluir el diálogo Basic Auth ni revelar el secreto SSM en evidencia final.
 
 ## Verificación y límites
 
