@@ -54,6 +54,7 @@ export class VoiceCallService {
   readonly cameraEnabled = signal(false);
   readonly connection = signal<RTCPeerConnectionState>('new');
   readonly remoteStream = signal<MediaStream | null>(null);
+  readonly remoteCameraEnabled = signal(false);
   readonly localStream = signal<MediaStream | null>(null);
   readonly notice = signal('');
   readonly error = signal('');
@@ -92,6 +93,7 @@ export class VoiceCallService {
   });
   private peer: RTCPeerConnection | null = null;
   private microphone: MediaStream | null = null;
+  private remoteMediaStream: MediaStream | null = null;
   private videoSender: RTCRtpSender | null = null;
   private generation = 0;
   private localCallId: string | null = null;
@@ -513,6 +515,7 @@ export class VoiceCallService {
       iceCandidatePoolSize: 4,
     });
     this.peer = peer;
+    this.remoteMediaStream = new MediaStream();
     stream.getAudioTracks().forEach((track) => peer.addTrack(track, stream));
     if (video) {
       this.videoSender = peer.addTransceiver('video', { direction: 'sendrecv' }).sender;
@@ -529,8 +532,31 @@ export class VoiceCallService {
       this.scheduleCandidateFlush(event.candidate ? 100 : 0);
     };
     peer.ontrack = (event) => {
-      if (this.peer === peer)
-        this.remoteStream.set(event.streams[0] ?? new MediaStream([event.track]));
+      if (this.peer !== peer) return;
+      const tracks = this.remoteMediaStream ?? new MediaStream();
+      this.remoteMediaStream = tracks;
+      if (!tracks.getTracks().some((track) => track.id === event.track.id)) {
+        tracks.addTrack(event.track);
+      }
+      const publish = () => {
+        if (this.peer === peer && this.remoteMediaStream === tracks) {
+          // Publish a new MediaStream identity for each track event so Angular
+          // notices video arriving after audio, including on Safari/iOS where
+          // the browser may reuse the same event stream for both tracks.
+          this.remoteStream.set(new MediaStream(tracks.getTracks()));
+          this.remoteCameraEnabled.set(
+            tracks.getVideoTracks().some((track) => !track.muted && track.readyState !== 'ended'),
+          );
+        }
+      };
+      publish();
+      event.track.onunmute = publish;
+      event.track.onmute = publish;
+      event.track.onended = () => {
+        if (this.remoteMediaStream !== tracks) return;
+        tracks.removeTrack(event.track);
+        publish();
+      };
     };
     peer.onconnectionstatechange = () => {
       if (this.peer !== peer) return;
@@ -710,6 +736,13 @@ export class VoiceCallService {
     this.microphone?.getTracks().forEach((track) => track.stop());
     this.microphone = null;
     this.videoSender = null;
+    this.remoteMediaStream?.getTracks().forEach((track) => {
+      track.onmute = null;
+      track.onunmute = null;
+      track.onended = null;
+    });
+    this.remoteMediaStream = null;
+    this.remoteCameraEnabled.set(false);
     this.localStream.set(null);
     this.cameraEnabled.set(false);
     this.remoteStream.set(null);

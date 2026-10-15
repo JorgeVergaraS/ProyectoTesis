@@ -1,4 +1,12 @@
-import { Component, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  effect,
+  ElementRef,
+  HostListener,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { VoiceCallService } from '../../core/realtime/voice-call.service';
 import { AvatarComponent } from './avatar.component';
 import { IconComponent } from './icon.component';
@@ -47,28 +55,76 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
         </div>
         @if (!minimized()) {
           @if (voice.call()?.video) {
-            <div class="call-video-grid" aria-label="Video de la llamada">
-              @if (voice.remoteStream()?.getVideoTracks()?.length) {
-                <video
-                  #remoteVideo
-                  autoplay
-                  muted
-                  playsinline
-                  aria-label="Video de la otra persona"
-                ></video>
-              } @else {
-                <div class="video-placeholder">Esperando el video de la otra persona…</div>
-              }
-              @if (voice.localStream()?.getVideoTracks()?.length) {
-                <video
-                  #localVideo
-                  autoplay
-                  muted
-                  playsinline
-                  aria-label="Vista previa de tu cámara"
-                ></video>
-              } @else {
-                <div class="video-placeholder">Tu cámara está apagada</div>
+            <div
+              #videoGrid
+              class="call-video-grid"
+              [class.expanded]="!!expandedVideo()"
+              aria-label="Video de la llamada"
+            >
+              <div
+                class="video-tile"
+                [class.focused]="expandedVideo() === 'remote'"
+                [class.picture-in-picture]="!!expandedVideo() && expandedVideo() !== 'remote'"
+              >
+                @if (voice.remoteCameraEnabled()) {
+                  <video
+                    #remoteVideo
+                    autoplay
+                    muted
+                    playsinline
+                    aria-label="Video de la otra persona"
+                  ></video>
+                  <span class="video-label">{{
+                    voice.target()?.displayName || 'Otra persona'
+                  }}</span>
+                  <button
+                    type="button"
+                    class="video-expand"
+                    aria-label="Ampliar video de la otra persona"
+                    (click)="toggleVideoSize('remote')"
+                  >
+                    {{ expandedVideo() === 'remote' ? 'Reducir' : 'Ampliar' }}
+                  </button>
+                } @else {
+                  <div class="video-placeholder">
+                    @if (voice.remoteStream()?.getVideoTracks()?.length) {
+                      La otra persona tiene la cámara apagada.
+                    } @else {
+                      Esperando el video de la otra persona…
+                    }
+                  </div>
+                }
+              </div>
+              <div
+                class="video-tile"
+                [class.focused]="expandedVideo() === 'local'"
+                [class.picture-in-picture]="!!expandedVideo() && expandedVideo() !== 'local'"
+              >
+                @if (voice.localStream()?.getVideoTracks()?.length) {
+                  <video
+                    #localVideo
+                    autoplay
+                    muted
+                    playsinline
+                    aria-label="Vista previa de tu cámara"
+                  ></video>
+                  <span class="video-label">Tú</span>
+                  <button
+                    type="button"
+                    class="video-expand"
+                    aria-label="Ampliar tu cámara"
+                    (click)="toggleVideoSize('local')"
+                  >
+                    {{ expandedVideo() === 'local' ? 'Reducir' : 'Ampliar' }}
+                  </button>
+                } @else {
+                  <div class="video-placeholder">Tu cámara está apagada</div>
+                }
+              </div>
+              @if (expandedVideo()) {
+                <button class="video-close" type="button" (click)="closeExpandedVideo()">
+                  Cerrar vista ampliada
+                </button>
               }
             </div>
           }
@@ -204,13 +260,105 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
       gap: 8px;
       margin-top: 14px;
     }
-    .call-video-grid video,
-    .video-placeholder {
+    .video-tile {
+      position: relative;
+      min-width: 0;
       width: 100%;
       aspect-ratio: 16 / 10;
-      object-fit: cover;
       border-radius: 12px;
       background: #060a12;
+      overflow: hidden;
+    }
+    .video-tile video,
+    .video-placeholder {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: inherit;
+      background: #060a12;
+    }
+    .video-label {
+      position: absolute;
+      left: 9px;
+      bottom: 9px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: #07101dcc;
+      color: #fff;
+      font-size: 11px;
+      pointer-events: none;
+    }
+    .video-expand,
+    .video-close {
+      position: absolute;
+      z-index: 2;
+      top: 8px;
+      right: 8px;
+      min-height: 36px;
+      border: 1px solid #ffffff55;
+      border-radius: 9px;
+      padding: 6px 10px;
+      color: #fff;
+      background: #111827d9;
+      cursor: pointer;
+    }
+    .video-close {
+      left: 10px;
+      right: auto;
+      display: none;
+    }
+    .call-video-grid.expanded,
+    .call-video-grid:fullscreen {
+      position: fixed;
+      z-index: 120;
+      inset: 0;
+      width: var(--call-video-width, 100vw);
+      height: var(--call-video-height, 100dvh);
+      max-width: none;
+      box-sizing: border-box;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: stretch;
+      gap: 0;
+      margin: 0;
+      padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+      background: #03060b;
+    }
+    .call-video-grid.expanded .video-tile,
+    .call-video-grid:fullscreen .video-tile {
+      display: none;
+    }
+    .call-video-grid.expanded .video-tile.focused,
+    .call-video-grid:fullscreen .video-tile.focused {
+      display: block;
+      width: 100%;
+      height: 100%;
+      aspect-ratio: auto;
+      border-radius: 14px;
+    }
+    .call-video-grid.expanded .video-tile.picture-in-picture,
+    .call-video-grid:fullscreen .video-tile.picture-in-picture {
+      position: absolute;
+      z-index: 1;
+      right: max(20px, env(safe-area-inset-right));
+      bottom: max(20px, env(safe-area-inset-bottom));
+      display: block;
+      width: clamp(120px, 23vw, 260px);
+      height: auto;
+      aspect-ratio: 16 / 10;
+      border: 2px solid #fff9;
+      box-shadow: 0 5px 24px #000b;
+    }
+    .call-video-grid.expanded .video-close,
+    .call-video-grid:fullscreen .video-close {
+      display: block;
+      top: max(20px, env(safe-area-inset-top));
+      left: max(20px, env(safe-area-inset-left));
+    }
+    .call-video-grid.expanded .video-expand,
+    .call-video-grid:fullscreen .video-expand {
+      display: none;
     }
     .video-placeholder {
       display: grid;
@@ -324,6 +472,9 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
       .call-help {
         line-height: 1.55;
       }
+      .call-video-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       .call-toast {
         left: max(8px, env(safe-area-inset-left));
         right: max(8px, env(safe-area-inset-right));
@@ -351,7 +502,9 @@ export class VoiceCallPanelComponent {
   private readonly callAlerts = inject(CallNotificationService);
   readonly minimized = signal(false);
   readonly audioBlocked = signal(false);
+  readonly expandedVideo = signal<'local' | 'remote' | null>(null);
   readonly audio = viewChild<ElementRef<HTMLAudioElement>>('remoteAudio');
+  private readonly videoGrid = viewChild<ElementRef<HTMLElement>>('videoGrid');
   readonly remoteVideo = viewChild<ElementRef<HTMLVideoElement>>('remoteVideo');
   readonly localVideo = viewChild<ElementRef<HTMLVideoElement>>('localVideo');
   constructor() {
@@ -420,5 +573,68 @@ export class VoiceCallPanelComponent {
     } catch {
       this.audioBlocked.set(true);
     }
+  }
+  async toggleVideoSize(participant: 'local' | 'remote'): Promise<void> {
+    if (this.expandedVideo() === participant) {
+      await this.closeExpandedVideo();
+      return;
+    }
+    this.expandedVideo.set(participant);
+    const grid = this.videoGrid()?.nativeElement;
+    if (!grid) return;
+    this.syncVideoViewport();
+    if (grid.requestFullscreen) {
+      try {
+        await grid.requestFullscreen({ navigationUI: 'hide' } as FullscreenOptions);
+      } catch {
+        // Fixed-position layout provides a full-viewport fallback on mobile browsers.
+      }
+    }
+  }
+  async closeExpandedVideo(): Promise<void> {
+    const grid = this.videoGrid()?.nativeElement;
+    if (grid && document.fullscreenElement === grid) {
+      try {
+        await document.exitFullscreen();
+      } catch {
+        // Keep the in-page fallback available if native fullscreen cannot exit.
+      }
+    }
+    this.expandedVideo.set(null);
+    this.clearVideoViewport();
+  }
+  @HostListener('document:fullscreenchange') fullscreenChanged(): void {
+    if (document.fullscreenElement === this.videoGrid()?.nativeElement) {
+      this.syncVideoViewport();
+    } else if (this.expandedVideo()) {
+      this.expandedVideo.set(null);
+      this.clearVideoViewport();
+    }
+  }
+  @HostListener('document:keydown.escape') escapeExpandedVideo(): void {
+    if (!document.fullscreenElement && this.expandedVideo()) void this.closeExpandedVideo();
+  }
+  @HostListener('window:resize') resizeExpandedVideo(): void {
+    if (this.expandedVideo()) this.syncVideoViewport();
+  }
+  @HostListener('window:orientationchange') orientationChanged(): void {
+    if (this.expandedVideo()) requestAnimationFrame(() => this.syncVideoViewport());
+  }
+  private syncVideoViewport(): void {
+    const grid = this.videoGrid()?.nativeElement;
+    if (!grid) return;
+    grid.style.setProperty(
+      '--call-video-width',
+      `${window.visualViewport?.width ?? window.innerWidth}px`,
+    );
+    grid.style.setProperty(
+      '--call-video-height',
+      `${window.visualViewport?.height ?? window.innerHeight}px`,
+    );
+  }
+  private clearVideoViewport(): void {
+    const grid = this.videoGrid()?.nativeElement;
+    grid?.style.removeProperty('--call-video-width');
+    grid?.style.removeProperty('--call-video-height');
   }
 }

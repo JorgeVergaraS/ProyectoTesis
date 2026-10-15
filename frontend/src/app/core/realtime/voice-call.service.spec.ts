@@ -14,7 +14,7 @@ class FakePeer {
   iceGatheringState = FakePeer.initialGatheringState;
   localDescription: RTCSessionDescriptionInit | null = null;
   remoteDescription: RTCSessionDescriptionInit | null = null;
-  ontrack: ((event: { streams: MediaStream[] }) => void) | null = null;
+  ontrack: ((event: { streams: MediaStream[]; track: MediaStreamTrack }) => void) | null = null;
   onconnectionstatechange: (() => void) | null = null;
   onicecandidate: ((event: RTCPeerConnectionIceEvent) => void) | null = null;
   addTrack = vi.fn();
@@ -45,6 +45,25 @@ class FakePeer {
   constructor(config?: RTCConfiguration) {
     FakePeer.instances.push(this);
     FakePeer.configs.push(config ?? {});
+  }
+}
+
+class FakeMediaStream {
+  private tracks: MediaStreamTrack[] = [];
+  constructor(tracks: MediaStreamTrack[] = []) {
+    this.tracks = [...tracks];
+  }
+  getTracks() {
+    return this.tracks;
+  }
+  getVideoTracks() {
+    return this.tracks.filter((track) => track.kind === 'video');
+  }
+  addTrack(track: MediaStreamTrack) {
+    if (!this.tracks.some((item) => item.id === track.id)) this.tracks.push(track);
+  }
+  removeTrack(track: MediaStreamTrack) {
+    this.tracks = this.tracks.filter((item) => item.id !== track.id);
   }
 }
 
@@ -86,6 +105,7 @@ describe('VoiceCallService', () => {
     server = null;
     getUserMedia.mockReset().mockResolvedValue(stream);
     vi.stubGlobal('RTCPeerConnection', FakePeer);
+    vi.stubGlobal('MediaStream', FakeMediaStream);
     vi.stubGlobal('navigator', { mediaDevices: { getUserMedia } });
     http.get.mockReset().mockImplementation(() => of(server));
     http.post.mockReset().mockImplementation((url: string, body: Record<string, unknown>) => {
@@ -158,8 +178,15 @@ describe('VoiceCallService', () => {
     await vi.advanceTimersByTimeAsync(1500);
     expect(peer.remoteDescription).toEqual({ type: 'answer', sdp: server.answer });
     expect(peer.addIceCandidate).toHaveBeenCalledWith(remoteCandidate);
-    peer.ontrack?.({ streams: [stream] });
-    expect(service.remoteStream()).toBe(stream);
+    const remoteAudio = {
+      id: 'remote-audio',
+      kind: 'audio',
+      onmute: null,
+      onunmute: null,
+      onended: null,
+    } as unknown as MediaStreamTrack;
+    peer.ontrack?.({ streams: [stream], track: remoteAudio });
+    expect(service.remoteStream()?.getTracks()).toEqual([remoteAudio]);
     service.toggleMute();
     expect(track.enabled).toBe(false);
     peer.connectionState = 'connected';
@@ -172,6 +199,39 @@ describe('VoiceCallService', () => {
     expect(service.remoteStream()).toBeNull();
     expect(service.call()).toBeNull();
     expect(http.post.mock.calls.some(([url]) => url.endsWith('/end'))).toBe(true);
+  });
+
+  it('merges separate remote audio and video track events and publishes the added video reactively', async () => {
+    await service.start(person, 'direct-id', true);
+    const peer = FakePeer.instances[0];
+    const remoteAudio = {
+      id: 'remote-audio',
+      kind: 'audio',
+      onmute: null,
+      onunmute: null,
+      onended: null,
+    } as unknown as MediaStreamTrack;
+    const remoteVideo = {
+      id: 'remote-video',
+      kind: 'video',
+      onmute: null,
+      onunmute: null,
+      onended: null,
+    } as unknown as MediaStreamTrack;
+
+    peer.ontrack?.({ streams: [], track: remoteAudio });
+    const audioOnlySnapshot = service.remoteStream();
+    peer.ontrack?.({ streams: [], track: remoteVideo });
+
+    expect(service.remoteStream()).not.toBe(audioOnlySnapshot);
+    expect(service.remoteStream()?.getTracks()).toEqual([remoteAudio, remoteVideo]);
+    expect(
+      service
+        .remoteStream()
+        ?.getTracks()
+        .some((remoteTrack) => remoteTrack.kind === 'video'),
+    ).toBe(true);
+    expect(service.remoteCameraEnabled()).toBe(true);
   });
 
   it('starts a video call with an explicit camera request and sends camera media', async () => {

@@ -498,6 +498,11 @@ el menú superior abre navegación; participantes permite consultar el canal.
 
 **Voz y video:** usar audífonos para evitar acople. La videollamada pide acceso a cámara
 solo cuando se inicia o acepta; el control de cámara puede apagar y liberar la cámara.
+En videollamada, ambas cámaras se muestran simultáneamente. Las pistas remotas de audio
+y video se combinan aunque WebRTC las entregue por separado. **Ampliar** abre cualquiera
+de los videos con la otra persona en miniatura; cerrar la vista o pulsar Escape regresa a
+la llamada. En móvil se adapta al viewport y conserva una ampliación en página cuando no
+hay Fullscreen API. Ambos participantes deben aceptar el video y mantener su cámara activa.
 Si el navegador bloquea el autoplay, pulsar
 **Activar audio recibido**. El micrófono del destinatario se solicita al aceptar.
 El aviso entrante es visual/sonoro según las preferencias. La llamada permanece al navegar entre rutas. No se graba.
