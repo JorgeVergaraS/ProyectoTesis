@@ -8,6 +8,13 @@
       Comprueba tu imagen y micrófono antes de emitir. Al iniciar, los miembros de la conversación
       seleccionada podrán verte y escucharte. Nexo no graba la transmisión.
     </p>
+    @if (inCall()) {
+      <p class="studio-message success" role="status">
+        El audio de la llamada sigue por WebRTC. El estudio no vuelve a capturar tu micrófono, para
+        evitar eco; si compartes una pestaña, puedes incluir su audio desde el selector del
+        navegador.
+      </p>
+    }
   </div>
 
   @if (!media.cameraSupported) {
@@ -97,17 +104,19 @@
           <option value="60">60 FPS · alta fluidez</option>
         </select>
       </label>
-      <label class="audio-option">
-        <span>Audio</span>
-        <span class="checkbox-row">
-          <input
-            type="checkbox"
-            [checked]="audioEnabled()"
-            (change)="audioEnabled.set($any($event.target).checked)"
-          />
-          Micrófono
-        </span>
-      </label>
+      @if (!inCall()) {
+        <label class="audio-option">
+          <span>Audio</span>
+          <span class="checkbox-row">
+            <input
+              type="checkbox"
+              [checked]="audioEnabled()"
+              (change)="audioEnabled.set($any($event.target).checked)"
+            />
+            Micrófono
+          </span>
+        </label>
+      }
     </div>
     <p class="capture-note">Hasta {{ frameRate() }} FPS según tu cámara, navegador y conexión.</p>
     @if (selectedSource() === 'screen') {
@@ -138,19 +147,21 @@
     </div>
 
     <div class="device-controls">
-      <label>
-        <span><nexo-icon name="mic" /> Micrófono</span>
-        <select
-          [value]="media.selectedAudioId()"
-          [disabled]="busy() || emitting()"
-          (change)="changeMicrophone($event)"
-        >
-          <option value="">Micrófono predeterminado</option>
-          @for (device of media.audioInputs(); track device.deviceId) {
-            <option [value]="device.deviceId">{{ device.label }}</option>
-          }
-        </select>
-      </label>
+      @if (!inCall()) {
+        <label>
+          <span><nexo-icon name="mic" /> Micrófono</span>
+          <select
+            [value]="media.selectedAudioId()"
+            [disabled]="busy() || emitting()"
+            (change)="changeMicrophone($event)"
+          >
+            <option value="">Micrófono predeterminado</option>
+            @for (device of media.audioInputs(); track device.deviceId) {
+              <option [value]="device.deviceId">{{ device.label }}</option>
+            }
+          </select>
+        </label>
+      }
       @if (media.source() === 'camera') {
         <label>
           <span><nexo-icon name="camera" /> Cámara</span>
@@ -168,19 +179,21 @@
       }
     </div>
 
-    <div class="level-row">
-      <span>{{ media.microphoneMuted() ? 'Micrófono silenciado' : 'Nivel del micrófono' }}</span>
-      <div
-        class="level-meter"
-        role="meter"
-        aria-label="Nivel del micrófono"
-        aria-valuemin="0"
-        aria-valuemax="100"
-        [attr.aria-valuenow]="media.audioLevel()"
-      >
-        <i [style.width.%]="media.audioLevel()"></i>
+    @if (!inCall()) {
+      <div class="level-row">
+        <span>{{ media.microphoneMuted() ? 'Micrófono silenciado' : 'Nivel del micrófono' }}</span>
+        <div
+          class="level-meter"
+          role="meter"
+          aria-label="Nivel del micrófono"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="media.audioLevel()"
+        >
+          <i [style.width.%]="media.audioLevel()"></i>
+        </div>
       </div>
-    </div>
+    }
 
     <p class="capture-note preview-specs">
       Resolución de la fuente · Hasta {{ frameRate() }} FPS · Vista previa sin sonido para evitar
@@ -219,16 +232,18 @@
     }
 
     <div class="studio-actions">
-      <button
-        type="button"
-        class="secondary-button"
-        [attr.aria-pressed]="media.microphoneMuted()"
-        [disabled]="busy()"
-        (click)="toggleMicrophone()"
-      >
-        <nexo-icon name="mic" />
-        {{ media.microphoneMuted() ? 'Activar micrófono' : 'Silenciar micrófono' }}
-      </button>
+      @if (!inCall()) {
+        <button
+          type="button"
+          class="secondary-button"
+          [attr.aria-pressed]="media.microphoneMuted()"
+          [disabled]="busy()"
+          (click)="toggleMicrophone()"
+        >
+          <nexo-icon name="mic" />
+          {{ media.microphoneMuted() ? 'Activar micrófono' : 'Silenciar micrófono' }}
+        </button>
+      }
       <button type="button" class="danger-button" [disabled]="busy()" (click)="finishPreview()">
         {{ emitting() ? 'Finalizar transmisión' : 'Finalizar vista previa' }}
       </button>

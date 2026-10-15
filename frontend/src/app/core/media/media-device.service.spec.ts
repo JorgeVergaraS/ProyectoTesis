@@ -91,6 +91,19 @@ describe('MediaDeviceService', () => {
     expect(service.stream()).toBeNull();
   });
 
+  it('does not reopen the microphone when a camera feed is added to an active WebRTC call', async () => {
+    const camera = fakeTrack('video', 'camera-only');
+    getUserMedia.mockResolvedValue(new FakeStream([camera]));
+
+    await service.start('camera', '', '', 30, false);
+
+    expect(getUserMedia).toHaveBeenCalledWith({
+      audio: false,
+      video: { frameRate: { ideal: 30, max: 30 } },
+    });
+    expect(service.stream()?.getAudioTracks()).toEqual([]);
+  });
+
   it('combines a shared screen with the microphone and stops when sharing ends', async () => {
     const screen = fakeTrack('video', 'screen');
     const systemAudio = fakeTrack('audio', 'system');
@@ -113,6 +126,18 @@ describe('MediaDeviceService', () => {
     expect(screen.stop).toHaveBeenCalledOnce();
     expect(systemAudio.stop).toHaveBeenCalledOnce();
     expect(microphone.stop).toHaveBeenCalledOnce();
+  });
+
+  it('keeps captured tab audio but does not duplicate the call microphone while screen sharing in-call', async () => {
+    const screen = fakeTrack('video', 'screen');
+    const systemAudio = fakeTrack('audio', 'system');
+    getDisplayMedia.mockResolvedValue(new FakeStream([screen, systemAudio]));
+
+    await service.start('screen', '', '', 30, false);
+
+    expect(getUserMedia).not.toHaveBeenCalled();
+    expect(service.stream()?.getTracks()).toEqual([screen, systemAudio]);
+    expect(service.systemAudioTrackIds()).toEqual(['system']);
   });
 
   it('changes microphones without requesting the screen picker again', async () => {

@@ -22,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class CallService {
     public record Actor(UUID userId, String sessionKey) {}
     public record CallView(UUID id, UserView peer, boolean outgoing, String status, String reason,
-                           String offer, String answer, Instant connectedAt, UUID conversationId,
+                           String offer, String answer, Instant connectedAt, UUID conversationId, boolean video,
                            List<IceCandidate> candidates) {}
     public record IceCandidate(@Size(max = 2048) String candidate, @Size(max = 128) String sdpMid,
             Integer sdpMLineIndex, @Size(max = 256) String usernameFragment) {}
@@ -42,7 +42,7 @@ public class CallService {
         final List<IceCandidate> callerCandidates = new ArrayList<>(), calleeCandidates = new ArrayList<>();
         Instant created = Instant.now(), accepted, connectedAt, ended;
         Instant callerSeen = created, calleeSeen = created;
-        boolean callerConnected, calleeConnected;
+        boolean callerConnected, calleeConnected, video;
         boolean live() { return ended == null; }
         boolean visible(Actor actor) {
             return (caller.equals(actor.userId()) && callerSession.equals(actor.sessionKey()))
@@ -58,15 +58,17 @@ public class CallService {
         }
     }
 
-    public synchronized CallView start(Actor actor, UUID id, UUID callee, String offer, UUID conversationId) {
+    public synchronized CallView start(Actor actor, UUID id, UUID callee, String offer, UUID conversationId,
+            boolean video) {
         cleanup();
         if (actor.userId().equals(callee)) throw error(HttpStatus.BAD_REQUEST);
-        validateSdp(offer);
+        validateSdp(offer, video);
         var existing = calls.get(id);
         if (existing != null) {
             if (!existing.callerSession.equals(actor.sessionKey()) || !existing.caller.equals(actor.userId()))
                 throw error(HttpStatus.FORBIDDEN);
-            if (!existing.callee.equals(callee) || !Objects.equals(existing.offer, offer)) throw error(HttpStatus.CONFLICT);
+            if (!existing.callee.equals(callee) || !Objects.equals(existing.offer, offer)
+                    || existing.video != video) throw error(HttpStatus.CONFLICT);
             return view(existing, actor);
         }
         requireUser(callee);
@@ -82,6 +84,7 @@ public class CallService {
         var call = new Call();
         call.id = id; call.caller = actor.userId(); call.callee = callee;
         call.callerSession = actor.sessionKey(); call.offer = offer; call.conversationId = conversationId;
+        call.video = video;
         calls.put(id, call);
         return view(call, actor);
     }
@@ -136,7 +139,7 @@ public class CallService {
         var call = require(id, actor);
         if (call.caller.equals(actor.userId()) || !call.owns(actor)) throw error(HttpStatus.FORBIDDEN);
         if (!call.live() || !call.status.equals("CONNECTING")) throw error(HttpStatus.CONFLICT);
-        validateSdp(answer);
+        validateSdp(answer, call.video);
         if (call.answer != null && !call.answer.equals(answer)) throw error(HttpStatus.CONFLICT);
         call.answer = answer;
         return view(call, actor);
@@ -169,16 +172,17 @@ public class CallService {
         boolean outgoing = call.caller.equals(actor.userId());
         return new CallView(call.id, requireUser(outgoing ? call.callee : call.caller).toPublicView(false), outgoing,
                 call.status, call.reason, outgoing ? null : call.offer, outgoing ? call.answer : null,
-                call.connectedAt, call.conversationId,
+                call.connectedAt, call.conversationId, call.video,
                 List.copyOf(outgoing ? call.calleeCandidates : call.callerCandidates));
     }
     private UserEntity requireUser(UUID id) {
         return users.findById(id).filter(UserEntity::isActive)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
-    private void validateSdp(String sdp) {
+    private void validateSdp(String sdp, boolean videoAllowed) {
         if (sdp == null || sdp.length() > 64000 || !sdp.startsWith("v=0") || !sdp.contains("m=audio")
-                || sdp.contains("m=video") || sdp.contains("m=application")) throw error(HttpStatus.BAD_REQUEST);
+                || sdp.contains("m=application") || videoAllowed != sdp.contains("m=video"))
+            throw error(HttpStatus.BAD_REQUEST);
     }
     private void cleanup() {
         Instant now = Instant.now();

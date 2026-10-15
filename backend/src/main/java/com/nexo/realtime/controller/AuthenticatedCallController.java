@@ -38,6 +38,7 @@ public class AuthenticatedCallController {
             @NotNull UUID id,
             @NotNull UUID calleeId,
             UUID conversationId,
+            boolean video,
             @NotBlank @Size(max = 64000) String offer) {}
 
     public record AnswerRequest(@NotBlank @Size(max = 64000) String answer) {}
@@ -63,7 +64,7 @@ public class AuthenticatedCallController {
             @Valid @RequestBody StartRequest request) {
         return calls.start(
                 actor(authentication, callSession), request.id(), request.calleeId(), request.offer(),
-                request.conversationId());
+                request.conversationId(), request.video());
     }
 
     @PostMapping("/{id}/answer")

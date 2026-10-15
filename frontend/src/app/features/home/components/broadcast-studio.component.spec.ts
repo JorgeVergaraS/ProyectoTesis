@@ -77,9 +77,19 @@ describe('BroadcastStudioComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(media.start).toHaveBeenCalledWith('camera', '', '', 30);
+    expect(media.start).toHaveBeenCalledWith('camera', '', '', 30, true);
     expect(fixture.componentInstance.state()).toBe('PREVIEWING');
     expect(fixture.nativeElement.textContent).toContain('Nada se está transmitiendo');
+  });
+
+  it('does not capture the microphone again when sharing media inside a call', async () => {
+    const fixture = TestBed.createComponent(BroadcastStudioComponent);
+    fixture.componentRef.setInput('inCall', true);
+    fixture.detectChanges();
+
+    await fixture.componentInstance.prepare();
+
+    expect(media.start).toHaveBeenCalledWith('camera', '', '', 30, false);
   });
 
   it('blocks media preparation while a voice call is active', async () => {

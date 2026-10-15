@@ -260,6 +260,15 @@
               >
                 <nexo-icon name="phone" />
               </button>
+              <button
+                class="icon-button"
+                [attr.aria-label]="'Videollamar a ' + person.displayName"
+                title="Videollamada"
+                [disabled]="calls.occupied() || groupCalls.occupied()"
+                (click)="calls.start(person, conversation.id, true)"
+              >
+                <nexo-icon name="camera" />
+              </button>
             }
           </header>
           <div class="conversation-body" [class.hide-details]="!detailsOpen()">
@@ -661,7 +670,14 @@
                       [disabled]="calls.occupied() || groupCalls.occupied()"
                       (click)="calls.start(person, conversation.id)"
                     >
-                      Iniciar llamada
+                      Iniciar llamada de voz
+                    </button>
+                    <button
+                      class="secondary-button call-person-button"
+                      [disabled]="calls.occupied() || groupCalls.occupied()"
+                      (click)="calls.start(person, conversation.id, true)"
+                    >
+                      <nexo-icon name="camera" /> Iniciar videollamada
                     </button>
                   }
                 </section>
@@ -669,7 +685,8 @@
                   <nexo-icon name="info" />
                   <p>
                     Sesión protegida con {{ providerLabel() }}. Los mensajes no tienen cifrado de
-                    extremo a extremo. Las llamadas WebRTC son de voz y no se graban.
+                    extremo a extremo. Las llamadas de voz y video son WebRTC en vivo y no se
+                    graban. La cámara se activa solo al elegir videollamada y conceder permiso.
                   </p>
                 </div>
               </aside>

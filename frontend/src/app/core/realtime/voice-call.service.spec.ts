@@ -18,10 +18,24 @@ class FakePeer {
   onconnectionstatechange: (() => void) | null = null;
   onicecandidate: ((event: RTCPeerConnectionIceEvent) => void) | null = null;
   addTrack = vi.fn();
+  videoSender = { replaceTrack: vi.fn(async () => undefined) };
+  addTransceiver = vi.fn(() => ({ sender: this.videoSender }));
   addIceCandidate = vi.fn(async () => undefined);
   close = vi.fn();
-  createOffer = vi.fn(async () => ({ type: 'offer', sdp: 'v=0\r\nm=audio offer' }));
-  createAnswer = vi.fn(async () => ({ type: 'answer', sdp: 'v=0\r\nm=audio answer' }));
+  createOffer = vi.fn(async () => ({
+    type: 'offer',
+    sdp:
+      this.addTransceiver.mock.calls.length > 0
+        ? 'v=0\r\nm=audio offer\r\nm=video offer'
+        : 'v=0\r\nm=audio offer',
+  }));
+  createAnswer = vi.fn(async () => ({
+    type: 'answer',
+    sdp:
+      this.addTransceiver.mock.calls.length > 0
+        ? 'v=0\r\nm=audio answer\r\nm=video answer'
+        : 'v=0\r\nm=audio answer',
+  }));
   async setLocalDescription(value: RTCSessionDescriptionInit) {
     this.localDescription = value;
   }
@@ -52,6 +66,7 @@ describe('VoiceCallService', () => {
   const stream = {
     getTracks: () => [track],
     getAudioTracks: () => [track],
+    getVideoTracks: () => [],
   } as unknown as MediaStream;
   const getUserMedia = vi.fn();
   const http = { get: vi.fn(), post: vi.fn() };
@@ -73,10 +88,10 @@ describe('VoiceCallService', () => {
     vi.stubGlobal('RTCPeerConnection', FakePeer);
     vi.stubGlobal('navigator', { mediaDevices: { getUserMedia } });
     http.get.mockReset().mockImplementation(() => of(server));
-    http.post.mockReset().mockImplementation((url: string, body: Record<string, string>) => {
+    http.post.mockReset().mockImplementation((url: string, body: Record<string, unknown>) => {
       if (url.endsWith('/calls')) {
         server = {
-          id: body['id'],
+          id: String(body['id']),
           peer: person,
           outgoing: true,
           status: 'RINGING',
@@ -85,10 +100,12 @@ describe('VoiceCallService', () => {
           answer: null,
           connectedAt: null,
           conversationId: null,
+          video: body['video'] === true,
           candidates: [],
         };
       } else if (server && url.endsWith('/accept')) server = { ...server, status: 'CONNECTING' };
-      else if (server && url.endsWith('/answer')) server = { ...server, answer: body['answer'] };
+      else if (server && url.endsWith('/answer'))
+        server = { ...server, answer: String(body['answer']) };
       else if (server && url.endsWith('/candidates')) return of(server);
       else if (server && (url.endsWith('/end') || url.endsWith('/reject')))
         server = { ...server, status: 'ENDED' };
@@ -118,7 +135,12 @@ describe('VoiceCallService', () => {
     const peer = FakePeer.instances[0];
     expect(service.call()?.status).toBe('RINGING');
     expect(getUserMedia).toHaveBeenCalledWith({
-      audio: { echoCancellation: true, noiseSuppression: true },
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1,
+      },
       video: false,
     });
     expect(peer.addTrack).toHaveBeenCalledWith(track, stream);
@@ -150,6 +172,46 @@ describe('VoiceCallService', () => {
     expect(service.remoteStream()).toBeNull();
     expect(service.call()).toBeNull();
     expect(http.post.mock.calls.some(([url]) => url.endsWith('/end'))).toBe(true);
+  });
+
+  it('starts a video call with an explicit camera request and sends camera media', async () => {
+    const cameraTrack = { kind: 'video', enabled: true, stop: vi.fn() };
+    const videoStream = {
+      getTracks: () => [track, cameraTrack],
+      getAudioTracks: () => [track],
+      getVideoTracks: () => [cameraTrack],
+    } as unknown as MediaStream;
+    getUserMedia.mockResolvedValue(videoStream);
+
+    await service.start(person, 'direct-id', true);
+
+    expect(getUserMedia).toHaveBeenCalledWith(
+      expect.objectContaining({
+        audio: expect.objectContaining({ echoCancellation: true }),
+        video: expect.any(Object),
+      }),
+    );
+    expect(FakePeer.instances[0].addTransceiver).toHaveBeenCalledWith('video', {
+      direction: 'sendrecv',
+    });
+    expect(FakePeer.instances[0].videoSender.replaceTrack).toHaveBeenCalledWith(cameraTrack);
+    expect(service.call()?.video).toBe(true);
+    expect(service.cameraEnabled()).toBe(true);
+    await service.hangUp();
+    expect(cameraTrack.stop).toHaveBeenCalledOnce();
+  });
+
+  it('continues as audio when video-call camera permission is unavailable', async () => {
+    getUserMedia
+      .mockRejectedValueOnce(new DOMException('Camera blocked', 'NotAllowedError'))
+      .mockResolvedValueOnce(stream);
+
+    await service.start(person, 'direct-id', true);
+
+    expect(getUserMedia).toHaveBeenCalledTimes(2);
+    expect(service.call()?.video).toBe(true);
+    expect(service.cameraEnabled()).toBe(false);
+    expect(service.notice()).toContain('solo con audio');
   });
 
   it('loads short-lived TURN settings for a signed-in demo session', async () => {
@@ -222,7 +284,7 @@ describe('VoiceCallService', () => {
     await vi.advanceTimersByTimeAsync(25000);
 
     expect(service.call()).toBeNull();
-    expect(service.notice()).toContain('No se encontró una ruta de audio');
+    expect(service.notice()).toContain('No se encontró una ruta de llamada');
     expect(peer.close).toHaveBeenCalled();
   });
 
@@ -237,6 +299,7 @@ describe('VoiceCallService', () => {
       answer: null,
       connectedAt: null,
       conversationId: null,
+      video: false,
     };
     await vi.advanceTimersByTimeAsync(1500);
     expect(getUserMedia).not.toHaveBeenCalled();
@@ -244,7 +307,7 @@ describe('VoiceCallService', () => {
     expect(FakePeer.instances[0].remoteDescription?.type).toBe('offer');
     expect(
       http.post.mock.calls.some(
-        ([url, body]) => url.endsWith('/answer') && body.answer.includes('audio'),
+        ([url, body]) => url.endsWith('/answer') && String(body.answer).includes('audio'),
       ),
     ).toBe(true);
   });
@@ -269,6 +332,7 @@ describe('VoiceCallService', () => {
       answer: null,
       connectedAt: null,
       conversationId: null,
+      video: false,
     };
     await vi.advanceTimersByTimeAsync(1500);
     await service.reject();
@@ -316,7 +380,7 @@ describe('VoiceCallService', () => {
     expect(service.busy()).toBe(false);
     expect(service.error()).toContain('Permite el micrófono');
     resolve(stream);
-    await Promise.resolve();
+    for (let tick = 0; tick < 4; tick++) await Promise.resolve();
     expect(track.stop).toHaveBeenCalled();
     expect(FakePeer.instances).toHaveLength(0);
     expect(http.post.mock.calls.some(([url]) => url.endsWith('/calls'))).toBe(false);

@@ -17,9 +17,14 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
   template: `
     <audio #remoteAudio autoplay></audio>
     @if (voice.occupied()) {
-      <section class="voice-panel" aria-label="Llamada de voz">
+      <section
+        class="voice-panel"
+        [attr.aria-label]="voice.call()?.video ? 'Videollamada' : 'Llamada de voz'"
+      >
         <header>
-          <span><nexo-icon name="phone" /> LLAMADA DE VOZ</span
+          <span
+            ><nexo-icon [name]="voice.call()?.video ? 'camera' : 'phone'" />
+            {{ voice.call()?.video ? 'VIDEOLLAMADA' : 'LLAMADA DE VOZ' }}</span
           ><button
             class="icon-button"
             [attr.aria-label]="minimized() ? 'Expandir llamada' : 'Minimizar llamada'"
@@ -41,6 +46,35 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
           </div>
         </div>
         @if (!minimized()) {
+          @if (voice.call()?.video) {
+            <div class="call-video-grid" aria-label="Video de la llamada">
+              @if (voice.remoteStream()?.getVideoTracks()?.length) {
+                <video
+                  #remoteVideo
+                  autoplay
+                  muted
+                  playsinline
+                  aria-label="Video de la otra persona"
+                ></video>
+              } @else {
+                <div class="video-placeholder">Esperando el video de la otra persona…</div>
+              }
+              @if (voice.localStream()?.getVideoTracks()?.length) {
+                <video
+                  #localVideo
+                  autoplay
+                  muted
+                  playsinline
+                  aria-label="Vista previa de tu cámara"
+                ></video>
+              } @else {
+                <div class="video-placeholder">Tu cámara está apagada</div>
+              }
+            </div>
+          }
+          @if (voice.notice()) {
+            <p class="call-notice" role="status">{{ voice.notice() }}</p>
+          }
           @if (voice.error()) {
             <p class="call-error" role="alert">{{ voice.error() }}</p>
           }
@@ -49,7 +83,9 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
               {{
                 voice.mediaInUse()
                   ? 'Cierra el estudio multimedia para poder aceptar.'
-                  : 'Te está llamando. Al aceptar se solicitará acceso al micrófono.'
+                  : voice.call()?.video
+                    ? 'Te está llamando. Al aceptar se solicitará acceso al micrófono y a la cámara.'
+                    : 'Te está llamando. Al aceptar se solicitará acceso al micrófono.'
               }}
             </p>
             <div class="call-actions">
@@ -67,6 +103,18 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
               >
                 <nexo-icon name="mic" />{{ voice.muted() ? 'Activar micrófono' : 'Silenciar' }}
               </button>
+              @if (voice.call()?.video) {
+                <button
+                  class="secondary-button"
+                  [disabled]="voice.busy()"
+                  [attr.aria-pressed]="voice.cameraEnabled()"
+                  (click)="voice.toggleCamera()"
+                >
+                  <nexo-icon name="camera" />{{
+                    voice.cameraEnabled() ? 'Apagar cámara' : 'Activar cámara'
+                  }}
+                </button>
+              }
               <button class="hangup" (click)="voice.hangUp()">Finalizar</button>
             </div>
             @if (audioBlocked()) {
@@ -83,7 +131,8 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
             }
           }
           <p class="call-help">
-            Usa audífonos si pruebas dos sesiones en el mismo equipo. Solo audio; sin grabación.
+            Usa audífonos para evitar eco. Nexo transmite audio y video en vivo y no graba la
+            llamada.
           </p>
         }
       </section>
@@ -149,6 +198,29 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
       color: #b8d7ce;
       margin: 7px 0 0;
     }
+    .call-video-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .call-video-grid video,
+    .video-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      border-radius: 12px;
+      background: #060a12;
+    }
+    .video-placeholder {
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      box-sizing: border-box;
+      color: #aab8cc;
+      text-align: center;
+      font-size: 11px;
+    }
     .call-actions {
       margin-top: 20px;
       flex-wrap: wrap;
@@ -179,6 +251,10 @@ import { CallNotificationService } from '../../core/realtime/call-notification.s
     .call-error {
       font-size: 11px;
       color: #fcb2c5;
+    }
+    .call-notice {
+      font-size: 11px;
+      color: #bfe6d8;
     }
     .audio-unlock {
       margin-top: 12px;
@@ -276,11 +352,27 @@ export class VoiceCallPanelComponent {
   readonly minimized = signal(false);
   readonly audioBlocked = signal(false);
   readonly audio = viewChild<ElementRef<HTMLAudioElement>>('remoteAudio');
+  readonly remoteVideo = viewChild<ElementRef<HTMLVideoElement>>('remoteVideo');
+  readonly localVideo = viewChild<ElementRef<HTMLVideoElement>>('localVideo');
   constructor() {
     effect(() => {
       const call = this.voice.call();
       const incomingId = call && !call.outgoing && call.status === 'RINGING' ? call.id : null;
       this.callAlerts.syncIncomingCall(incomingId);
+    });
+    effect(() => {
+      const element = this.remoteVideo()?.nativeElement;
+      const stream = this.voice.remoteStream();
+      if (!element) return;
+      element.srcObject = stream;
+      if (stream) void element.play().catch(() => undefined);
+    });
+    effect(() => {
+      const element = this.localVideo()?.nativeElement;
+      const stream = this.voice.localStream();
+      if (!element) return;
+      element.srcObject = stream;
+      if (stream) void element.play().catch(() => undefined);
     });
     effect(() => {
       const element = this.audio()?.nativeElement;
@@ -299,7 +391,9 @@ export class VoiceCallPanelComponent {
     if (this.voice.busy()) {
       const phases = {
         idle: 'Preparando llamada…',
-        microphone: 'Solicitando acceso al micrófono…',
+        microphone: this.voice.call()?.video
+          ? 'Solicitando acceso a cámara y micrófono…'
+          : 'Solicitando acceso al micrófono…',
         ice: 'Consultando servidores de conexión…',
         gathering: 'Buscando una ruta de audio…',
         signaling: 'Conectando con la otra persona…',
@@ -307,8 +401,11 @@ export class VoiceCallPanelComponent {
       return phases[this.voice.setupPhase()];
     }
     if (this.voice.connection() === 'connected')
-      return 'Audio conectado · ' + this.voice.duration();
-    if (this.voice.connection() === 'disconnected') return 'Reconectando audio…';
+      return (
+        (this.voice.call()?.video ? 'Videollamada conectada · ' : 'Audio conectado · ') +
+        this.voice.duration()
+      );
+    if (this.voice.connection() === 'disconnected') return 'Reconectando llamada…';
     const call = this.voice.call();
     return call?.status === 'RINGING'
       ? call.outgoing

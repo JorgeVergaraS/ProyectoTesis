@@ -49,6 +49,7 @@ export class MediaDeviceService {
     audioDeviceId = '',
     videoDeviceId = '',
     frameRate: BroadcastFrameRate = 30,
+    includeMicrophone = true,
   ): Promise<MediaStream> {
     if (source === 'camera' && !this.cameraSupported) throw new Error('camera-unsupported');
     if (source === 'screen' && !this.screenSupported) throw new Error('screen-unsupported');
@@ -71,7 +72,7 @@ export class MediaDeviceService {
       let screenAudioIds: string[] = [];
       if (source === 'camera') {
         stream = await this.mediaDevices!.getUserMedia({
-          audio: this.deviceConstraint(audioDeviceId),
+          audio: includeMicrophone ? this.deviceConstraint(audioDeviceId) : false,
           video: this.videoConstraint(videoDeviceId, frameRate),
         });
         acquired.push(stream);
@@ -86,15 +87,17 @@ export class MediaDeviceService {
         if (version !== this.requestVersion) throw new Error('request-cancelled');
         screenAudioIds = display.getAudioTracks().map((track) => track.id);
         if (!display.getVideoTracks().length) throw new Error('screen-unavailable');
-        const microphone = await this.mediaDevices!.getUserMedia({
-          audio: this.deviceConstraint(audioDeviceId),
-          video: false,
-        });
-        acquired.push(microphone);
+        const microphone = includeMicrophone
+          ? await this.mediaDevices!.getUserMedia({
+              audio: this.deviceConstraint(audioDeviceId),
+              video: false,
+            })
+          : null;
+        if (microphone) acquired.push(microphone);
         stream = new MediaStream([
           ...display.getVideoTracks(),
           ...display.getAudioTracks(),
-          ...microphone.getAudioTracks(),
+          ...(microphone?.getAudioTracks() ?? []),
         ]);
       }
 

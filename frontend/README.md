@@ -19,7 +19,13 @@ Requiere Node 24/npm 11 y Spring Boot; `local-demo` habilita además los perfile
 - `core/media`: captura local de cámara, pantalla y micrófono, dispositivos, nivel y liberación.
 - `core/services`: clientes de chat, perfil y health, además de la preferencia visual
   persistente.
-- `core/realtime`: WebRTC de audio, permiso del micrófono y señalización HTTP.
+- `core/realtime`: WebRTC de voz/videollamadas 1:1, permisos explícitos de cámara/micrófono,
+  mute de cámara con liberación del dispositivo, ICE progresivo y señalización HTTP.
+- En una llamada de video, si cámara no está disponible o se deniega pero el micrófono sí funciona,
+  Nexo contesta en modo audio. La cámara no se solicita al cargar la página.
+- En una llamada activa, el estudio LiveKit no captura por segunda vez el micrófono de WebRTC;
+  puede enviar video/pantalla y audio de pestaña/sistema por separado, evitando duplicar el audio
+  de voz y reducir el riesgo de eco.
 - `core/realtime/call-notification.service.ts`: timbre de llamada entrante con preferencia local
   y avisos opcionales del navegador. El usuario habilita permisos desde **Notificaciones**; el
   aviso del sistema oculta el nombre de quien llama y el timbre se detiene al responder o terminar.

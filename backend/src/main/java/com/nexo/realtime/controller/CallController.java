@@ -25,7 +25,7 @@ public class CallController {
         this.turn = turn;
     }
     public record StartRequest(@NotNull UUID id, @NotNull UUID calleeId, UUID conversationId,
-            @NotBlank @Size(max=64000) String offer) {}
+            boolean video, @NotBlank @Size(max=64000) String offer) {}
     public record AnswerRequest(@NotBlank @Size(max=64000) String answer) {}
     public record CandidatesRequest(
             @NotNull @Size(min = 1, max = 32) @Valid List<CallService.IceCandidate> candidates) {}
@@ -51,7 +51,7 @@ public class CallController {
             @RequestHeader(value = "X-Nexo-Call-Session", required = false) UUID callSession,
             @Valid @RequestBody StartRequest request) {
         return calls.start(actor(me, callSession), request.id(), request.calleeId(), request.offer(),
-                request.conversationId());
+                request.conversationId(), request.video());
     }
     @PostMapping("/{id}/answer")
     public CallService.CallView answer(

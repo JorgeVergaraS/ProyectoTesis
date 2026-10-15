@@ -106,7 +106,7 @@ instalación nueva.
 | Apariencia | Temas predeterminado, OLED y claro; botones Mate, Style SkayGlass y Y2K 2000; configuración junto al nombre | Preferencias locales de cada navegador, sin sincronización entre dispositivos    |
 | Enlaces    | Reconoce `http://`, `https://` y `www.`                                                                     | Sin previews ni verificación de reputación                                       |
 | Perfil     | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada                         | Sin campos institucionales ni configuración de privacidad                        |
-| Llamadas   | Voz directa P2P y salas grupales de canal mediante LiveKit; mute, salida y contador de participantes         | Sin video; la llamada entre redes diferentes requiere validar ambos dispositivos |
+| Llamadas   | Voz y videollamada directa P2P; mute de micrófono/cámara, salida y salas grupales LiveKit | Latencia y calidad dependen de red, dispositivo y ruta ICE/TURN; falta prueba física repetible en redes distintas |
 | Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
 | Transmisiones | Cámara/pantalla, micrófono opcional y 15/30/60 FPS mediante LiveKit; visor en canal o llamada | 60 FPS es un objetivo dependiente del dispositivo/red; pendientes medios físicos y redes externas |
 | Operación  | EC2, RDS, Docker con reinicio automático, Caddy HTTPS, health, Actuator y Swagger; EC2 dedicada para RabbitMQ UI, Kafka y Grafana | Prueba integrada de extremo a extremo y capturas de consolas pendientes        |
@@ -484,20 +484,23 @@ La verificación reciente de voz se hizo con Spring local, no con el contenedor 
 4. Abrir un directo Jorge–Jean; Fernando no puede leerlo.
 5. Enviar `https://example.com` y abrir el enlace desde el mensaje.
 6. Ir a Perfil, elegir un JPG/PNG de hasta 2 MiB, guardar y comprobar el avatar.
-7. En el directo, pulsar el teléfono; Jean recibe la invitación y acepta.
-8. Permitir el micrófono, esperar **Audio conectado**, probar mute y finalizar.
-9. En Perfil, abrir **Preparar transmisión**, elegir cámara o pantalla y permitir los
+7. En el directo, pulsar teléfono para voz o cámara para videollamada; Jean recibe la invitación y acepta.
+8. Permitir micrófono y, para video, cámara. Si se deniega la cámara, se intenta continuar solo con audio.
+9. Esperar **Audio conectado** o **Videollamada conectada**, probar mute/cámara y finalizar.
+10. En Perfil, abrir **Preparar transmisión**, elegir cámara o pantalla y permitir los
    dispositivos solo cuando el navegador lo solicite.
-10. Comprobar la vista previa privada, cambiar cámara/micrófono, probar mute y finalizar.
-11. Recargar para comprobar persistencia; cerrar sesión para bloquear las rutas privadas.
+11. Comprobar la vista previa privada, cambiar cámara/micrófono, probar mute y finalizar.
+12. Recargar para comprobar persistencia; cerrar sesión para bloquear las rutas privadas.
 
 No usar **Duplicar pestaña**: algunos navegadores copian `sessionStorage`.
 Crear una nueva o usar **Abrir otra sesión**, que emplea `noopener`. En móvil,
 el menú superior abre navegación; participantes permite consultar el canal.
 
-**Voz:** usar audífonos para evitar acople. Si se bloquea el autoplay, pulsar
+**Voz y video:** usar audífonos para evitar acople. La videollamada pide acceso a cámara
+solo cuando se inicia o acepta; el control de cámara puede apagar y liberar la cámara.
+Si el navegador bloquea el autoplay, pulsar
 **Activar audio recibido**. El micrófono del destinatario se solicita al aceptar.
-El aviso entrante es visual; la llamada permanece al navegar entre rutas. No se graba.
+El aviso entrante es visual/sonoro según las preferencias. La llamada permanece al navegar entre rutas. No se graba.
 
 **Estudio local:** la vista previa tampoco se graba ni se transmite. Al volver,
 cerrar el perfil, cambiar de ruta o terminar manualmente, Nexo detiene todos los
@@ -507,7 +510,8 @@ en la conversación elegida cuando LiveKit está habilitado. Los demás miembros
 **Ver transmisión** desde el canal. Consulta la [guía de transmisión local](docs/broadcast-sfu-verification.md).
 
 En cloud se configuran STUN y TURN para las llamadas directas; la aceptación final
-entre navegadores y redes continúa abierta. El micrófono requiere localhost o HTTPS; una IP
+entre navegadores y redes continúa abierta. La videollamada usa la misma señalización/ICE/TURN
+que la voz y envía video WebRTC en tiempo real; no existe garantía de latencia cero. El micrófono requiere localhost o HTTPS; una IP
 por HTTP no es equivalente. Referencias:
 [getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
 y [conectividad WebRTC](https://webrtc.org/getting-started/peer-connections).
@@ -536,7 +540,7 @@ con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 | GET / POST    | `/api/conversations/{id}/messages`        | Consultar / enviar; identidad derivada del token                                    |
 | GET           | `/api/calls/current`                      | Llamada de voz de esta pestaña autenticada; cuerpo vacío si no existe               |
 | GET           | `/api/calls/ice-config`                   | STUN y credenciales TURN temporales de la cuenta autenticada                         |
-| POST          | `/api/calls`                              | Crear llamada con `id`, `calleeId` y oferta SDP de solo audio                       |
+| POST          | `/api/calls`                              | Crear llamada con `id`, `calleeId`, `conversationId`, `video` y oferta SDP audio/video según modalidad |
 | POST          | `/api/calls/{id}/candidates`               | Publicar candidatos ICE locales; `candidate: null` indica fin de candidatos          |
 | POST          | `/api/calls/{id}/accept`                  | Reclamar la llamada entrante desde esta pestaña                                     |
 | POST          | `/api/calls/{id}/answer`                  | Publicar la respuesta SDP del destinatario                                          |

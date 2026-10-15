@@ -238,7 +238,7 @@ class LocalDemoTests {
     }
 
     @Test
-    void callsCanBeRejectedAndDoNotAcceptVideoOrSelfCalls() throws Exception {
+    void callsCanBeRejectedAndVideoRequiresExplicitNegotiation() throws Exception {
         String jorge = login(JORGE), jean = login(JEAN);
         String sdp = "v=0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n";
         for (var request : java.util.List.of(
@@ -253,6 +253,16 @@ class LocalDemoTests {
                 .content(json.writeValueAsString(Map.of("id", id, "calleeId", JEAN, "offer", sdp)))).andExpect(status().isOk());
         mvc.perform(post("/api/demo/calls/" + id + "/reject").header("Authorization", "Bearer " + jean))
                 .andExpect(jsonPath("$.reason").value("REJECTED"));
+
+        UUID videoId = UUID.randomUUID();
+        String videoSdp = sdp + "m=video 9 UDP/TLS/RTP/SAVPF 96\r\n";
+        mvc.perform(post("/api/demo/calls").header("Authorization", "Bearer " + jorge)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("id", videoId, "calleeId", JEAN,
+                        "offer", videoSdp, "video", true))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.video").value(true));
+        mvc.perform(post("/api/demo/calls/" + videoId + "/reject").header("Authorization", "Bearer " + jean))
+                .andExpect(status().isOk());
     }
 
     @Test

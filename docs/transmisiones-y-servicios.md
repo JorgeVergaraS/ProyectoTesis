@@ -22,7 +22,7 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
 | Personas | Disponible | Consultar personas y abrir conversaciones directas |
 | Comunidades | Disponible | Consultar canales, unirse, salir y ver participantes |
 | Mensajería | Disponible | Enviar, editar, borrar, copiar, responder y reenviar mensajes |
-| Llamada de voz | Disponible para pruebas | Llamar, aceptar, rechazar, silenciar, reactivar y finalizar |
+| Llamadas directas | Disponible para pruebas | Voz o video WebRTC, permisos al iniciar/aceptar, mute de micrófono/cámara y finalizar |
 | Transmisión multimedia | Disponible localmente | Emitir cámara o pantalla con micrófono mediante LiveKit |
 | Visor de transmisiones | Disponible | Los miembros autorizados pueden abrir una emisión activa |
 | Temas visuales | Disponible | Tema predeterminado, OLED y claro, con estilos de botones configurables |
@@ -30,7 +30,9 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
 
 ### Límites conocidos
 
-- Las llamadas de voz son bidireccionales, pero no incluyen video.
+- Las llamadas directas permiten elegir voz o video. En la videollamada la persona receptora
+  solicita cámara al aceptar; si no concede acceso a cámara y sí autoriza el micrófono, la sesión
+  puede continuar solo con audio. La cámara se libera al apagarla o finalizar.
 - Una transmisión es de un anfitrión hacia varios espectadores. Puede abrirse dentro
   de una llamada grupal, pero conserva sala, permisos y ciclo de vida independientes.
 - La validación principal está hecha en localhost y en sesiones del mismo equipo.
@@ -57,10 +59,16 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
   cancelación y bloqueo de WebRTC; falta completar una prueba de audio real entre PC y
   celular en redes distintas.
 - Compartir pantalla se ofrece mediante el estudio LiveKit vinculado a la llamada o
-  conversación. La llamada directa sigue siendo solo audio; la captura depende de
+  conversación. El estudio no vuelve a capturar el micrófono cuando hay una llamada WebRTC activa;
+  la voz continúa por la llamada y el estudio transmite video/pantalla y el audio opcional de pestaña.
+  La captura depende de
   `getDisplayMedia`, HTTPS y permisos del navegador. Algunos navegadores móviles no
   permiten compartir pantalla; esa limitación no se puede eliminar desde el servidor.
 - La transmisión no se graba ni se almacena como archivo.
+- El transporte de llamada usa WebRTC con negociación ICE progresiva y conexión P2P asistida por
+  TURN cuando es necesaria. LiveKit usa un SFU para la cámara/pantalla del estudio. Ambos son
+  transporte en tiempo real, pero la latencia final depende del acceso a Internet, el dispositivo,
+  la congestión, la ruta ICE y la región; no se puede prometer cero retardo.
 
 ## 2. Capturas de la interfaz
 

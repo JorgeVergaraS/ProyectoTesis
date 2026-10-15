@@ -26,6 +26,7 @@ export interface VoiceCall {
   answer: string | null;
   connectedAt: string | null;
   conversationId: string | null;
+  video: boolean;
   candidates?: SignaledIceCandidate[];
 }
 
@@ -50,8 +51,10 @@ export class VoiceCallService {
   readonly setupPhase = signal<CallSetupPhase>('idle');
   readonly waitingForMicrophone = signal(false);
   readonly muted = signal(false);
+  readonly cameraEnabled = signal(false);
   readonly connection = signal<RTCPeerConnectionState>('new');
   readonly remoteStream = signal<MediaStream | null>(null);
+  readonly localStream = signal<MediaStream | null>(null);
   readonly notice = signal('');
   readonly error = signal('');
   readonly turnAvailable = signal(false);
@@ -89,6 +92,7 @@ export class VoiceCallService {
   });
   private peer: RTCPeerConnection | null = null;
   private microphone: MediaStream | null = null;
+  private videoSender: RTCRtpSender | null = null;
   private generation = 0;
   private localCallId: string | null = null;
   private dismissedId: string | null = null;
@@ -169,7 +173,7 @@ export class VoiceCallService {
       const reasons: Record<string, string> = {
         REJECTED: 'Llamada rechazada.',
         MISSED: 'No hubo respuesta.',
-        FAILED: 'No se pudo establecer el audio.',
+        FAILED: 'No se pudo establecer la llamada.',
         DISCONNECTED: 'La otra sesión se desconectó.',
       };
       this.notice.set(reasons[next.reason ?? ''] ?? 'Llamada finalizada.');
@@ -199,7 +203,11 @@ export class VoiceCallService {
     }
   }
 
-  async start(person: DemoUser, conversationId: string | null = null): Promise<void> {
+  async start(
+    person: DemoUser,
+    conversationId: string | null = null,
+    video = false,
+  ): Promise<void> {
     if (this.occupied()) return;
     if (this.mediaInUse()) {
       this.error.set('Cierra el estudio multimedia antes de iniciar una llamada de voz.');
@@ -223,7 +231,7 @@ export class VoiceCallService {
     this.error.set('');
     this.notice.set('');
     try {
-      const peer = await this.preparePeer(operation);
+      const peer = await this.preparePeer(operation, video);
       const offer = await this.description(
         peer,
         await this.withDeadline(peer.createOffer(), 10000),
@@ -234,7 +242,7 @@ export class VoiceCallService {
         this.http
           .post<VoiceCall>(
             this.base,
-            { id, calleeId: person.id, conversationId, offer },
+            { id, calleeId: person.id, conversationId, video, offer },
             this.requestOptions,
           )
           .pipe(timeout(10000)),
@@ -295,7 +303,7 @@ export class VoiceCallService {
       }
       if (accepted.status === 'ENDED') throw new Error('Call ended');
       this.call.set(accepted);
-      const peer = await this.preparePeer(operation);
+      const peer = await this.preparePeer(operation, call.video);
       if (!call.offer) throw new Error('Missing offer');
       await this.withDeadline(peer.setRemoteDescription({ type: 'offer', sdp: call.offer }), 10000);
       this.signalingReady = true;
@@ -366,20 +374,105 @@ export class VoiceCallService {
       track.enabled = !this.muted();
     });
   }
+  async toggleCamera(): Promise<void> {
+    if (!this.call()?.video || !this.peer || !this.videoSender || this.busy()) return;
+    const track = this.microphone
+      ?.getVideoTracks()
+      .find((candidate) => candidate.readyState === 'live');
+    if (track) {
+      if (track.enabled) {
+        await this.videoSender.replaceTrack(null);
+        const current = this.microphone;
+        if (current) {
+          this.microphone = new MediaStream(current.getTracks().filter((item) => item !== track));
+          track.stop();
+          this.localStream.set(this.microphone);
+        }
+        this.cameraEnabled.set(false);
+      } else {
+        track.enabled = true;
+        this.cameraEnabled.set(true);
+      }
+      return;
+    }
+    const peer = this.peer;
+    let camera: MediaStream | null = null;
+    this.busy.set(true);
+    this.setupPhase.set('microphone');
+    try {
+      camera = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 24, max: 30 },
+        },
+      });
+      if (this.peer !== peer || !this.microphone || !this.videoSender) {
+        camera.getTracks().forEach((item) => item.stop());
+        return;
+      }
+      const videoTrack = camera.getVideoTracks()[0];
+      if (!videoTrack || !this.peer || !this.videoSender) {
+        camera.getTracks().forEach((item) => item.stop());
+        throw new Error('camera-unavailable');
+      }
+      await this.videoSender.replaceTrack(videoTrack);
+      this.microphone?.addTrack(videoTrack);
+      this.watchLocalCamera(videoTrack);
+      this.localStream.set(this.microphone);
+      this.cameraEnabled.set(true);
+    } catch (error) {
+      camera?.getTracks().forEach((item) => item.stop());
+      this.error.set(this.cameraError(error));
+    } finally {
+      this.busy.set(false);
+      this.setupPhase.set('idle');
+    }
+  }
   clearNotice(): void {
     this.notice.set('');
     this.error.set('');
   }
 
-  private async preparePeer(operation: number): Promise<RTCPeerConnection> {
+  private async preparePeer(operation: number, video = false): Promise<RTCPeerConnection> {
     this.setupPhase.set('microphone');
     this.waitingForMicrophone.set(true);
     let expired = false;
     let deadline: ReturnType<typeof setTimeout> | undefined;
     const request = navigator.mediaDevices
       .getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
-        video: false,
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+        },
+        video: video
+          ? {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              frameRate: { ideal: 24, max: 30 },
+              facingMode: 'user',
+            }
+          : false,
+      })
+      .catch(async (videoError) => {
+        if (!video || operation !== this.generation) throw videoError;
+        // A denied or unavailable camera must not prevent the user from joining with audio.
+        const audioOnly = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+          },
+          video: false,
+        });
+        this.notice.set(
+          'La cámara no está disponible o no tiene permiso. La llamada seguirá solo con audio.',
+        );
+        return audioOnly;
       })
       .then((stream) => {
         if (expired || operation !== this.generation) {
@@ -408,6 +501,8 @@ export class VoiceCallService {
       throw new Error('Operation cancelled');
     }
     this.microphone = stream;
+    this.localStream.set(stream);
+    this.cameraEnabled.set(stream.getVideoTracks().some((track) => track.enabled));
     this.setupPhase.set('ice');
     const iceServers = await this.iceServers();
     this.assertCurrent(operation);
@@ -418,7 +513,15 @@ export class VoiceCallService {
       iceCandidatePoolSize: 4,
     });
     this.peer = peer;
-    stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+    stream.getAudioTracks().forEach((track) => peer.addTrack(track, stream));
+    if (video) {
+      this.videoSender = peer.addTransceiver('video', { direction: 'sendrecv' }).sender;
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        await this.videoSender.replaceTrack(videoTrack);
+        this.watchLocalCamera(videoTrack);
+      }
+    }
     peer.onicecandidate = (event) => {
       this.pendingCandidates.push(
         (event.candidate?.toJSON() ?? { candidate: null }) as SignaledIceCandidate,
@@ -448,11 +551,11 @@ export class VoiceCallService {
           });
       } else if (peer.connectionState === 'failed') {
         void this.hangUp(
-          'No fue posible conectar el audio. Revisa la red o prueba una conexión con TURN.',
+          'No fue posible conectar la llamada. Revisa la red o prueba una conexión con TURN.',
         );
       } else if (peer.connectionState === 'disconnected' && !this.disconnectTimer) {
         this.disconnectTimer = setTimeout(() => {
-          void this.hangUp('Se perdió la conexión de audio.');
+          void this.hangUp('Se perdió la conexión de la llamada.');
         }, 15000);
       }
     };
@@ -514,7 +617,7 @@ export class VoiceCallService {
       this.iceConnectionTimer = null;
       if (this.peer === peer && peer.connectionState !== 'connected') {
         void this.hangUp(
-          'No se encontró una ruta de audio. Comprueba la conexión móvil/Wi-Fi e inténtalo de nuevo.',
+          'No se encontró una ruta de llamada. Comprueba la conexión móvil/Wi-Fi e inténtalo de nuevo.',
         );
       }
     }, 25000);
@@ -537,6 +640,15 @@ export class VoiceCallService {
   }
   private assertCurrent(operation: number): void {
     if (operation !== this.generation) throw new Error('Operation cancelled');
+  }
+  private watchLocalCamera(track: MediaStreamTrack): void {
+    track.onended = () => {
+      this.cameraEnabled.set(false);
+      const current = this.microphone;
+      if (!current) return;
+      this.microphone = new MediaStream(current.getTracks().filter((item) => item !== track));
+      this.localStream.set(this.microphone);
+    };
   }
   private async iceServers(): Promise<RTCIceServer[]> {
     const fallback: RTCIceServer[] = [...environment.voiceIceServers];
@@ -597,6 +709,9 @@ export class VoiceCallService {
     this.peer = null;
     this.microphone?.getTracks().forEach((track) => track.stop());
     this.microphone = null;
+    this.videoSender = null;
+    this.localStream.set(null);
+    this.cameraEnabled.set(false);
     this.remoteStream.set(null);
     this.muted.set(false);
     this.connection.set('new');
@@ -607,7 +722,7 @@ export class VoiceCallService {
     }
     if (error instanceof Error && error.message === 'ICE timeout') {
       if (!this.turnAvailable()) {
-        return 'El micrófono funciona, pero Nexo no entregó un servidor TURN. Revisa la configuración de llamadas o inicia sesión de nuevo.';
+        return 'Los dispositivos funcionan, pero Nexo no entregó un servidor TURN. Revisa la configuración de llamadas o inicia sesión de nuevo.';
       }
       return 'El micrófono está disponible, pero la negociación de red tardó demasiado. Comprueba tu conexión e inténtalo otra vez.';
     }
@@ -616,6 +731,16 @@ export class VoiceCallService {
     if (error instanceof DOMException && error.name === 'NotFoundError')
       return 'No se encontró un micrófono.';
     return 'No se pudo iniciar el audio. Revisa tu micrófono, los permisos y la conexión.';
+  }
+
+  private cameraError(error: unknown): string {
+    if (error instanceof DOMException && error.name === 'NotAllowedError')
+      return 'La cámara está bloqueada. Permítela en los ajustes del sitio y vuelve a intentarlo.';
+    if (error instanceof DOMException && error.name === 'NotFoundError')
+      return 'No se encontró una cámara disponible en este dispositivo.';
+    if (error instanceof DOMException && error.name === 'NotReadableError')
+      return 'Otra aplicación está usando la cámara. Ciérrala y vuelve a intentarlo.';
+    return 'No se pudo activar la cámara. La llamada de audio sigue activa.';
   }
 
   private readCallSessionId(): string {

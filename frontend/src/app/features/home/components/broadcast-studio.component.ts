@@ -161,7 +161,7 @@ export class BroadcastStudioComponent implements OnDestroy {
     this.error.set('');
     this.notice.set('');
     try {
-      await this.media.start(this.selectedSource(), '', '', this.frameRate());
+      await this.media.start(this.selectedSource(), '', '', this.frameRate(), !this.inCall());
       if (!this.audioEnabled() && !this.media.microphoneMuted()) this.media.toggleMicrophone();
       this.state.set('PREVIEWING');
       this.notice.set('Vista previa privada. Nada se está transmitiendo ni grabando.');
