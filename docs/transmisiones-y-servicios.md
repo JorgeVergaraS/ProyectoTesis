@@ -34,9 +34,10 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
 - Una transmisión es de un anfitrión hacia varios espectadores. Puede abrirse dentro
   de una llamada grupal, pero conserva sala, permisos y ciclo de vida independientes.
 - La validación principal está hecha en localhost y en sesiones del mismo equipo.
-- HTTPS/WSS y TURN por UDP están activos en la EC2 académica. La consulta de AWS del
-  15 de octubre de 2026 confirmó UDP 3478 y el rango relay UDP 49160–49200; TCP 3478
-  todavía no está habilitado y requiere el despliegue de esta rama.
+- HTTPS/WSS y las reglas de TURN por UDP están en AWS. La revisión del 15 de octubre
+  de 2026 encontró Coturn enlazado a loopback/interfaz Docker, no al IP privado de la
+  EC2; TCP 3478 tampoco está habilitado y el runtime solo anuncia TURN UDP. Esta rama
+  corrige el enlace y mapeo EIP/IP privado, anuncia UDP/TCP y prepara la regla TCP.
 - Las sesiones demo autenticadas solicitan credenciales TURN temporales en
   `/api/demo/calls/ice-config`, igual que las cuentas autenticadas en
   `/api/calls/ice-config`. TURN anuncia candidatos UDP y TCP en el puerto 3478 para

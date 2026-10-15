@@ -61,7 +61,9 @@ services:
       - --use-auth-secret
       - --static-auth-secret=${NEXO_TURN_SECRET:-}
       - --realm=nexo
-      - --external-ip=${PUBLIC_IP:-127.0.0.1}
+      - --listening-ip=${TURN_PRIVATE_IP:?Set TURN_PRIVATE_IP}
+      - --relay-ip=${TURN_PRIVATE_IP:?Set TURN_PRIVATE_IP}
+      - --external-ip=${PUBLIC_IP:-127.0.0.1}/${TURN_PRIVATE_IP:?Set TURN_PRIVATE_IP}
       - --listening-port=3478
       - --min-port=49160
       - --max-port=49200

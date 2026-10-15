@@ -26,11 +26,13 @@ El laboratorio anterior fue eliminado. Esta rama reconstruye recursos nuevos en
 | TCP 5432 | Solo grupo de aplicación | PostgreSQL/RDS |
 
 TURN usa credenciales HMAC temporales entregadas por el backend autenticado; no debe
-funcionar como relay anónimo. El estado consultado en AWS el 15 de octubre de 2026
-mostró TCP 3478 ausente; la rama añade la regla y anuncia UDP/TCP, pero la regla
-pública de TCP requiere confirmación antes de aplicarse. Las llamadas aún necesitan
-prueba real entre redes distintas; TURN sobre TCP 3478 no cubre redes que solo permiten
-TLS por 443.
+funcionar como relay anónimo. La revisión de AWS del 15 de octubre de 2026 encontró
+que Coturn estaba escuchando en loopback y la interfaz Docker, en vez del IP privado
+de la EC2; también faltaba TCP 3478 y la URL TURN solo anunciaba UDP. La rama configura
+la interfaz privada y el mapeo EIP/IP privado, anuncia UDP/TCP y añade la regla TCP;
+la regla pública de TCP requiere confirmación antes de aplicarse. Las llamadas aún
+necesitan prueba real entre redes distintas; TURN sobre TCP 3478 no cubre redes que
+solo permiten TLS por 443.
 
 Los dos nodos RabbitMQ comparten una EC2: cumplen la demostración de clúster, pero
 no ofrecen tolerancia a la caída del host. Single-AZ y tamaños pequeños son decisiones

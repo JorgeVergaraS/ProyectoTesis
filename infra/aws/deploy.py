@@ -159,11 +159,14 @@ def configure_media(state, env):
     for key in ["LIVEKIT_API_SECRET", "NEXO_TURN_SECRET"]:
         state["secrets"].setdefault(key, secrets.token_hex(24))
         env[key] = state["secrets"][key]
+    ec2 = client("ec2")
+    instance = ec2.describe_instances(InstanceIds=[state["instance"]])["Reservations"][0]["Instances"][0]
+    turn_private_ip = instance["PrivateIpAddress"]
     env.update(PUBLIC_IP=state["ip"], MEDIA_HOST=f"media.{state['ip']}.nip.io",
+        TURN_PRIVATE_IP=turn_private_ip,
         LIVEKIT_PUBLIC_URL=f"wss://media.{state['ip']}.nip.io", LIVEKIT_API_KEY="nexo-livekit",
         NEXO_BROADCASTS_ENABLED="true", NEXO_TURN_URL=(
             f"turn:{state['ip']}:3478?transport=udp,turn:{state['ip']}:3478?transport=tcp"))
-    ec2 = client("ec2")
     for protocol, start, end in [("tcp", 7881, 7881), ("udp", 7882, 7882),
                                   ("udp", 3478, 3478), ("tcp", 3478, 3478),
                                   ("udp", 49160, 49200)]:
