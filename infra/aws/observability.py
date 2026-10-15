@@ -211,6 +211,26 @@ def apply(bundle):
     save(deployment)
     s3.upload_file(str(bundle), deployment["bucket"], "nexo-source.zip")
 
+    # EC2 user data only runs at first launch. Refresh an existing host from
+    # this release as well so compose changes in Git reach Grafana and peers.
+    refresh_obs = [
+        "set -eu",
+        f"aws s3 cp s3://{deployment['bucket']}/nexo-source.zip /opt/nexo-observability/source.zip --region {REGION}",
+        "mkdir -p /tmp/nexo-observability-source",
+        "unzip -oq /opt/nexo-observability/source.zip 'infra/observability/*' -d /tmp/nexo-observability-source",
+        "cp -a /tmp/nexo-observability-source/infra/observability/. /opt/nexo-observability/",
+        "rm -rf /tmp/nexo-observability-source /opt/nexo-observability/source.zip",
+        "cd /opt/nexo-observability",
+        "APP_PRIVATE_IP=$(sed -n 's/^APP_PRIVATE_IP=//p' .env)",
+        'sed -i "s|\\${APP_PRIVATE_IP}|${APP_PRIVATE_IP}|g" prometheus.yml',
+        "docker compose up -d",
+        "docker compose ps",
+    ]
+    refresh = ssm.send_command(InstanceIds=[obs["instance"]], DocumentName="AWS-RunShellScript",
+        TimeoutSeconds=600, Parameters={"commands": refresh_obs, "executionTimeout": ["600"]})
+    obs["refresh_command"] = refresh["Command"]["CommandId"]
+    save_obs(obs)
+
     setup_rabbit_user = r'''set -eu
 OBS_USER=$(python3 -c 'import json; print(json.load(open("/opt/nexo/runtime.json"))["RABBITMQ_MONITORING_USER"])')
 OBS_PASS=$(python3 -c 'import json; print(json.load(open("/opt/nexo/runtime.json"))["RABBITMQ_MONITORING_PASSWORD"])')
@@ -249,7 +269,8 @@ unset OBS_PASS
         "instance": obs["instance"], "state": instance["State"]["Name"], "privateIp": instance["PrivateIpAddress"],
         "elasticIp": obs["public_ip"],
         "urls": {name: f"https://{name}.{obs['public_ip']}.nip.io" for name in ["rabbit", "kafka", "grafana"]},
-        "appReleaseCommand": obs["app_release_command"], "credentialParameter": AUTH_PARAMETER,
+        "appReleaseCommand": obs["app_release_command"], "observabilityRefreshCommand": obs["refresh_command"],
+        "credentialParameter": AUTH_PARAMETER,
         "note": "Retrieve the username and password from the SSM SecureString; they are not printed.",
     }, indent=2))
 
