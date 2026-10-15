@@ -26,13 +26,14 @@ export async function handler(event) {
       if (expected.length !== signature.length || !timingSafeEqual(expected, signature)) return { isAuthorized: false };
       if (!Array.isArray(claims.roles) || !claims.roles.includes('USER')) return { isAuthorized: false };
     } else {
-      const tenant = process.env.AZURE_TENANT_ID;
+      const tenant = typeof claims.tid === 'string' ? claims.tid.toLowerCase() : '';
+      const validTenantId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(tenant);
       const issuers = [`https://login.microsoftonline.com/${tenant}/v2.0`, `https://sts.windows.net/${tenant}/`];
       const api = process.env.AZURE_API_CLIENT_ID;
-      if (!tenant || !api || header.alg !== 'RS256' || !issuers.includes(claims.iss)
+      if (!validTenantId || !api || header.alg !== 'RS256' || !issuers.includes(claims.iss)
           || !audiences.some((aud) => aud === api || aud === `api://${api}`)) return { isAuthorized: false };
       if (keyCache.until < Date.now() || !keyCache.keys.some((key) => key.kid === header.kid)) {
-        const response = await fetch(`https://login.microsoftonline.com/${tenant}/discovery/v2.0/keys`,
+        const response = await fetch('https://login.microsoftonline.com/common/discovery/v2.0/keys',
           { signal: AbortSignal.timeout(5000) });
         if (!response.ok) return { isAuthorized: false };
         const data = await response.json();

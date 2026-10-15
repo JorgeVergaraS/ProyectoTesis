@@ -180,7 +180,7 @@ def gateway(state):
         archive.writestr("index.mjs", (Path(__file__).parent / "authorizer.mjs").read_text())
     function_name = NAME + "-jwt"
     role = f"arn:aws:iam::{state['account']}:role/LabRole"
-    variables = {"NEXO_JWT_SECRET": state["secrets"]["NEXO_JWT_SECRET"], "AZURE_TENANT_ID": TENANT, "AZURE_API_CLIENT_ID": API_CLIENT}
+    variables = {"NEXO_JWT_SECRET": state["secrets"]["NEXO_JWT_SECRET"], "AZURE_API_CLIENT_ID": API_CLIENT}
     try:
         function = functions.create_function(FunctionName=function_name, Runtime="nodejs22.x", Role=role,
             Handler="index.handler", Code={"ZipFile": code.getvalue()}, Timeout=10, MemorySize=128,

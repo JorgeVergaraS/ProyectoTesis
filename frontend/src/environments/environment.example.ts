@@ -9,6 +9,6 @@ export const environment = {
     apiClientId: 'YOUR_API_CLIENT_ID',
     redirectUri: 'http://localhost:4200',
     apiScope: 'api://YOUR_API_CLIENT_ID/access_as_user',
-    authority: 'https://login.microsoftonline.com/YOUR_TENANT_ID',
+    authority: 'https://login.microsoftonline.com/common',
   },
 } as const;

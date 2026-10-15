@@ -18,7 +18,8 @@ export const environment = {
     tenantId: tenant,
     apiClientId: apiClient,
     apiScope: `api://${apiClient}/access_as_user`,
-    authority: `https://login.microsoftonline.com/${tenant}`,
+    // The app registration must be configured for Entra work/school and personal accounts.
+    authority: 'https://login.microsoftonline.com/common',
     redirectUri: config.redirectUri ?? window.location.origin,
   },
 } as const;

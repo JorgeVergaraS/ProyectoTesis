@@ -8,7 +8,7 @@ export const environment = {
     tenantId: '21a4bbb2-fc48-4053-a98e-b805aa2306cc',
     apiClientId: '0f2d7cee-cabb-4482-900d-64fb07f5f81d',
     apiScope: 'api://0f2d7cee-cabb-4482-900d-64fb07f5f81d/access_as_user',
-    authority: 'https://login.microsoftonline.com/21a4bbb2-fc48-4053-a98e-b805aa2306cc',
+    authority: 'https://login.microsoftonline.com/common',
     redirectUri: 'http://localhost:4200',
   },
 } as const;

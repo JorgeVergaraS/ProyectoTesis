@@ -37,7 +37,7 @@ class CurrentUserServiceTest {
     @Test
     void createsAnEntraUserAndEnrollsItInGeneralOnlyOnce() {
         when(users.findByEmailIgnoreCase("entra@nexo.cl")).thenReturn(Optional.empty());
-        when(users.findByEntraObjectId("entra-object-id")).thenReturn(Optional.empty());
+        when(users.findByEntraObjectId("21a4bbb2-fc48-4053-a98e-b805aa2306cc:entra-object-id")).thenReturn(Optional.empty());
         when(users.saveAndFlush(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         var principal = currentUser.require(authentication(entraJwt()));
@@ -66,11 +66,12 @@ class CurrentUserServiceTest {
         Instant now = Instant.now();
         return Jwt.withTokenValue("entra-token")
                 .header("alg", "RS256")
-                .issuer("https://login.microsoftonline.com/tenant/v2.0")
+                .issuer("https://login.microsoftonline.com/21a4bbb2-fc48-4053-a98e-b805aa2306cc/v2.0")
                 .subject("entra-subject")
                 .audience(List.of("api://nexo"))
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(300))
+                .claim("tid", "21a4bbb2-fc48-4053-a98e-b805aa2306cc")
                 .claim("oid", "entra-object-id")
                 .claim("preferred_username", "entra@nexo.cl")
                 .claim("name", "Entra User")

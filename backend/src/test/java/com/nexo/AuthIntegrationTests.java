@@ -105,6 +105,7 @@ class AuthIntegrationTests {
     void entraProfileCustomizationSurvivesLaterClaimSynchronization() throws Exception {
         var authorizedJwt = jwt()
                 .jwt(token -> token
+                        .claim("tid", "21a4bbb2-fc48-4053-a98e-b805aa2306cc")
                         .claim("oid", "entra-custom-profile")
                         .claim("preferred_username", "entra-custom@nexo.cl")
                         .claim("name", "Name From Entra"))
@@ -234,6 +235,7 @@ class AuthIntegrationTests {
     @Test
     void returns403ForValidTokenWithoutRequiredScopeOrRole() throws Exception {
         mvc.perform(get("/api/users/me").with(jwt().jwt(token -> token
+                        .claim("tid", "21a4bbb2-fc48-4053-a98e-b805aa2306cc")
                         .claim("oid", "entra-without-permission")
                         .claim("preferred_username", "without-permission@nexo.cl"))))
                 .andExpect(status().isForbidden());
@@ -243,6 +245,7 @@ class AuthIntegrationTests {
     void acceptsRequiredScopeAndUpsertsEntraUserWithoutPassword() throws Exception {
         var authorizedJwt = jwt()
                 .jwt(token -> token
+                        .claim("tid", "21a4bbb2-fc48-4053-a98e-b805aa2306cc")
                         .claim("oid", "entra-authorized-user")
                         .claim("preferred_username", "entra-user@nexo.cl")
                         .claim("name", "Entra User"))
@@ -252,7 +255,7 @@ class AuthIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.displayName").value("Entra User"));
         assertThat(jdbc.queryForObject(
-                        "SELECT count(*) FROM nexo.users WHERE entra_object_id='entra-authorized-user' AND password_hash IS NULL",
+                        "SELECT count(*) FROM nexo.users WHERE entra_object_id='21a4bbb2-fc48-4053-a98e-b805aa2306cc:entra-authorized-user' AND password_hash IS NULL",
                         Integer.class))
                 .isEqualTo(1);
     }
@@ -308,17 +311,17 @@ class AuthIntegrationTests {
     @Test
     void privateConversationRejectsAnAuthenticatedThirdUser() throws Exception {
         var alice = jwt()
-                .jwt(token -> token.claim("oid", "entra-alice")
+                .jwt(token -> token.claim("tid", "21a4bbb2-fc48-4053-a98e-b805aa2306cc").claim("oid", "entra-alice")
                         .claim("preferred_username", "alice@nexo.cl")
                         .claim("name", "Alice"))
                 .authorities(new SimpleGrantedAuthority("SCOPE_access_as_user"));
         var bob = jwt()
-                .jwt(token -> token.claim("oid", "entra-bob")
+                .jwt(token -> token.claim("tid", "21a4bbb2-fc48-4053-a98e-b805aa2306cc").claim("oid", "entra-bob")
                         .claim("preferred_username", "bob@nexo.cl")
                         .claim("name", "Bob"))
                 .authorities(new SimpleGrantedAuthority("SCOPE_access_as_user"));
         var eve = jwt()
-                .jwt(token -> token.claim("oid", "entra-eve")
+                .jwt(token -> token.claim("tid", "21a4bbb2-fc48-4053-a98e-b805aa2306cc").claim("oid", "entra-eve")
                         .claim("preferred_username", "eve@nexo.cl")
                         .claim("name", "Eve"))
                 .authorities(new SimpleGrantedAuthority("SCOPE_access_as_user"));
@@ -418,6 +421,7 @@ class AuthIntegrationTests {
                 "call-entra-callee@nexo.cl", "valid-password-8", "Entra Callee", 201);
         var entra = jwt()
                 .jwt(token -> token
+                        .claim("tid", "21a4bbb2-fc48-4053-a98e-b805aa2306cc")
                         .claim("oid", "entra-voice-caller")
                         .claim("preferred_username", "entra-voice-caller@nexo.cl")
                         .claim("name", "Entra Voice Caller"))

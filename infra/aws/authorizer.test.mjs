@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { createHmac, generateKeyPairSync, sign } from 'node:crypto';
 import { handler } from './authorizer.mjs';
 process.env.NEXO_JWT_SECRET = 'test-only-32-byte-secret-never-use-in-cloud';
-process.env.AZURE_TENANT_ID = 'test-tenant';
 process.env.AZURE_API_CLIENT_ID = 'test-api';
+const testTenant = '21a4bbb2-fc48-4053-a98e-b805aa2306cc';
 const encode = (object) => Buffer.from(JSON.stringify(object)).toString('base64url');
 const localClaims = () => ({ iss: 'nexo-local', aud: 'nexo-api', exp: Math.floor(Date.now() / 1000) + 300, roles: ['USER'] });
 function local(claims, algorithm = 'HS256') {
@@ -26,7 +26,7 @@ test('Entra JWT verifies RSA signature, configured issuer, audience and delegate
   const original = globalThis.fetch;
   globalThis.fetch = async () => ({ ok: true, json: async () => ({ keys: [key] }) });
   const entra = (extra = {}) => {
-    const claims = { iss: 'https://login.microsoftonline.com/test-tenant/v2.0', aud: 'test-api',
+    const claims = { iss: `https://login.microsoftonline.com/${testTenant}/v2.0`, tid: testTenant, aud: 'test-api',
       exp: Math.floor(Date.now() / 1000) + 300, scp: 'access_as_user', ...extra };
     const input = `${encode({ alg: 'RS256', kid: 'test-key' })}.${encode(claims)}`;
     return `${input}.${sign('RSA-SHA256', Buffer.from(input), privateKey).toString('base64url')}`;
@@ -34,6 +34,7 @@ test('Entra JWT verifies RSA signature, configured issuer, audience and delegate
   try {
     assert.equal((await check(entra())).isAuthorized, true);
     assert.equal((await check(entra({ iss: 'https://evil.example' }))).isAuthorized, false);
+    assert.equal((await check(entra({ tid: 'other-tenant' }))).isAuthorized, false);
     assert.equal((await check(entra({ scp: 'profile' }))).isAuthorized, false);
     assert.equal((await check(entra({ aud: 'other-app' }))).isAuthorized, false);
     assert.equal((await check(entra() + 'tampered')).isAuthorized, false);

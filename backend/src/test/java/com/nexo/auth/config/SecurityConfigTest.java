@@ -29,6 +29,19 @@ class SecurityConfigTest {
     }
 
     @Test
+    void acceptsTenantSpecificIssuersOnlyWhenTheyMatchTheTenantClaim() {
+        var tenant = "21a4bbb2-fc48-4053-a98e-b805aa2306cc";
+        assertThat(SecurityConfig.tenantIndependentIssuer().validate(jwt(
+                List.of("api://nexo"), null, List.of(),
+                "https://login.microsoftonline.com/" + tenant + "/v2.0", tenant)).hasErrors()).isFalse();
+        assertThat(SecurityConfig.tenantIndependentIssuer().validate(jwt(
+                List.of("api://nexo"), null, List.of(),
+                "https://login.microsoftonline.com/" + tenant + "/v2.0", "not-a-tenant")).hasErrors()).isTrue();
+        assertThat(SecurityConfig.tenantIndependentIssuer().validate(jwt(
+                List.of("api://nexo"), null, List.of(), "https://evil.example", tenant)).hasErrors()).isTrue();
+    }
+
+    @Test
     void rejectsDemoCapabilitiesInAProductionProfile() {
         var environment = new MockEnvironment();
         environment.setActiveProfiles("local-demo", "production");
@@ -39,16 +52,21 @@ class SecurityConfigTest {
     }
 
     private static Jwt jwt(List<String> audience, String scopes, List<String> roles) {
+        return jwt(audience, scopes, roles, "https://issuer.example/v2.0", null);
+    }
+
+    private static Jwt jwt(List<String> audience, String scopes, List<String> roles, String issuer, String tenant) {
         Instant now = Instant.now();
         var builder = Jwt.withTokenValue("redacted")
                 .header("alg", "RS256")
-                .issuer("https://issuer.example/v2.0")
+                .issuer(issuer)
                 .subject("subject")
                 .audience(audience)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(300))
                 .claim("roles", roles);
         if (scopes != null) builder.claim("scp", scopes);
+        if (tenant != null) builder.claim("tid", tenant);
         return builder.build();
     }
 }

@@ -113,9 +113,11 @@ public class CurrentUserService {
     private UserEntity entraUser(JwtAuthenticationToken jwt) {
         Map<String, Object> claims = jwt.getToken().getClaims();
         String oid = firstNonBlank(claims.get("oid"));
-        if (oid == null) {
+        String tenantId = firstNonBlank(claims.get("tid"));
+        if (oid == null || tenantId == null) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Token has no Entra object id");
         }
+        String identityKey = tenantId.toLowerCase(Locale.ROOT) + ":" + oid.toLowerCase(Locale.ROOT);
         String claimedEmail = firstNonBlank(
                 claims.get("preferred_username"), claims.get("email"), claims.get("upn"));
         String email = claimedEmail == null ? null : claimedEmail.trim().toLowerCase(Locale.ROOT);
@@ -124,14 +126,14 @@ public class CurrentUserService {
         var emailOwner = email == null
                 ? java.util.Optional.<UserEntity>empty()
                 : users.findByEmailIgnoreCase(email);
-        if (emailOwner.isPresent() && !oid.equals(emailOwner.get().getEntraObjectId())) {
+        if (emailOwner.isPresent() && !identityKey.equals(emailOwner.get().getEntraObjectId())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email belongs to another sign-in method");
         }
-        var existing = users.findByEntraObjectId(oid);
+        var existing = users.findByEntraObjectId(identityKey);
         if (existing.isPresent() && !existing.get().isActive()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User is not active");
         }
-        UserEntity user = existing.orElseGet(() -> UserEntity.entra(oid, email, username, displayName));
+        UserEntity user = existing.orElseGet(() -> UserEntity.entra(identityKey, email, username, displayName));
         if (existing.isPresent()) {
             user.updateEntraProfile(email, username, displayName);
         }
