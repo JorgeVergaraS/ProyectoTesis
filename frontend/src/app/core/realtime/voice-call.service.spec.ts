@@ -17,22 +17,26 @@ class FakePeer {
   ontrack: ((event: { streams: MediaStream[]; track: MediaStreamTrack }) => void) | null = null;
   onconnectionstatechange: (() => void) | null = null;
   onicecandidate: ((event: RTCPeerConnectionIceEvent) => void) | null = null;
-  addTrack = vi.fn();
   videoSender = { replaceTrack: vi.fn(async () => undefined) };
+  addTrack = vi.fn((track: MediaStreamTrack) =>
+    track.kind === 'video' ? this.videoSender : { replaceTrack: vi.fn(async () => undefined) },
+  );
   addTransceiver = vi.fn(() => ({ sender: this.videoSender }));
   addIceCandidate = vi.fn(async () => undefined);
   close = vi.fn();
   createOffer = vi.fn(async () => ({
     type: 'offer',
     sdp:
-      this.addTransceiver.mock.calls.length > 0
+      this.addTransceiver.mock.calls.length > 0 ||
+      this.addTrack.mock.calls.some(([track]) => track.kind === 'video')
         ? 'v=0\r\nm=audio offer\r\nm=video offer'
         : 'v=0\r\nm=audio offer',
   }));
   createAnswer = vi.fn(async () => ({
     type: 'answer',
     sdp:
-      this.addTransceiver.mock.calls.length > 0
+      this.addTransceiver.mock.calls.length > 0 ||
+      this.addTrack.mock.calls.some(([track]) => track.kind === 'video')
         ? 'v=0\r\nm=audio answer\r\nm=video answer'
         : 'v=0\r\nm=audio answer',
   }));
@@ -251,10 +255,7 @@ describe('VoiceCallService', () => {
         video: expect.any(Object),
       }),
     );
-    expect(FakePeer.instances[0].addTransceiver).toHaveBeenCalledWith('video', {
-      direction: 'sendrecv',
-    });
-    expect(FakePeer.instances[0].videoSender.replaceTrack).toHaveBeenCalledWith(cameraTrack);
+    expect(FakePeer.instances[0].addTrack).toHaveBeenCalledWith(cameraTrack, videoStream);
     expect(service.call()?.video).toBe(true);
     expect(service.cameraEnabled()).toBe(true);
     await service.hangUp();
@@ -368,6 +369,40 @@ describe('VoiceCallService', () => {
     expect(
       http.post.mock.calls.some(
         ([url, body]) => url.endsWith('/answer') && String(body.answer).includes('audio'),
+      ),
+    ).toBe(true);
+  });
+
+  it('answers an incoming video call with the captured camera track attached to its SDP stream', async () => {
+    const cameraTrack = { kind: 'video', enabled: true, stop: vi.fn() } as unknown as MediaStreamTrack;
+    const videoStream = {
+      getTracks: () => [track, cameraTrack],
+      getAudioTracks: () => [track],
+      getVideoTracks: () => [cameraTrack],
+    } as unknown as MediaStream;
+    getUserMedia.mockResolvedValue(videoStream);
+    server = {
+      id: 'incoming-video',
+      peer: person,
+      outgoing: false,
+      status: 'RINGING',
+      reason: null,
+      offer: 'v=0\r\nm=audio remote\r\nm=video remote',
+      answer: null,
+      connectedAt: null,
+      conversationId: null,
+      video: true,
+    };
+    await vi.advanceTimersByTimeAsync(1500);
+
+    await service.accept();
+
+    const peer = FakePeer.instances[0];
+    expect(peer.remoteDescription?.type).toBe('offer');
+    expect(peer.addTrack).toHaveBeenCalledWith(cameraTrack, videoStream);
+    expect(
+      http.post.mock.calls.some(
+        ([url, body]) => url.endsWith('/answer') && String(body.answer).includes('m=video'),
       ),
     ).toBe(true);
   });

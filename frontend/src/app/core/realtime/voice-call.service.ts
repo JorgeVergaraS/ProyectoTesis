@@ -518,11 +518,18 @@ export class VoiceCallService {
     this.remoteMediaStream = new MediaStream();
     stream.getAudioTracks().forEach((track) => peer.addTrack(track, stream));
     if (video) {
-      this.videoSender = peer.addTransceiver('video', { direction: 'sendrecv' }).sender;
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
-        await this.videoSender.replaceTrack(videoTrack);
+        // Add the captured camera track itself so the sender is associated with
+        // the media stream in SDP. This is more interoperable on mobile Safari
+        // than creating an empty transceiver and replacing its track later.
+        this.videoSender = peer.addTrack(videoTrack, stream);
         this.watchLocalCamera(videoTrack);
+      } else {
+        // Keep a bidirectional video m-line even when this side denied camera
+        // access; the peer may still send video and this side may enable its
+        // camera later during the call.
+        this.videoSender = peer.addTransceiver('video', { direction: 'sendrecv' }).sender;
       }
     }
     peer.onicecandidate = (event) => {
