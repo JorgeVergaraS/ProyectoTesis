@@ -18,12 +18,11 @@
 
 ![Nexo: acceso autenticado con cuenta institucional o local](docs/images/nexo-login.png)
 
-> **Estado actual:** despliegue académico operativo sobre EC2 y RDS, servido por
-> HTTPS en una IP elástica mediante `nip.io`. Incluye MSAL/Entra ID, JWT validado
-> por Spring, mensajería, voz directa con TURN, llamadas grupales y transmisiones
-> mediante LiveKit. Verificación del 9 de septiembre de 2026: 42 pruebas backend
-> y 77 frontend aprobadas. API Gateway, WebSocket persistente y los controles de
-> producción permanecen en el backlog verificado de esta rama.
+> **Rama de evaluación EP3/EP4:** incorpora tres servicios Spring Boot, clúster RabbitMQ
+> de dos nodos, tres colas con sus DLQ, ACK manual y administración REST protegida.
+> El laboratorio AWS anterior fue eliminado; no utilices sus direcciones como evidencia
+> de un despliegue vigente. Consulta la [implementación y matriz de rúbrica](docs/ep3-ep4-implementation.md)
+> y el [procedimiento de despliegue](docs/cloud-deployment.md) para el estado y validación nuevos.
 
 ## Índice
 

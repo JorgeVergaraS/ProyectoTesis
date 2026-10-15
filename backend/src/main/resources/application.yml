@@ -1,5 +1,6 @@
 spring:
   rabbitmq:
+    addresses: ${RABBITMQ_ADDRESSES:${spring.rabbitmq.host}:${spring.rabbitmq.port}}
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:nexo}
@@ -14,7 +15,7 @@ spring:
         prefetch: 10
         default-requeue-rejected: false
         retry:
-          enabled: true
+          enabled: false
           max-attempts: 3
           initial-interval: 1s
           multiplier: 2

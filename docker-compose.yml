@@ -42,7 +42,10 @@ services:
   backend:
     profiles: ["app"]
     build:
-      context: ./backend
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        MODULE: backend
     restart: unless-stopped
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nexo}

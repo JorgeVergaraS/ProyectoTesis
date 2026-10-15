@@ -1,6 +1,7 @@
 package com.nexo.messaging.events;
 
 import java.util.UUID;
+import com.nexo.events.RabbitTopology;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +9,6 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -23,12 +23,10 @@ public class MessageEventPublisher {
     private static final Logger log = LoggerFactory.getLogger(MessageEventPublisher.class);
     private final JdbcClient jdbc;
     private final RabbitTemplate rabbit;
-    private final RabbitAdmin admin;
 
-    public MessageEventPublisher(JdbcClient jdbc, RabbitTemplate rabbit, RabbitAdmin admin) {
+    public MessageEventPublisher(JdbcClient jdbc, RabbitTemplate rabbit) {
         this.jdbc = jdbc;
         this.rabbit = rabbit;
-        this.admin = admin;
     }
 
     @Scheduled(fixedDelayString = "${nexo.events.publish-delay-ms:2000}",
@@ -42,8 +40,6 @@ public class MessageEventPublisher {
                 """).query(UUID.class).list();
         if (pending.isEmpty()) return;
         try {
-            // Also declares queues when the consumer is disabled for the classroom exercise.
-            admin.initialize();
             for (UUID id : pending) {
                 var correlation = new CorrelationData(UUID.randomUUID().toString());
                 var message = MessageBuilder.withBody(id.toString().getBytes(UTF_8))
@@ -51,7 +47,7 @@ public class MessageEventPublisher {
                         .setContentEncoding("UTF-8")
                         .setMessageId(id.toString()).setType("message.created.v1")
                         .setDeliveryMode(MessageDeliveryMode.PERSISTENT).build();
-                rabbit.send("", RabbitEventsConfig.QUEUE, message, correlation);
+                rabbit.send(RabbitTopology.EVENTS, RabbitTopology.MESSAGE_CREATED, message, correlation);
                 var confirmation = correlation.getFuture().get(5, TimeUnit.SECONDS);
                 if (!confirmation.isAck() || correlation.getReturned() != null) {
                     throw new IllegalStateException("Broker did not accept the event into its queue");

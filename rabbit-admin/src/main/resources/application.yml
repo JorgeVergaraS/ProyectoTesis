@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: nexo-rabbit-admin
+  rabbitmq:
+    addresses: ${RABBITMQ_ADDRESSES:localhost:5672}
+    username: ${RABBITMQ_USER:nexo}
+    password: ${RABBITMQ_PASSWORD}
+server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  port: 8082
+nexo:
+  events:
+    enabled: true
+  admin:
+    object-ids: ${NEXO_ADMIN_OBJECT_IDS:}
+  azure:
+    issuer: ${AZURE_ISSUER:https://login.microsoftonline.com/21a4bbb2-fc48-4053-a98e-b805aa2306cc/v2.0}
+    audience: ${AZURE_AUDIENCE:0f2d7cee-cabb-4482-900d-64fb07f5f81d,api://0f2d7cee-cabb-4482-900d-64fb07f5f81d}
+    jwk-set-uri: ${AZURE_JWK_SET_URI:https://login.microsoftonline.com/21a4bbb2-fc48-4053-a98e-b805aa2306cc/discovery/v2.0/keys}
+    required-scope: access_as_user
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true

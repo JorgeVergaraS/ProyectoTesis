@@ -1,0 +1,13 @@
+FROM maven:3.9.16-eclipse-temurin-21 AS build
+ARG MODULE=backend
+WORKDIR /workspace
+ENV MAVEN_OPTS="-Xmx512m"
+COPY . .
+RUN mvn -B -ntp -pl ${MODULE} -am package -DskipTests
+RUN cp ${MODULE}/target/*.jar /service.jar
+FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S nexo && adduser -S nexo -G nexo
+WORKDIR /app
+COPY --from=build --chown=nexo:nexo /service.jar app.jar
+USER nexo
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=65", "-jar", "/app/app.jar"]

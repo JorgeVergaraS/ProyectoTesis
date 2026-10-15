@@ -1,31 +1,34 @@
 package com.nexo.messaging.events;
 
+import com.nexo.events.NotificationProjection;
+import com.nexo.events.ReliableConsumer;
+import com.rabbitmq.client.Channel;
+import java.io.IOException;
 import java.util.UUID;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Embedded local consumer; cloud runs projections in event-worker. */
 @Service
 @ConditionalOnProperty(name = "nexo.events.enabled", havingValue = "true")
 public class MessageEventConsumer {
-    private final JdbcClient jdbc;
-
-    public MessageEventConsumer(JdbcClient jdbc) { this.jdbc = jdbc; }
+    private final NotificationProjection projection;
+    private final ReliableConsumer reliable;
+    public MessageEventConsumer(JdbcClient jdbc, ReliableConsumer reliable) {
+        this.projection = new NotificationProjection(jdbc);
+        this.reliable = reliable;
+    }
 
     @RabbitListener(id = "messageNotifications", queues = RabbitEventsConfig.QUEUE,
-            autoStartup = "${nexo.events.consumer-enabled:true}")
-    @Transactional
-    public void receive(String messageId) {
-        // One committed insert before ACK; duplicate deliveries preserve read_at.
-        jdbc.sql("""
-                INSERT INTO nexo.message_notifications(message_id, user_id)
-                SELECT m.id, member.user_id FROM nexo.messages m
-                JOIN nexo.conversation_members member ON member.conversation_id=m.conversation_id
-                JOIN nexo.users u ON u.id=member.user_id AND u.status='ACTIVE'
-                WHERE m.id=:id AND member.user_id<>m.sender_id AND member.joined_at<=m.sent_at
-                ON CONFLICT DO NOTHING
-                """).param("id", UUID.fromString(messageId)).update();
+            ackMode = "MANUAL", autoStartup = "${nexo.events.consumer-enabled:true}")
+    public void onMessage(Message message, Channel channel) throws IOException {
+        reliable.handle(message, channel, projection::apply);
     }
+
+    @Transactional
+    public void receive(String messageId) { projection.apply(UUID.fromString(messageId)); }
 }

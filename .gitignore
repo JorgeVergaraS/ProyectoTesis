@@ -11,6 +11,8 @@ coverage/
 
 # Backend and tooling
 target/
+__pycache__/
+*.pyc
 .idea/
 .vscode/
 *.log
