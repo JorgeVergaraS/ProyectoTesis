@@ -175,7 +175,10 @@ export class VoiceCallService {
     const peer = this.peer;
     if (next.outgoing && next.answer && peer && !peer.remoteDescription) {
       try {
-        await peer.setRemoteDescription({ type: 'answer', sdp: next.answer });
+        await this.withDeadline(
+          peer.setRemoteDescription({ type: 'answer', sdp: next.answer }),
+          10000,
+        );
       } catch {
         await this.hangUp('No se pudo negociar el audio con la otra persona.');
       }
