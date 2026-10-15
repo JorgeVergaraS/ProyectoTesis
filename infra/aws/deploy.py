@@ -196,7 +196,7 @@ def gateway(state):
         state.update(api=result["ApiId"], gateway=result["ApiEndpoint"])
         save(state)
     try:
-        functions.add_permission(FunctionName=function_name, StatementId=NAME + "-gateway", Action="lambda:InvokeFunction",
+        functions.add_permission(FunctionName=function_name, StatementId=NAME + "-gateway-" + state["api"], Action="lambda:InvokeFunction",
             Principal="apigateway.amazonaws.com", SourceArn=f"arn:aws:execute-api:{REGION}:{state['account']}:{state['api']}/authorizers/*")
     except functions.exceptions.ResourceConflictException:
         pass
