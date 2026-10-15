@@ -10,7 +10,8 @@ Fecha: 14/15 de octubre de 2026 (Santiago/UTC). El laboratorio anterior fue elim
 | Frontend HTTPS | `https://3.230.182.219.nip.io` → HTTP 200 verificado desde fuera de EC2; Caddy sirve el frontend |
 | Gateway | `https://2xg5kdlf99.execute-api.us-east-1.amazonaws.com` |
 | Gateway y origen | `GET /api/public/health` a través de la ruta pública `/api/` → HTTP 200, `{"status":"UP","service":"nexo-backend"}`; el gateway conserva la ruta al reenviar a Caddy |
-| Entra | Frontend y API configurados para cualquier directorio de Microsoft Entra y cuentas personales; acceso personal pendiente de completar consentimiento delegado en la primera sesión |
+| Entra | Frontend y API configurados para cualquier directorio de Microsoft Entra y cuentas personales; inicio con cuenta Microsoft personal verificado y perfil cargado en Nexo |
+| Gateway protegido | `GET /api/users/me` sin token → 401; con el flujo Microsoft de la cuenta de prueba, Nexo abre el espacio de usuario |
 | Backend | Contenedor `healthy`; frontend, event-worker y administración RabbitMQ iniciados |
 | RabbitMQ | Dos nodos reportados `healthy`; clúster comprobado con `rabbitmq-diagnostics cluster_status` |
 | Kafka y Grafana | No desplegados en este stack; la guía EA3 no es evidencia de implementación |
@@ -25,10 +26,16 @@ prueba integrada con usuarios reales, autenticación, eventos y relé TURN desde
 redes distintas.
 
 La prueba del flujo Microsoft llegó a la pantalla oficial de consentimiento de
-`Nexo Frontend` para una cuenta personal; no se concedió el permiso desde la
-sesión automatizada. La página solicitaba ver el perfil básico y conservar el
-acceso ya concedido, por lo que el ingreso de extremo a extremo queda pendiente
-hasta que el usuario lo acepte.
+`Nexo Frontend` para una cuenta personal. Con autorización del usuario se aceptó
+ver el perfil básico y mantener el acceso ya concedido; después se verificó que
+Nexo abrió el espacio de usuario y cargó el perfil. Las cuentas de organizaciones
+externas podrían requerir consentimiento administrativo según sus políticas.
+
+Al reconstruir el estado de AWS se creó un API Gateway nuevo. El permiso de
+invocación del autorizador Lambda originalmente usaba un identificador fijo y
+seguía ligado al gateway anterior, provocando HTTP 500 en rutas protegidas. El
+despliegue ahora asigna un statement por API Gateway; el acceso sin token vuelve
+a responder 401 y el inicio Microsoft personal completa la sesión.
 
 La consulta de colas, consumidores y contadores de RabbitMQ se resume en
 [`nexo-messaging-snapshot.png`](../review-material/observability/nexo-messaging-snapshot.png).
