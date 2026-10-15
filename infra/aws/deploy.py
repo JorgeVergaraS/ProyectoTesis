@@ -209,10 +209,17 @@ def gateway(state):
             EnableSimpleResponses=True, AuthorizerResultTtlInSeconds=0)
     existing_integrations = api.get_integrations(ApiId=state["api"]).get("Items", [])
     integration = next((i for i in existing_integrations if i.get("IntegrationUri") == state["origin"]), None)
+    origin_request_parameters = {
+        "overwrite:header.x-nexo-origin": state["secrets"]["GATEWAY_ORIGIN_SECRET"],
+        "overwrite:path": "$request.path",
+    }
     if integration is None:
         integration = api.create_integration(ApiId=state["api"], IntegrationType="HTTP_PROXY", IntegrationMethod="ANY",
             IntegrationUri=state["origin"], PayloadFormatVersion="1.0",
-            RequestParameters={"overwrite:header.x-nexo-origin": state["secrets"]["GATEWAY_ORIGIN_SECRET"]})
+            RequestParameters=origin_request_parameters)
+    elif integration.get("RequestParameters") != origin_request_parameters:
+        integration = api.update_integration(ApiId=state["api"], IntegrationId=integration["IntegrationId"],
+            RequestParameters=origin_request_parameters)
     routes = {r["RouteKey"] for r in api.get_routes(ApiId=state["api"]).get("Items", [])}
     for route in ["ANY /api/{proxy+}"]:
         if route not in routes:
