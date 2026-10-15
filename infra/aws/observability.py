@@ -77,7 +77,7 @@ REGION=us-east-1
 APP_PRIVATE_IP=__APP_PRIVATE_IP__
 PUBLIC_IP=__PUBLIC_IP__
 ASSET_B64=__ASSET_B64__
-dnf install -y docker awscli-2 jq python3 tar gzip curl
+dnf install -y docker awscli-2 jq python3 tar gzip
 systemctl enable --now docker
 mkdir -p /opt/nexo-observability /usr/local/lib/docker/cli-plugins
 printf '%s' "$ASSET_B64" | base64 -d | tar -xz -C /opt/nexo-observability
