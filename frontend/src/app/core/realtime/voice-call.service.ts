@@ -94,6 +94,7 @@ export class VoiceCallService {
   private dismissedId: string | null = null;
   private lastContact = Date.now();
   private disconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private iceConnectionTimer: ReturnType<typeof setTimeout> | null = null;
   private candidateFlushTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingCandidates: SignaledIceCandidate[] = [];
   private readonly appliedCandidates = new Set<string>();
@@ -188,6 +189,7 @@ export class VoiceCallService {
           peer.setRemoteDescription({ type: 'answer', sdp: next.answer }),
           10000,
         );
+        this.watchIceConnection(peer);
         await this.applyRemoteCandidates(next, peer);
       } catch {
         await this.hangUp('No se pudo negociar el audio con la otra persona.');
@@ -310,8 +312,10 @@ export class VoiceCallService {
           .post<VoiceCall>(this.base + '/' + call.id + '/answer', { answer }, this.requestOptions)
           .pipe(timeout(8000)),
       );
-      if (operation === this.generation) this.call.set(updated);
-      else await this.endRemote(call.id);
+      if (operation === this.generation) {
+        this.call.set(updated);
+        this.watchIceConnection(peer);
+      } else await this.endRemote(call.id);
     } catch (error) {
       if (operation === this.generation) await this.hangUp(this.mediaError(error));
     } finally {
@@ -431,6 +435,8 @@ export class VoiceCallService {
       if (peer.connectionState === 'connected') {
         if (this.disconnectTimer) clearTimeout(this.disconnectTimer);
         this.disconnectTimer = null;
+        if (this.iceConnectionTimer) clearTimeout(this.iceConnectionTimer);
+        this.iceConnectionTimer = null;
         const id = this.localCallId;
         if (id)
           void firstValueFrom(
@@ -501,6 +507,18 @@ export class VoiceCallService {
       }
     }
   }
+  private watchIceConnection(peer: RTCPeerConnection): void {
+    if (this.peer !== peer || peer.connectionState === 'connected' || this.iceConnectionTimer)
+      return;
+    this.iceConnectionTimer = setTimeout(() => {
+      this.iceConnectionTimer = null;
+      if (this.peer === peer && peer.connectionState !== 'connected') {
+        void this.hangUp(
+          'No se encontró una ruta de audio. Comprueba la conexión móvil/Wi-Fi e inténtalo de nuevo.',
+        );
+      }
+    }, 25000);
+  }
   private async withDeadline<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
     let deadline: ReturnType<typeof setTimeout> | undefined;
     try {
@@ -562,6 +580,8 @@ export class VoiceCallService {
     this.waitingForMicrophone.set(false);
     if (this.disconnectTimer) clearTimeout(this.disconnectTimer);
     this.disconnectTimer = null;
+    if (this.iceConnectionTimer) clearTimeout(this.iceConnectionTimer);
+    this.iceConnectionTimer = null;
     if (this.candidateFlushTimer) clearTimeout(this.candidateFlushTimer);
     this.candidateFlushTimer = null;
     this.pendingCandidates = [];

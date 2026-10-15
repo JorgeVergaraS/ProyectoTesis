@@ -49,6 +49,12 @@ TURN/TLS por 443.
 - Pendiente de evidencia: llamada con audio entre un PC y un celular en redes
   distintas. La conectividad del puerto no garantiza que el micrófono, ICE y el
   trayecto de audio completen la sesión en cada red.
+- Cliente: la negociación ICE ahora tiene un límite de 25 segundos desde que
+  cada extremo recibe la descripción remota. Si no conecta, la llamada se limpia
+  y muestra un error accionable en vez de quedar esperando sin fin. El cambio
+  está cubierto por `voice-call.service.spec.ts`; este límite evita una espera
+  infinita, pero no sustituye la prueba real del audio ni determina por sí solo
+  si el fallo es TURN o la red del dispositivo.
 
 Los dos nodos RabbitMQ comparten una EC2: cumplen la demostración de clúster, pero
 no ofrecen tolerancia a la caída del host. Single-AZ y tamaños pequeños son decisiones

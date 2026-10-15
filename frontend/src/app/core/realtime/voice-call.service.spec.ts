@@ -211,6 +211,21 @@ describe('VoiceCallService', () => {
     ).toBe(true);
   });
 
+  it('ends an ICE negotiation that never connects instead of leaving the call pending', async () => {
+    await service.start(person);
+    const peer = FakePeer.instances[0];
+    server = { ...server!, status: 'CONNECTING', answer: 'v=0\r\nm=audio remote' };
+
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(peer.remoteDescription).toEqual({ type: 'answer', sdp: server.answer });
+
+    await vi.advanceTimersByTimeAsync(25000);
+
+    expect(service.call()).toBeNull();
+    expect(service.notice()).toContain('No se encontró una ruta de audio');
+    expect(peer.close).toHaveBeenCalled();
+  });
+
   it('does not request a microphone for an incoming call until it is accepted', async () => {
     server = {
       id: 'incoming',
