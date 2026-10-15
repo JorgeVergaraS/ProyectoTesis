@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.UUID;
+import java.util.List;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,8 @@ public class CallController {
     public record StartRequest(@NotNull UUID id, @NotNull UUID calleeId, UUID conversationId,
             @NotBlank @Size(max=64000) String offer) {}
     public record AnswerRequest(@NotBlank @Size(max=64000) String answer) {}
+    public record CandidatesRequest(
+            @NotNull @Size(min = 1, max = 32) List<@NotNull @Valid CallService.IceCandidate> candidates) {}
     private CallService.Actor actor(DemoPrincipal principal, UUID callSession) {
         String sessionKey = principal.tokenHash() + ":" + (callSession == null ? "legacy" : callSession);
         return new CallService.Actor(principal.userId(), sessionKey);
@@ -57,6 +60,15 @@ public class CallController {
             @PathVariable UUID id,
             @Valid @RequestBody AnswerRequest request) {
         return calls.answer(actor(me, callSession), id, request.answer());
+    }
+
+    @PostMapping("/{id}/candidates")
+    public CallService.CallView candidates(
+            @AuthenticationPrincipal DemoPrincipal me,
+            @RequestHeader(value = "X-Nexo-Call-Session", required = false) UUID callSession,
+            @PathVariable UUID id,
+            @Valid @RequestBody CandidatesRequest request) {
+        return calls.addCandidates(actor(me, callSession), id, request.candidates());
     }
     @PostMapping("/{id}/{action:accept|reject|end|connected}")
     public CallService.CallView action(

@@ -26,10 +26,14 @@ export interface VoiceCall {
   answer: string | null;
   connectedAt: string | null;
   conversationId: string | null;
+  candidates?: SignaledIceCandidate[];
 }
 
 interface IceConfig {
   iceServers: RTCIceServer[];
+}
+interface SignaledIceCandidate extends Omit<RTCIceCandidateInit, 'candidate'> {
+  candidate: string | null;
 }
 
 type CallSetupPhase = 'idle' | 'microphone' | 'ice' | 'gathering' | 'signaling';
@@ -90,6 +94,11 @@ export class VoiceCallService {
   private dismissedId: string | null = null;
   private lastContact = Date.now();
   private disconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private candidateFlushTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingCandidates: SignaledIceCandidate[] = [];
+  private readonly appliedCandidates = new Set<string>();
+  private signalingReady = false;
+  private flushingCandidates = false;
 
   constructor() {
     const destroy = inject(DestroyRef);
@@ -179,9 +188,12 @@ export class VoiceCallService {
           peer.setRemoteDescription({ type: 'answer', sdp: next.answer }),
           10000,
         );
+        await this.applyRemoteCandidates(next, peer);
       } catch {
         await this.hangUp('No se pudo negociar el audio con la otra persona.');
       }
+    } else if (peer?.remoteDescription) {
+      await this.applyRemoteCandidates(next, peer);
     }
   }
 
@@ -200,6 +212,9 @@ export class VoiceCallService {
     const operation = ++this.generation;
     const id = crypto.randomUUID();
     this.localCallId = id;
+    this.pendingCandidates = [];
+    this.appliedCandidates.clear();
+    this.signalingReady = false;
     this.busy.set(true);
     this.setupPhase.set('microphone');
     this.target.set(person);
@@ -227,6 +242,9 @@ export class VoiceCallService {
         return;
       }
       this.call.set(call);
+      this.signalingReady = true;
+      this.scheduleCandidateFlush(0);
+      await this.applyRemoteCandidates(call, peer);
     } catch (error) {
       if (operation === this.generation) {
         this.error.set(
@@ -278,6 +296,9 @@ export class VoiceCallService {
       const peer = await this.preparePeer(operation);
       if (!call.offer) throw new Error('Missing offer');
       await this.withDeadline(peer.setRemoteDescription({ type: 'offer', sdp: call.offer }), 10000);
+      this.signalingReady = true;
+      this.scheduleCandidateFlush(0);
+      await this.applyRemoteCandidates(accepted, peer);
       const answer = await this.description(
         peer,
         await this.withDeadline(peer.createAnswer(), 10000),
@@ -390,9 +411,16 @@ export class VoiceCallService {
     const peer = new RTCPeerConnection({
       iceServers,
       iceTransportPolicy: environment.voiceIceTransportPolicy,
+      iceCandidatePoolSize: 4,
     });
     this.peer = peer;
     stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+    peer.onicecandidate = (event) => {
+      this.pendingCandidates.push(
+        (event.candidate?.toJSON() ?? { candidate: null }) as SignaledIceCandidate,
+      );
+      this.scheduleCandidateFlush(event.candidate ? 100 : 0);
+    };
     peer.ontrack = (event) => {
       if (this.peer === peer)
         this.remoteStream.set(event.streams[0] ?? new MediaStream([event.track]));
@@ -429,28 +457,49 @@ export class VoiceCallService {
     description: RTCSessionDescriptionInit,
   ): Promise<string> {
     await this.withDeadline(peer.setLocalDescription(description), 10000);
-    if (peer.iceGatheringState !== 'complete') {
-      await new Promise<void>((resolve, reject) => {
-        const finish = () => {
-          clearTimeout(timerId);
-          peer.removeEventListener('icegatheringstatechange', changed);
-        };
-        const changed = () => {
-          if (peer.iceGatheringState === 'complete') {
-            finish();
-            resolve();
-          }
-        };
-        const timerId = setTimeout(() => {
-          finish();
-          reject(new Error('ICE timeout'));
-        }, 20000);
-        peer.addEventListener('icegatheringstatechange', changed);
-        changed();
-      });
-    }
     if (!peer.localDescription?.sdp) throw new Error('Missing local description');
     return peer.localDescription.sdp;
+  }
+  private scheduleCandidateFlush(delay: number): void {
+    if (!this.signalingReady || !this.localCallId || this.candidateFlushTimer) return;
+    this.candidateFlushTimer = setTimeout(() => {
+      this.candidateFlushTimer = null;
+      void this.flushCandidates();
+    }, delay);
+  }
+  private async flushCandidates(): Promise<void> {
+    const id = this.localCallId;
+    if (!id || !this.signalingReady || this.flushingCandidates || !this.pendingCandidates.length)
+      return;
+    this.flushingCandidates = true;
+    const batch = this.pendingCandidates.splice(0, 32);
+    try {
+      await firstValueFrom(
+        this.http
+          .post(this.base + '/' + id + '/candidates', { candidates: batch }, this.requestOptions)
+          .pipe(timeout(5000)),
+      );
+    } catch {
+      if (this.localCallId === id) this.pendingCandidates.unshift(...batch);
+    } finally {
+      this.flushingCandidates = false;
+      if (this.pendingCandidates.length) this.scheduleCandidateFlush(1000);
+    }
+  }
+  private async applyRemoteCandidates(call: VoiceCall, peer: RTCPeerConnection): Promise<void> {
+    for (const candidate of call.candidates ?? []) {
+      const key = JSON.stringify(candidate);
+      if (this.appliedCandidates.has(key) || !peer.remoteDescription) continue;
+      this.appliedCandidates.add(key);
+      try {
+        await this.withDeadline(
+          peer.addIceCandidate(candidate.candidate ? (candidate as RTCIceCandidateInit) : null),
+          5000,
+        );
+      } catch {
+        this.appliedCandidates.delete(key);
+      }
+    }
   }
   private async withDeadline<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
     let deadline: ReturnType<typeof setTimeout> | undefined;
@@ -513,7 +562,14 @@ export class VoiceCallService {
     this.waitingForMicrophone.set(false);
     if (this.disconnectTimer) clearTimeout(this.disconnectTimer);
     this.disconnectTimer = null;
+    if (this.candidateFlushTimer) clearTimeout(this.candidateFlushTimer);
+    this.candidateFlushTimer = null;
+    this.pendingCandidates = [];
+    this.appliedCandidates.clear();
+    this.signalingReady = false;
+    this.flushingCandidates = false;
     if (this.peer) {
+      this.peer.onicecandidate = null;
       this.peer.ontrack = null;
       this.peer.onconnectionstatechange = null;
       this.peer.close();

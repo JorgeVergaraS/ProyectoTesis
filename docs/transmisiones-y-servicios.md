@@ -2,7 +2,7 @@
 
 Fecha de actualización: 15 de octubre de 2026
 
-Rama de trabajo: `fix/turn-tcp-fallback`
+Rama de trabajo: `fix/mobile-call-connectivity`
 
 Estado: despliegue académico en EC2 con LiveKit, preparado para aceptación entre dispositivos y redes.
 
@@ -45,6 +45,14 @@ Nexo es una comunidad universitaria con estos servicios actualmente disponibles:
   llamada conserva STUN como alternativa; esto no garantiza el cruce de NAT restrictivos.
 - El cliente solicita candidatos TURN por UDP y TCP. Esto amplía la compatibilidad,
   aunque no cubre redes que solo permiten TURN/TLS por 443.
+- La rama `fix/mobile-call-connectivity` incorpora señalización ICE progresiva: Nexo
+  envía la invitación tras aplicar la oferta local y publica los candidatos conforme
+  aparecen, sin esperar a que concluya toda la búsqueda de rutas. Los candidatos se
+  almacenan temporalmente en memoria y solo se entregan a la otra persona de la llamada.
+- Comprobación desde la estación de desarrollo (15-oct-2026): API de salud `UP`,
+  respuesta STUN del Coturn por UDP/3478 y conexiones TCP a 3478, 7881 y 443. Esto
+  confirma el acceso a esos puertos desde esa red; no demuestra por sí solo una llamada
+  de audio entre dos dispositivos ni verifica la asignación TURN de puertos relay.
 - Las pruebas automatizadas de voz cubren negociación simulada, timeout de permisos,
   cancelación y bloqueo de WebRTC; falta completar una prueba de audio real entre PC y
   celular en redes distintas.

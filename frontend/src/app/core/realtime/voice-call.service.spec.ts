@@ -9,13 +9,16 @@ import { VoiceCall, VoiceCallService } from './voice-call.service';
 class FakePeer {
   static instances: FakePeer[] = [];
   static configs: RTCConfiguration[] = [];
+  static initialGatheringState: RTCIceGatheringState = 'complete';
   connectionState = 'new';
-  iceGatheringState = 'complete';
+  iceGatheringState = FakePeer.initialGatheringState;
   localDescription: RTCSessionDescriptionInit | null = null;
   remoteDescription: RTCSessionDescriptionInit | null = null;
   ontrack: ((event: { streams: MediaStream[] }) => void) | null = null;
   onconnectionstatechange: (() => void) | null = null;
+  onicecandidate: ((event: RTCPeerConnectionIceEvent) => void) | null = null;
   addTrack = vi.fn();
+  addIceCandidate = vi.fn(async () => undefined);
   close = vi.fn();
   createOffer = vi.fn(async () => ({ type: 'offer', sdp: 'v=0\r\nm=audio offer' }));
   createAnswer = vi.fn(async () => ({ type: 'answer', sdp: 'v=0\r\nm=audio answer' }));
@@ -58,6 +61,7 @@ describe('VoiceCallService', () => {
     vi.useFakeTimers();
     FakePeer.instances = [];
     FakePeer.configs = [];
+    FakePeer.initialGatheringState = 'complete';
     token.set('demo-token');
     kind.set('demo');
     currentUser.set({ ...person, id: 'jorge' });
@@ -81,9 +85,11 @@ describe('VoiceCallService', () => {
           answer: null,
           connectedAt: null,
           conversationId: null,
+          candidates: [],
         };
       } else if (server && url.endsWith('/accept')) server = { ...server, status: 'CONNECTING' };
       else if (server && url.endsWith('/answer')) server = { ...server, answer: body['answer'] };
+      else if (server && url.endsWith('/candidates')) return of(server);
       else if (server && (url.endsWith('/end') || url.endsWith('/reject')))
         server = { ...server, status: 'ENDED' };
       return of(server);
@@ -116,9 +122,20 @@ describe('VoiceCallService', () => {
       video: false,
     });
     expect(peer.addTrack).toHaveBeenCalledWith(track, stream);
-    server = { ...server!, status: 'CONNECTING', answer: 'v=0\r\nm=audio remote' };
+    const remoteCandidate = {
+      candidate: 'candidate:2 1 UDP 2122260223 192.0.2.3 50001 typ host',
+      sdpMid: '0',
+      sdpMLineIndex: 0,
+    };
+    server = {
+      ...server!,
+      status: 'CONNECTING',
+      answer: 'v=0\r\nm=audio remote',
+      candidates: [remoteCandidate],
+    };
     await vi.advanceTimersByTimeAsync(1500);
     expect(peer.remoteDescription).toEqual({ type: 'answer', sdp: server.answer });
+    expect(peer.addIceCandidate).toHaveBeenCalledWith(remoteCandidate);
     peer.ontrack?.({ streams: [stream] });
     expect(service.remoteStream()).toBe(stream);
     service.toggleMute();
@@ -162,6 +179,36 @@ describe('VoiceCallService', () => {
         credential: 'signed',
       },
     ]);
+  });
+
+  it('rings without waiting for ICE gathering and trickles candidates to signaling', async () => {
+    FakePeer.initialGatheringState = 'gathering';
+    const starting = service.start(person);
+    await starting;
+    const peer = FakePeer.instances[0];
+
+    expect(service.call()?.status).toBe('RINGING');
+    expect(peer.onicecandidate).toBeTypeOf('function');
+    peer.onicecandidate?.({
+      candidate: {
+        toJSON: () => ({
+          candidate: 'candidate:1 1 UDP 2122260223 192.0.2.2 50000 typ host',
+          sdpMid: '0',
+          sdpMLineIndex: 0,
+        }),
+      } as RTCIceCandidate,
+    } as RTCPeerConnectionIceEvent);
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(
+      http.post.mock.calls.some(
+        ([url, body]) =>
+          url.endsWith('/candidates') &&
+          (body as { candidates: RTCIceCandidateInit[] }).candidates[0]?.candidate?.startsWith(
+            'candidate:1',
+          ),
+      ),
+    ).toBe(true);
   });
 
   it('does not request a microphone for an incoming call until it is accepted', async () => {

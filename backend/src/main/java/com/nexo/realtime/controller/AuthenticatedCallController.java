@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.UUID;
+import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,6 +41,8 @@ public class AuthenticatedCallController {
             @NotBlank @Size(max = 64000) String offer) {}
 
     public record AnswerRequest(@NotBlank @Size(max = 64000) String answer) {}
+    public record CandidatesRequest(
+            @NotNull @Size(min = 1, max = 32) List<@NotNull @Valid CallService.IceCandidate> candidates) {}
 
     @GetMapping("/ice-config")
     public TurnCredentialService.IceConfig iceConfig(Authentication authentication) {
@@ -70,6 +73,15 @@ public class AuthenticatedCallController {
             @PathVariable UUID id,
             @Valid @RequestBody AnswerRequest request) {
         return calls.answer(actor(authentication, callSession), id, request.answer());
+    }
+
+    @PostMapping("/{id}/candidates")
+    public CallService.CallView candidates(
+            Authentication authentication,
+            @RequestHeader(CALL_SESSION_HEADER) UUID callSession,
+            @PathVariable UUID id,
+            @Valid @RequestBody CandidatesRequest request) {
+        return calls.addCandidates(actor(authentication, callSession), id, request.candidates());
     }
 
     @PostMapping("/{id}/{action:accept|reject|end|connected}")

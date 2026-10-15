@@ -537,6 +537,7 @@ con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 | GET           | `/api/calls/current`                      | Llamada de voz de esta pestaña autenticada; cuerpo vacío si no existe               |
 | GET           | `/api/calls/ice-config`                   | STUN y credenciales TURN temporales de la cuenta autenticada                         |
 | POST          | `/api/calls`                              | Crear llamada con `id`, `calleeId` y oferta SDP de solo audio                       |
+| POST          | `/api/calls/{id}/candidates`               | Publicar candidatos ICE locales; `candidate: null` indica fin de candidatos          |
 | POST          | `/api/calls/{id}/accept`                  | Reclamar la llamada entrante desde esta pestaña                                     |
 | POST          | `/api/calls/{id}/answer`                  | Publicar la respuesta SDP del destinatario                                          |
 | POST          | `/api/calls/{id}/reject`                  | Rechazar la invitación propia                                                       |
@@ -557,6 +558,7 @@ con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 | GET           | `/api/demo/calls/current`                 | Llamada de sesión; cuerpo vacío si no existe                                        |
 | GET           | `/api/demo/calls/ice-config`              | Credenciales TURN temporales para la sesión demo autenticada                        |
 | POST          | `/api/demo/calls`                         | Crear con `id`, `calleeId` y `offer` SDP                                            |
+| POST          | `/api/demo/calls/{id}/candidates`           | Publicar candidatos ICE locales de la sesión demo                                  |
 | POST          | `/api/demo/calls/{id}/accept`             | Reclamar llamada para esta sesión                                                   |
 | POST          | `/api/demo/calls/{id}/answer`             | Respuesta SDP del destinatario                                                      |
 | POST          | `/api/demo/calls/{id}/reject`             | Rechazar invitación                                                                 |
