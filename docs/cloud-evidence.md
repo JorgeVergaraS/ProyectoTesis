@@ -67,11 +67,17 @@ de Kafka, y `analytics-consumer` registró `event_processed` en el grupo
 prueba; no contiene mensaje de usuario. Es una prueba funcional puntual del
 camino de integración y no una prueba de carga ni de entrega exactamente-una-vez.
 
-La captura actual de Grafana se mostró durante esta revisión, pero aún no se
-guardó como PNG en el repositorio. Las imágenes existentes en
-`docs/screenshots/observability/` son históricas y no deben presentarse como
-capturas actuales. Para la entrega, guarda una captura nueva sin credenciales,
-identificadores de cuenta, datos personales ni direcciones privadas.
+Las capturas actuales guardadas en `docs/screenshots/observability/` son
+`rabbitmq-current.png`, `kafka-current.png` y `grafana-current.png`, revisadas
+visualmente el 15-10-2026. RabbitMQ muestra siete colas en estado `running` y
+cero mensajes listos/sin ACK; Kafbat muestra el topic `nexo.messages.v1` con
+3 particiones, factor de réplica 1, cero réplicas fuera de sincronía y 15
+registros; Grafana muestra 3 particiones, lag 0, pendientes RabbitMQ 0 y 1 broker.
+Su serie aproximada de registros llega a ~18, mientras Kafbat muestra 15. La
+causa exacta de esa diferencia no se confirmó; se registra como discrepancia
+entre la serie aproximada y el conteo presentado por Kafbat, no como un número
+exacto de mensajes. No incluir credenciales, identificadores de cuenta, datos
+personales ni direcciones privadas en futuras capturas.
 
 ## Validación local
 

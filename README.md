@@ -658,13 +658,15 @@ Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](htt
 
 ### Evidencia visual de observabilidad
 
-El dashboard de Grafana fue verificado en vivo después de corregir el scrape de RabbitMQ: los paneles de mensajes pendientes y entregados sin ACK muestran series por cola, y el total pendiente marca `0` durante la captura. La misma vista muestra el estado Kafka del laboratorio (3 particiones, lag `0`, 1 broker). Las imágenes PNG históricas bajo `docs/screenshots/observability/` corresponden a fallos anteriores y no se presentan como evidencia actual. La traza de prueba y los límites de esta validación están registrados en [docs/cloud-evidence.md](docs/cloud-evidence.md) y [docs/observability-stack.md](docs/observability-stack.md).
+Las siguientes capturas se tomaron de las consolas reales el 15-10-2026. RabbitMQ muestra siete colas en ejecución y sin backlog en ese instante; Kafbat muestra el topic `nexo.messages.v1` con 15 registros; Grafana muestra métricas de las colas y Kafka, incluidos 3 particiones, lag 0, 0 pendientes y 1 broker. Grafana muestra aproximadamente 18 registros mientras Kafbat informa 15; la causa exacta de la diferencia no está confirmada, por lo que no uses la serie aproximada de Grafana como conteo autoritativo. La prueba sintética de integración documentada abajo sí registró un aumento de 17 a 18 y lag de vuelta a cero. Las capturas históricas de errores se conservan separadas y no representan el estado actual. Ver [docs/cloud-evidence.md](docs/cloud-evidence.md) y [docs/observability-stack.md](docs/observability-stack.md) para contexto, interpretación y límites.
 
 | Servicio | Captura |
 | --- | --- |
-| Kafka UI (Kafbat) | ![Kafbat UI: clúster Nexo en línea en la revisión anterior](docs/screenshots/observability/kafbat-ui-kafka-online.png) |
-| RabbitMQ | ![RabbitMQ: desafío de autenticación anterior a la corrección](docs/screenshots/observability/rabbitmq-auth-challenge.png) |
-| Grafana | ![Grafana: error ERR_TOO_MANY_REDIRECTS anterior a la corrección](docs/screenshots/observability/grafana-redirect-loop.png) |
+| RabbitMQ · colas actuales | ![RabbitMQ Management: siete colas en ejecución, sin mensajes pendientes en la captura del 15-10-2026](docs/screenshots/observability/rabbitmq-current.png) |
+| Kafka · topics actuales | ![Kafbat UI: topic nexo.messages.v1 con tres particiones y 15 registros en la captura del 15-10-2026](docs/screenshots/observability/kafka-current.png) |
+| Grafana · dashboard actual | ![Grafana Nexo: métricas de RabbitMQ y Kafka, tres particiones, lag cero, pendientes cero y un broker](docs/screenshots/observability/grafana-current.png) |
+
+**Cómo leerlas:** en RabbitMQ, `Ready` son mensajes esperando consumidor, `Unacked` son mensajes entregados que aún no reciben ACK, y `Total` suma ambos; los ceros son una instantánea, no falta de telemetría. En Kafbat, `Partitions` distribuye el topic, `Out of sync replicas` cuenta réplicas atrasadas, `Replication factor` es cuántas copias guarda Kafka y `Number of messages` es el conteo que informa la consola. En Grafana, las gráficas por cola muestran métricas recolectadas por Prometheus; los paneles inferiores resumen particiones, lag, pendientes y brokers. Un broker con factor de réplica 1 está disponible, pero no brinda tolerancia a la caída del nodo.
 
 <a id="pruebas"></a>
 
