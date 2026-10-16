@@ -155,6 +155,25 @@ describe('BroadcastMediaService', () => {
     expect(room.disconnect).toHaveBeenCalled();
     expect(api.end).toHaveBeenCalledWith('b');
   });
+  it('starts a video-only broadcast during a call without publishing duplicate audio', async () => {
+    api.access.mockReturnValue(of({ url: 'ws://localhost:7880', token: 'test', role: 'HOST' }));
+    const video = { id: 'video', kind: 'video', readyState: 'live' };
+    const stream = {
+      getTracks: () => [video],
+      getAudioTracks: () => [],
+    } as unknown as MediaStream;
+
+    await service.publish('channel', 'In-call share', 'CAMERA', stream, { audioEnabled: true });
+
+    const room = sdk.rooms[0];
+    expect(room.localParticipant.publishTrack).toHaveBeenCalledOnce();
+    expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
+      video,
+      expect.objectContaining({ source: 'camera' }),
+    );
+    expect(service.state()).toBe('LIVE');
+    expect(api.start).toHaveBeenCalledWith('b');
+  });
   it('keeps every subscribed audio track for screen sound and microphone', async () => {
     await service.watch(broadcast);
     const screenAudio = { kind: 'audio', detach: vi.fn() };

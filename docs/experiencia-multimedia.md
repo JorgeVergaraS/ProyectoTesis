@@ -43,9 +43,10 @@ inicial es decorativa y está identificada como una vista **sin preparar**.
 9. **Finalizar transmisión** cierra la emisión y libera los dispositivos.
 
 La vista previa propia está siempre silenciada para evitar eco. Es normal que
-el emisor no escuche una segunda copia de su PC a través de Nexo. La casilla
-Micrófono prepara esa pista silenciada si está desmarcada; el navegador todavía
-solicita permiso del micrófono para poder activarlo durante la emisión.
+el emisor no escuche una segunda copia de su PC a través de Nexo. Fuera de una
+llamada, la casilla Micrófono prepara la pista para activarla durante la emisión.
+Dentro de una llamada, el audio permanece en la sala WebRTC de voz y la emisión
+de cámara/pantalla publica video sin volver a enviar el micrófono.
 
 ## Qué se corrigió
 
@@ -56,6 +57,9 @@ solicita permiso del micrófono para poder activarlo durante la emisión.
 - `BroadcastMediaService` publica `ScreenShareAudio` y `Microphone` por separado.
   El micrófono puede publicarse deshabilitado y activarse después. La recepción
   conserva todas las pistas de audio y descarta aperturas concurrentes obsoletas.
+- Las emisiones aceptan una pista de video sin audio. En llamada, el audio ya
+  viaja por el room WebRTC de voz; la API comprueba el video y deja el audio
+  opcional para no rechazar el modo de transmisión sin micrófono.
 - `BroadcastViewerComponent` mantiene el nodo `<video>`, conecta ambas pistas
   a elementos de audio y amplía el contenedor completo. Cambiar título o tamaño
   no vuelve a pedir acceso a la sala. El control adaptativo usa densidad 1 para

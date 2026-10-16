@@ -60,8 +60,8 @@ public class BroadcastService {
     public synchronized Broadcast start(UUID id, UUID user) {
         Broadcast b = authorized(id, user);
         requireHost(b, user); requireOpen(b);
-        if (!List.of("STARTING", "LIVE").contains(b.status()) || !media.publishing(b.roomName(), user))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Publica cámara o pantalla y micrófono primero");
+        if (!List.of("STARTING", "LIVE").contains(b.status()) || !media.hasVideoTrack(b.roomName(), user))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Publica cámara o pantalla primero");
         broadcasts.live(id);
         return broadcasts.get(id);
     }

@@ -178,6 +178,9 @@ compatible y se aplica una vista ampliada como fallback.
 El backend valida que la llamada pertenezca a una conversación directa válida y que ambos
 participantes sean miembros. De esta forma, el destino queda asociado a la conversación de
 la llamada y no a un identificador enviado libremente por el navegador.
+Durante la llamada, el audio sigue por la sala WebRTC de voz; la sala de transmisión puede
+publicar solo video. El backend valida la pista de video y deja el audio opcional para no
+bloquear emisiones sin micrófono ni duplicar el audio de la llamada.
 
 ## 4. Qué reciben los otros participantes
 

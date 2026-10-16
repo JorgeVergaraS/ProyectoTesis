@@ -56,7 +56,8 @@ class BroadcastIntegrationTests {
         mvc.perform(post(base + "/access").header("Authorization", "Bearer " + host)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("HOST")).andExpect(header().string("Cache-Control", "no-store"));
         mvc.perform(post(base + "/start").header("Authorization", "Bearer " + host)).andExpect(status().isConflict());
-        when(media.publishing(anyString(), eq(hostId))).thenReturn(true);
+        // In-call broadcasts intentionally publish video only; their audio stays on the call room.
+        when(media.hasVideoTrack(anyString(), eq(hostId))).thenReturn(true);
         for (int i=0;i<2;i++) mvc.perform(post(base + "/start").header("Authorization", "Bearer " + host))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("LIVE"));
         mvc.perform(post(base + "/access").header("Authorization", "Bearer " + viewer))
