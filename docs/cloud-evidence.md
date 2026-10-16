@@ -108,5 +108,7 @@ La publicación de los paneles depende de DNS wildcard de `nip.io`, y algunas
 políticas de navegador pueden bloquear ese dominio antes de abrir la conexión.
 La autenticación y las series actuales se comprobaron desde el navegador; la
 prueba sintética RabbitMQ → Kafka → consumidor y la recolección Prometheus se
-registran en la matriz de esta sección. Las capturas PNG actuales aún no se han
-guardado en el repositorio; las existentes siguen siendo históricas.
+registran en la matriz de esta sección. Las capturas reales vigentes del 15-10-2026
+están guardadas en `docs/screenshots/observability/`: `rabbitmq-current.png`,
+`kafka-current.png` y `grafana-current.png`. El README general las muestra juntas
+y enlaza la presentación EP4 que explica su significado y sus límites.

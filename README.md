@@ -656,6 +656,8 @@ describe las URL, el flujo de eventos, la topología y el procedimiento de despl
 El estado de AWS comprobado y los límites de la evidencia están en [docs/cloud-evidence.md](docs/cloud-evidence.md).
 Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). RabbitMQ usa autenticación nativa de Management para la UI y sus llamadas API; Kafka UI y Grafana usan Basic Auth en Caddy. Los secretos se guardan en SSM SecureString y no se documentan aquí. El acceso interno de Grafana se alineó con el usuario `nexo-viewer`; el login HTTPS y `/api/user` autenticados respondieron correctamente. Los detalles de operación y la evidencia consultada desde las pestañas abiertas están en [docs/observability-stack.md](docs/observability-stack.md) y [docs/cloud-evidence.md](docs/cloud-evidence.md).
 
+Para la exposición EP4, consulta la [presentación de Nexo, RabbitMQ, Kafka, Grafana y privacidad](docs/presentacion/Nexo-EP4-Streaming-Observabilidad.pptx). Resume la arquitectura, muestra capturas reales, explica la ponderación de la rúbrica y propone un orden de demostración de 5–10 minutos. Las notas del presentador incluyen las fuentes y los límites que conviene declarar.
+
 ### Evidencia visual de observabilidad
 
 Las siguientes capturas se tomaron de las consolas reales el 15-10-2026. RabbitMQ muestra siete colas en ejecución y sin backlog en ese instante; Kafbat muestra el topic `nexo.messages.v1` con 15 registros; Grafana muestra métricas de las colas y Kafka, incluidos 3 particiones, lag 0, 0 pendientes y 1 broker. Grafana muestra aproximadamente 18 registros mientras Kafbat informa 15; la causa exacta de la diferencia no está confirmada, por lo que no uses la serie aproximada de Grafana como conteo autoritativo. La prueba sintética de integración documentada abajo sí registró un aumento de 17 a 18 y lag de vuelta a cero. Las capturas históricas de errores se conservan separadas y no representan el estado actual. Ver [docs/cloud-evidence.md](docs/cloud-evidence.md) y [docs/observability-stack.md](docs/observability-stack.md) para contexto, interpretación y límites.
@@ -667,6 +669,8 @@ Las siguientes capturas se tomaron de las consolas reales el 15-10-2026. RabbitM
 | Grafana · dashboard actual | ![Grafana Nexo: métricas de RabbitMQ y Kafka, tres particiones, lag cero, pendientes cero y un broker](docs/screenshots/observability/grafana-current.png) |
 
 **Cómo leerlas:** en RabbitMQ, `Ready` son mensajes esperando consumidor, `Unacked` son mensajes entregados que aún no reciben ACK, y `Total` suma ambos; los ceros son una instantánea, no falta de telemetría. En Kafbat, `Partitions` distribuye el topic, `Out of sync replicas` cuenta réplicas atrasadas, `Replication factor` es cuántas copias guarda Kafka y `Number of messages` es el conteo que informa la consola. En Grafana, las gráficas por cola muestran métricas recolectadas por Prometheus; los paneles inferiores resumen particiones, lag, pendientes y brokers. Un broker con factor de réplica 1 está disponible, pero no brinda tolerancia a la caída del nodo.
+
+La presentación enlazada arriba desarrolla estos conceptos para la defensa y explica con precisión el alcance del hash BCrypt y el cifrado de RDS; no afirma que todos los datos personales estén hasheados ni que el inventario técnico certifique cumplimiento legal.
 
 <a id="pruebas"></a>
 
