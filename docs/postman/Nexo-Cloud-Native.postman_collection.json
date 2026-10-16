@@ -1,0 +1,90 @@
+{
+  "info": {
+    "_postman_id": "c80c9c2b-7c36-4d86-8e3e-1f6f0945e969",
+    "name": "Nexo Cloud Native - Evidencia JWT",
+    "description": "Colección académica para demostrar salud del backend y autorización JWT sin almacenar credenciales ni tokens reales.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://34.196.97.226.nip.io"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "secret"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health público - 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/public/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Backend disponible', () => pm.expect(pm.response.json().status).to.eql('UP'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Perfil sin JWT - 401",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('HTTP 401 sin Bearer', () => pm.response.to.have.status(401));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Perfil con JWT de MSAL - 200",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [],
+        "url": "{{baseUrl}}/api/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('HTTP 200 con JWT válido', () => pm.response.to.have.status(200));",
+              "pm.test('Respuesta de perfil', () => pm.expect(pm.response.json()).to.have.property('id'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 <p align="center">
   <img src="frontend/public/favicon.svg" width="72" alt="Logo Nexo"><br>
   <strong>Tu campus. Tu gente. Tu espacio.</strong><br>
-  Proyecto de tesis · Prototipo funcional local
+  Proyecto de tesis · Despliegue académico funcional
 </p>
 
 <p align="center">
@@ -18,13 +18,11 @@
 
 ![Nexo: acceso autenticado con cuenta institucional o local](docs/images/nexo-login.png)
 
-> **Estado actual:** aplicación local con Angular, Spring Boot y PostgreSQL. Mantiene
-> la demo multiusuario y añade registro/login local más integración Microsoft Entra ID
-> mediante MSAL. Incluye perfil editable y transmisión local con LiveKit (fase 4).
-> Verificación del 7 de septiembre de 2026: 41 pruebas backend y 76 frontend aprobadas.
-> La fase 5 está en preparación, no desplegada: faltan HTTPS/WSS, TURN, controles
-> adicionales y pruebas entre redes. El login Microsoft real sigue pendiente de
-> validación interactiva. No se declara listo para producción.
+> **Rama de evaluación EP3/EP4:** incorpora tres servicios Spring Boot, clúster RabbitMQ
+> de dos nodos, tres colas con sus DLQ, ACK manual y administración REST protegida.
+> El laboratorio AWS anterior fue eliminado; no utilices sus direcciones como evidencia
+> de un despliegue vigente. Consulta la [implementación y matriz de rúbrica](docs/ep3-ep4-implementation.md)
+> y el [procedimiento de despliegue](docs/cloud-deployment.md) para el estado y validación nuevos.
 
 ## Índice
 
@@ -100,7 +98,7 @@ instalación nueva.
 
 | Área       | Disponible                                                                                                  | Límite actual                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Acceso     | Demo, registro/login local y Microsoft Entra ID mediante MSAL                                               | Login Microsoft real pendiente de evidencia interactiva                          |
+| Acceso     | Demo, registro/login local y Microsoft Entra ID mediante MSAL; login institucional probado                   | Falta matriz formal de logout y errores por cuenta                               |
 | Navegación | Login, Inicio, Comunidades, Mensajes, Personas, Perfil y diagnóstico                                        | Sin administración institucional                                                 |
 | Canales    | Descubrir, unirse, salir, ver participantes y conversar                                                     | Cuatro canales predefinidos; sin creación desde UI                               |
 | Directos   | Conversaciones entre dos perfiles con autorización backend                                                  | Sin grupos privados ni confirmaciones de lectura                                 |
@@ -108,10 +106,16 @@ instalación nueva.
 | Apariencia | Temas predeterminado, OLED y claro; botones Mate, Style SkayGlass y Y2K 2000; configuración junto al nombre | Preferencias locales de cada navegador, sin sincronización entre dispositivos    |
 | Enlaces    | Reconoce `http://`, `https://` y `www.`                                                                     | Sin previews ni verificación de reputación                                       |
 | Perfil     | Panel reutilizable, edición autenticada, disponibilidad y foto opcional normalizada                         | Sin campos institucionales ni configuración de privacidad                        |
-| Llamadas   | Voz WebRTC, aceptar/rechazar, mute y finalizar                                                              | Dos usuarios; mismo equipo; sin video ni STUN/TURN                               |
+| Llamadas   | Voz y videollamada directa P2P; mute de micrófono/cámara, salida y salas grupales LiveKit | Latencia y calidad dependen de red, dispositivo y ruta ICE/TURN; falta prueba física repetible en redes distintas |
 | Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
-| Transmisiones | Cámara/pantalla y micrófono mediante LiveKit; permisos anfitrión/espectador y visor en el canal | Validación local con medios sintéticos; pendientes dispositivos físicos y redes externas |
-| Operación  | Docker Compose, Flyway, health, Actuator y Swagger                                                          | Solo local, sin despliegue público                                               |
+| Transmisiones | Cámara/pantalla, micrófono opcional y 15/30/60 FPS mediante LiveKit; visor en canal o llamada | 60 FPS es un objetivo dependiente del dispositivo/red; pendientes medios físicos y redes externas |
+| Operación  | EC2, RDS, Docker con reinicio automático, Caddy HTTPS, health, Actuator y Swagger; EC2 dedicada para RabbitMQ UI, Kafka y Grafana | Alta disponibilidad de Kafka y una prueba integral de eventos en producción siguen fuera del alcance verificado |
+
+**Estado de llamadas en AWS (15-10-2026):** TURN está publicado por UDP y TCP en
+3478, con relay UDP 49160–49200; Coturn escucha en la interfaz privada de EC2 y
+anuncia la IP elástica. Probé el handshake TCP desde CloudShell y el health del
+backend; falta completar una llamada real entre PC y celular en redes distintas.
+Consulta [puertos y procedimiento de verificación](docs/cloud-deployment.md#estado-realtime-verificado-15-10-2026).
 
 <a id="stack"></a>
 
@@ -127,7 +131,7 @@ instalación nueva.
 | API             | Spring Web, Bean Validation, DTOs y errores uniformes                |
 | Seguridad       | Spring Security, JWT local/Entra, scopes/roles y bearer demo aislado |
 | Persistencia    | PostgreSQL 17.10, JPA/Hibernate, JdbcClient y Flyway                 |
-| Observabilidad  | Actuator y springdoc OpenAPI 2.8.17                                  |
+| Observabilidad  | Actuator, springdoc OpenAPI 2.8.17; RabbitMQ, Kafka/Kafbat UI, Prometheus y Grafana en AWS Academy |
 | Pruebas         | JUnit 5, Spring Security Test, Testcontainers, Vitest y jsdom        |
 | Infraestructura | Docker Compose; backend Docker opcional                              |
 
@@ -146,8 +150,9 @@ dependencias e imágenes; no necesita credenciales Microsoft.
 
 **Monorepo y monolito modular:** una SPA Angular, una sola aplicación Spring Boot
 y PostgreSQL. El backend está organizado por dominios, no por capas globales.
-No hay microservicios de negocio. Las llamadas de voz son P2P; las transmisiones
-usan LiveKit como servidor multimedia SFU opcional. Spring controla permisos y
+No hay microservicios de negocio. Las llamadas directas de voz son P2P; las llamadas
+grupales de canal y las transmisiones usan LiveKit como servidor multimedia SFU.
+Spring controla permisos y
 metadatos, pero no transporta ni almacena audio/video. La vista previa permanece
 en el navegador hasta que el usuario inicia la transmisión.
 
@@ -165,10 +170,14 @@ flowchart LR
     end
     AU --> DB[(PostgreSQL · Docker)]
     U --> DB
-    C --> DB
-    R --> RAM[Estado temporal de llamadas]
+    C -->|Mensajes, outbox y avisos| DB
+    C -->|Publica eventos pendientes| MQ[[RabbitMQ · cola durable]]
+    MQ -->|Consume y crea avisos| C
+    R --> RAM[Estado temporal de llamadas directas]
     T --> DB
     T -->|Control de salas| SFU[LiveKit · perfil media]
+    A <-->|Audio grupal WebRTC| SFU
+    B <-->|Audio grupal WebRTC| SFU
     A <-->|Transmisión WebRTC| SFU
     B <-->|Recepción WebRTC| SFU
     A <-->|Audio WebRTC directo| B
@@ -182,14 +191,16 @@ flowchart LR
   controlada por el backend.
 - **user:** conserva perfiles y procesa fotos. JPA administra usuarios;
   JdbcClient guarda y consulta los bytes del avatar.
-- **messaging:** workspace autenticado, conversaciones, miembros y mensajes.
+- **messaging:** workspace autenticado, conversaciones, miembros, mensajes y avisos
+  asíncronos mediante outbox y RabbitMQ.
   Consultas parametrizadas, transacciones y restricciones de base controlan
   permisos e idempotencia.
 - **realtime:** intercambia SDP entre participantes autorizados. El audio viaja
   entre navegadores; la señalización temporal permanece en memoria del monolito.
 - **common:** CORS, errores, health y OpenAPI.
 - **broadcast:** autoriza miembros, emite tokens breves por rol y controla salas
-  LiveKit y su vencimiento; persiste metadatos en PostgreSQL, nunca medios ni tokens.
+  LiveKit y su vencimiento. También entrega acceso temporal de publicación/suscripción
+  a la sala grupal estable de cada canal; persiste metadatos, nunca medios ni tokens.
 - **Angular core:** sesión, guard, interceptor, clientes HTTP y voz; los componentes
   de página no duplican autenticación.
 
@@ -473,30 +484,45 @@ La verificación reciente de voz se hizo con Spring local, no con el contenedor 
 4. Abrir un directo Jorge–Jean; Fernando no puede leerlo.
 5. Enviar `https://example.com` y abrir el enlace desde el mensaje.
 6. Ir a Perfil, elegir un JPG/PNG de hasta 2 MiB, guardar y comprobar el avatar.
-7. En el directo, pulsar el teléfono; Jean recibe la invitación y acepta.
-8. Permitir el micrófono, esperar **Audio conectado**, probar mute y finalizar.
-9. En Perfil, abrir **Preparar transmisión**, elegir cámara o pantalla y permitir los
+7. En el directo, pulsar teléfono para voz o cámara para videollamada; Jean recibe la invitación y acepta.
+8. Permitir micrófono y, para video, cámara. Si se deniega la cámara, se intenta continuar solo con audio.
+9. Esperar **Audio conectado** o **Videollamada conectada**, probar mute/cámara y finalizar.
+10. En Perfil, abrir **Preparar transmisión**, elegir cámara o pantalla y permitir los
    dispositivos solo cuando el navegador lo solicite.
-10. Comprobar la vista previa privada, cambiar cámara/micrófono, probar mute y finalizar.
-11. Recargar para comprobar persistencia; cerrar sesión para bloquear las rutas privadas.
+11. Comprobar la vista previa privada, cambiar cámara/micrófono, probar mute y finalizar.
+12. Recargar para comprobar persistencia; cerrar sesión para bloquear las rutas privadas.
 
 No usar **Duplicar pestaña**: algunos navegadores copian `sessionStorage`.
 Crear una nueva o usar **Abrir otra sesión**, que emplea `noopener`. En móvil,
 el menú superior abre navegación; participantes permite consultar el canal.
 
-**Voz:** usar audífonos para evitar acople. Si se bloquea el autoplay, pulsar
+**Voz y video:** usar audífonos para evitar acople. La videollamada pide acceso a cámara
+solo cuando se inicia o acepta; el control de cámara puede apagar y liberar la cámara.
+En videollamada, ambas cámaras se muestran simultáneamente. La reproducción remota usa
+una pista de audio dedicada y mantiene silenciados ambos elementos de video para evitar
+duplicar el audio en el navegador. **Ampliar** abre cualquiera de los videos con la otra
+persona en miniatura; cerrar la vista o pulsar Escape regresa a
+la llamada. En móvil se adapta al viewport y conserva una ampliación en página cuando no
+hay Fullscreen API. Ambos participantes deben aceptar el video y mantener su cámara activa.
+Los mosaicos y controles **Ampliar** permanecen disponibles mientras llega el video remoto;
+el mosaico indica si la otra cámara sigue conectando o está apagada.
+Si el navegador bloquea el autoplay, pulsar
 **Activar audio recibido**. El micrófono del destinatario se solicita al aceptar.
-El aviso entrante es visual; la llamada permanece al navegar entre rutas. No se graba.
+El aviso entrante es visual/sonoro según las preferencias. La llamada permanece al navegar entre rutas. No se graba.
 
 **Estudio local:** la vista previa tampoco se graba ni se transmite. Al volver,
 cerrar el perfil, cambiar de ruta o terminar manualmente, Nexo detiene todos los
 tracks. Compartir pantalla completa puede exponer notificaciones; es preferible
-elegir una ventana concreta. **Iniciar transmisión** publica cámara/pantalla y micrófono
-en la conversación elegida cuando LiveKit está habilitado. Los demás miembros pueden abrir
+elegir una ventana concreta. **Iniciar transmisión** oculta la vista previa local y publica
+cámara/pantalla con una sola fuente de audio: audio de pestaña/sistema si el navegador lo entrega,
+o micrófono como alternativa. Así se evita mezclar la voz capturada por ambos caminos. Durante una
+llamada, la transmisión de pantalla no vuelve a publicar audio: la voz permanece en WebRTC.
+Los demás miembros pueden abrir
 **Ver transmisión** desde el canal. Consulta la [guía de transmisión local](docs/broadcast-sfu-verification.md).
 
-ICE es local, sin STUN/TURN: verificado entre pestañas del mismo equipo, no entre
-redes. El micrófono requiere un contexto seguro como localhost o HTTPS; una IP
+En cloud se configuran STUN y TURN para las llamadas directas; la aceptación final
+entre navegadores y redes continúa abierta. La videollamada usa la misma señalización/ICE/TURN
+que la voz y envía video WebRTC en tiempo real; no existe garantía de latencia cero. El micrófono requiere localhost o HTTPS; una IP
 por HTTP no es equivalente. Referencias:
 [getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
 y [conectividad WebRTC](https://webrtc.org/getting-started/peer-connections).
@@ -524,7 +550,9 @@ con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 | GET           | `/api/conversations/{id}/members`         | Participantes; exige membresía                                                      |
 | GET / POST    | `/api/conversations/{id}/messages`        | Consultar / enviar; identidad derivada del token                                    |
 | GET           | `/api/calls/current`                      | Llamada de voz de esta pestaña autenticada; cuerpo vacío si no existe               |
-| POST          | `/api/calls`                              | Crear llamada con `id`, `calleeId` y oferta SDP de solo audio                       |
+| GET           | `/api/calls/ice-config`                   | STUN y credenciales TURN temporales de la cuenta autenticada                         |
+| POST          | `/api/calls`                              | Crear llamada con `id`, `calleeId`, `conversationId`, `video` y oferta SDP audio/video según modalidad |
+| POST          | `/api/calls/{id}/candidates`               | Publicar candidatos ICE locales; `candidate: null` indica fin de candidatos          |
 | POST          | `/api/calls/{id}/accept`                  | Reclamar la llamada entrante desde esta pestaña                                     |
 | POST          | `/api/calls/{id}/answer`                  | Publicar la respuesta SDP del destinatario                                          |
 | POST          | `/api/calls/{id}/reject`                  | Rechazar la invitación propia                                                       |
@@ -543,7 +571,9 @@ con `access_as_user`. Las rutas demo conservan una credencial opaca separada.
 | POST / DELETE | `/api/demo/me/avatar`                     | Multipart `file` / quitar foto propia                                               |
 | GET           | `/api/demo/avatars/{userId}/{version}`    | PNG público de demo, versión vigente                                                |
 | GET           | `/api/demo/calls/current`                 | Llamada de sesión; cuerpo vacío si no existe                                        |
+| GET           | `/api/demo/calls/ice-config`              | Credenciales TURN temporales para la sesión demo autenticada                        |
 | POST          | `/api/demo/calls`                         | Crear con `id`, `calleeId` y `offer` SDP                                            |
+| POST          | `/api/demo/calls/{id}/candidates`           | Publicar candidatos ICE locales de la sesión demo                                  |
 | POST          | `/api/demo/calls/{id}/accept`             | Reclamar llamada para esta sesión                                                   |
 | POST          | `/api/demo/calls/{id}/answer`             | Respuesta SDP del destinatario                                                      |
 | POST          | `/api/demo/calls/{id}/reject`             | Rechazar invitación                                                                 |
@@ -618,6 +648,44 @@ El backend valida firma, issuer, audience, expiración y permiso; para identidad
 Microsoft persiste `oid` sin guardar contraseña. La demo continúa separada mediante
 el perfil `local-demo`. Leer [SECURITY.md](SECURITY.md).
 
+La [revisión de privacidad y preparación para la Ley 21.719](docs/privacidad-y-ley-21719.md)
+resume los datos persistidos que se observaron en el código, el alcance de Microsoft
+sign-in y las decisiones operativas/jurídicas que faltan para preparar el servicio.
+La [guía de consolas de RabbitMQ, Kafka y Grafana](docs/observability-stack.md)
+describe las URL, el flujo de eventos, la topología y el procedimiento de despliegue.
+El estado de AWS comprobado y los límites de la evidencia están en [docs/cloud-evidence.md](docs/cloud-evidence.md).
+Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). RabbitMQ usa autenticación nativa de Management para la UI y sus llamadas API; Kafka UI y Grafana usan Basic Auth en Caddy. Los secretos se guardan en SSM SecureString y no se documentan aquí. El acceso interno de Grafana se alineó con el usuario `nexo-viewer`; el login HTTPS y `/api/user` autenticados respondieron correctamente. Los detalles de operación y la evidencia consultada desde las pestañas abiertas están en [docs/observability-stack.md](docs/observability-stack.md) y [docs/cloud-evidence.md](docs/cloud-evidence.md).
+
+Para la exposición EP4, consulta la [presentación PowerPoint de Nexo, RabbitMQ, Kafka, Grafana y privacidad](docs/presentacion/Nexo-EP4-Streaming-Observabilidad.pptx) o abre la [versión editable de 12 diapositivas en Canva](https://www.canva.com/d/rYKh4EKkL2xYtEb). La versión Canva integra las láminas vigentes de EP4 con API Manager y PKCE de la presentación previa, actualiza la URI SPA y destaca que Duoc UC debe aprobar los permisos institucionales solicitados. Resume la arquitectura, muestra capturas reales, explica la ponderación de la rúbrica y propone un orden de demostración de 5–10 minutos. Las notas del presentador incluyen las fuentes y los límites que conviene declarar. Para preparar la demostración AWS y entender por qué RabbitMQ puede mostrar cero pendientes mientras Kafka sí registra actividad, usa la [guía de conceptos y prueba en vivo](docs/guia-demo-observabilidad-aws.md).
+
+### Evidencia visual de observabilidad
+
+Las siguientes capturas se tomaron de las consolas reales el 15-10-2026. RabbitMQ muestra siete colas en ejecución y sin backlog en ese instante; Kafbat muestra el topic `nexo.messages.v1` con 15 registros; Grafana muestra métricas de las colas y Kafka, incluidos 3 particiones, lag 0, 0 pendientes y 1 broker. Grafana muestra aproximadamente 18 registros mientras Kafbat informa 15; la causa exacta de la diferencia no está confirmada, por lo que no uses la serie aproximada de Grafana como conteo autoritativo. La prueba sintética de integración documentada abajo sí registró un aumento de 17 a 18 y lag de vuelta a cero. Las capturas históricas de errores se conservan separadas y no representan el estado actual. Ver [docs/cloud-evidence.md](docs/cloud-evidence.md) y [docs/observability-stack.md](docs/observability-stack.md) para contexto, interpretación y límites.
+
+| Servicio | Captura |
+| --- | --- |
+| RabbitMQ · colas actuales | ![RabbitMQ Management: siete colas en ejecución, sin mensajes pendientes en la captura del 15-10-2026](docs/screenshots/observability/rabbitmq-current.png) |
+| Kafka · topics actuales | ![Kafbat UI: topic nexo.messages.v1 con tres particiones y 15 registros en la captura del 15-10-2026](docs/screenshots/observability/kafka-current.png) |
+| Grafana · dashboard actual | ![Grafana Nexo: métricas de RabbitMQ y Kafka, tres particiones, lag cero, pendientes cero y un broker](docs/screenshots/observability/grafana-current.png) |
+
+**Cómo leerlas:** en RabbitMQ, `Ready` son mensajes esperando consumidor, `Unacked` son mensajes entregados que aún no reciben ACK, y `Total` suma ambos; los ceros son una instantánea, no falta de telemetría. En Kafbat, `Partitions` distribuye el topic, `Out of sync replicas` cuenta réplicas atrasadas, `Replication factor` es cuántas copias guarda Kafka y `Number of messages` es el conteo que informa la consola. En Grafana, las gráficas por cola muestran métricas recolectadas por Prometheus; los paneles inferiores resumen particiones, lag, pendientes y brokers. Un broker con factor de réplica 1 está disponible, pero no brinda tolerancia a la caída del nodo.
+
+### Qué hace cada tecnología y qué mostrar en vivo
+
+- **RabbitMQ desacopla el trabajo asíncrono.** El backend publica un evento en un *exchange*; los *bindings* y la routing key lo enrutan a una cola; el consumidor lo procesa y envía ACK al terminar. `Ready` significa que espera procesamiento, `Unacked` que ya se entregó pero aún no se confirmó. Las DLQ guardan fallos para diagnóstico. Una cola en cero puede ser normal si el consumidor trabaja rápido: durante la demo mira también las tasas de publicación, entrega y ACK en **Overview** y **Queues and Streams**.
+- **Kafka conserva y distribuye flujos de eventos.** Los eventos se escriben en un *topic*, dividido en particiones; el *consumer group* avanza por offsets y el *lag* estima lo que todavía debe consumir. En la evidencia, Kafka muestra actividad y registros aproximados que suben de 19 a 28, lag 0, tres particiones y un broker. Un solo broker es un punto único de falla; tres particiones no equivalen a alta disponibilidad.
+- **Prometheus y Grafana observan, no transportan mensajes.** Prometheus recoge métricas (*scrape*) y Grafana las presenta como series temporales. `0` es el valor observado para esa métrica; `No data` indica que la consulta no obtuvo una serie utilizable. Verifica también el rango temporal, el estado de los targets y que las unidades del panel coincidan con sus datos.
+
+La captura compartida más reciente deja ver el contraste: no hay backlog ni entregas sin ACK en RabbitMQ, mientras Kafka muestra un pulso de actividad. Esto no prueba por sí solo que el mismo mensaje recorrió RabbitMQ y Kafka; hay que correlacionar una acción de prueba en Nexo con las tasas del broker, el topic/consumer group y el dashboard. En esta captura el panel titulado “eventos por minuto” muestra el eje `ops/s`; corrige esa unidad o aclárala antes de exponer. “Registros aproximados” es una estimación, no un conteo autoritativo.
+
+![Dashboard reciente de Grafana: RabbitMQ sin backlog y actividad observada en Kafka, compartido el 16-10-2026](docs/screenshots/observability/grafana-live-rabbitmq-kafka-2026-10-16.png)
+
+**Prueba en vivo recomendada:** envía un mensaje sintético en Nexo. En RabbitMQ observa tasas de publicación/entrega/ACK y consumidores, no solo el total pendiente; en Kafbat revisa el topic y el consumer group; en Grafana usa el mismo rango de tiempo y comprueba si el lag vuelve a cero. Si Kafka cambia pero RabbitMQ no muestra tasas, verifica si esa acción utiliza realmente la ruta RabbitMQ o revisa el publicador/outbox y sus logs. Si RabbitMQ cambia y Grafana no, revisa el scrape de Prometheus, el datasource y la consulta del panel. No abras puertos de RabbitMQ o Prometheus a Internet para esta prueba.
+
+**Crear/eliminar recursos de demostración:** el módulo administrativo documentado permite probar exchanges, colas y bindings bajo `nexo.demo.*`, con token Entra y autorización de administrador. La credencial `nexo-viewer` de la consola no concede ese permiso. Comprueba primero que `rabbit-admin` y su ruta estén desplegados en el ambiente de demo; el código local no demuestra el despliegue AWS. Publica solo un payload sintético y elimina binding, cola vacía y exchange al terminar. Pasos, respuestas HTTP esperadas y límites están en [guía de conceptos y prueba en vivo](docs/guia-demo-observabilidad-aws.md).
+
+La presentación enlazada arriba desarrolla estos conceptos para la defensa y explica con precisión el alcance del hash BCrypt y el cifrado de RDS; no afirma que todos los datos personales estén hasheados ni que el inventario técnico certifique cumplimiento legal.
+
 <a id="pruebas"></a>
 
 ## Pruebas y CI
@@ -650,7 +718,7 @@ Servicios iniciados, desde la raíz en PowerShell:
 
 | Comprobación  | Resultado registrado                                                                             |
 | ------------- | ------------------------------------------------------------------------------------------------ |
-| Backend       | 7 de septiembre: `verify` completo con Docker y Java 21; 41 pruebas aprobadas, sin omisiones |
+| Backend       | 11 de septiembre: `test` completo con Docker y Java 21; 42 pruebas aprobadas, sin omisiones |
 | Frontend      | 7 de septiembre: 76 pruebas aprobadas en 22 archivos                                              |
 | Build Angular | Compilación de producción correcta                                                               |
 | Formato       | Prettier correcto                                                                                |
@@ -661,6 +729,11 @@ Testcontainers crea bases efímeras, sin tocar la demo. Los tests unitarios de v
 usan dobles de medios; la conexión real se comprobó aparte. No se evaluó de oído
 la calidad de voz ni se probaron redes remotas.
 [Evidencia de fotos y llamadas](docs/photos-and-calls-verification.md).
+
+Para repetir la validación manual de la API se incluye la colección
+[Nexo Cloud Native - Evidencia JWT](docs/postman/Nexo-Cloud-Native.postman_collection.json).
+Contiene health público (`200`), perfil sin Bearer (`401`) y perfil autenticado
+con la variable secreta `accessToken`; la colección no almacena JWT reales.
 
 La verificación del 7 de septiembre usó Maven 3.9.16 ya instalado (`bin/mvn.cmd verify`):
 el wrapper de Windows falló antes de arrancar Maven al evaluar `.Target[0]`.
@@ -727,10 +800,11 @@ y [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 | No se ve un canal           | El usuario debe unirse; permisos aplicados por servidor           |
 | Mensajes no instantáneos    | Polling de 2 s, conexión y membresía                              |
 | Sin micrófono               | Permisos del navegador y localhost/HTTPS                          |
+| La llamada vence al negociar ICE | Confirmar que la ruta `/api/calls/ice-config` o `/api/demo/calls/ice-config` devuelve TURN UDP/TCP; revisar Coturn, DNS y los puertos 3478 UDP/TCP y 49160–49200 UDP. |
 | Sin cámara                  | Cerrar otras aplicaciones, revisar el dispositivo y sus permisos  |
 | No permite compartir pantalla | Usar un navegador compatible en localhost/HTTPS                 |
 | Conectado pero sin sonido   | Dispositivo, mute, audífonos y activar audio recibido             |
-| Falla entre dispositivos    | Fuera del alcance verificado; falta STUN/TURN y hosting seguro    |
+| Falla entre dispositivos    | Probar dos cuentas en redes distintas y revisar candidatos ICE; TURN ofrece UDP y TCP, pero aún requiere pruebas reales en Wi-Fi y datos móviles |
 | Foto rechazada              | JPG/PNG válido dentro de límites de tamaño y dimensiones          |
 | `npm.ps1` bloqueado         | Usar `npm.cmd`, no cambiar políticas del equipo                   |
 | Testcontainers no inicia    | Motor Docker Linux activo y accesible                             |
@@ -748,6 +822,24 @@ remota vencerá, como máximo, en ocho horas.
 <a id="roadmap"></a>
 
 ## Próximas etapas
+
+### Incremento visual y multimedia · `feat/experiencia-multimedia`
+
+- [x] Login, comunidades, perfil y estudio con identidad visual Nexo y ajustes responsive.
+- [x] Una sola fuente de audio durante la transmisión: audio de pantalla o micrófono alternativo, nunca ambos simultáneamente.
+- [x] El audio de llamada se mantiene solo en WebRTC al transmitir pantalla desde una llamada.
+- [x] La vista previa privada se oculta al iniciar la emisión; el visor conserva controles táctiles y ocupa el viewport móvil en pantalla completa.
+- [x] Vista previa real con aviso cuando la fuente no entrega audio compartido.
+- [x] Visor con volumen y fullscreen sin recrear video/conexión; prueba local de tres ciclos.
+- [x] Fullscreen responsive: recalcula `visualViewport` en `resize` y `orientationchange`, con fallback expandido cuando el navegador rechaza la API nativa.
+- [x] Publicación de este incremento en EC2; queda pendiente la aceptación con audio físico, móviles y redes reales.
+
+Ver [tickets, instrucciones, pruebas y capturas nuevas](docs/experiencia-multimedia.md).
+La captura de sonido depende de la fuente y los permisos del navegador; no se
+garantiza audio del sistema en todos los móviles. 30 FPS es el valor inicial;
+la resolución, fluidez y calidad recibidas dependen del dispositivo y la red.
+
+### Estado general
 
 - [x] Angular → Spring Boot → PostgreSQL local.
 - [x] Monolito modular, Flyway, health y Swagger.
@@ -767,34 +859,60 @@ remota vencerá, como máximo, en ocho horas.
 - [x] Estilos de botón persistentes Mate, Style SkayGlass y Y2K 2000.
 - [x] Estudio multimedia local: cámara/pantalla, micrófono, dispositivos, nivel y liberación.
 - [x] Transmisión local con LiveKit: permisos anfitrión/espectador, visor y cierre de salas abandonadas.
-- [ ] Validación interactiva del login/logout Microsoft real en Brave.
-- [ ] Backend en EC2 y publicación mediante HTTP API Gateway con JWT Authorizer.
+- [x] Llamadas grupales de audio por canal con LiveKit, membresía backend, mute, salida y reconexión.
+- [x] Validación interactiva del login Microsoft real en Brave con cuenta institucional invitada.
+- [ ] Evidencia completa de logout Microsoft, expiración y errores controlados.
+- [x] Backend desplegado en EC2 con Docker `restart: always`, RDS y health público.
+- [ ] Publicación mediante HTTP API Gateway con JWT Authorizer (Spring valida JWT actualmente).
 - [ ] WebSocket autenticado y presencia persistente.
-- [ ] STUN/TURN, HTTPS y pruebas entre dispositivos/redes.
+- [x] STUN/TURN y HTTPS/WSS configurados en EC2 con IP elástica.
+- [ ] Matriz reproducible de pruebas multimedia entre dispositivos y redes.
 - [ ] Grupos privados y adjuntos según el alcance aprobado.
+- [x] Llamada grupal de audio en canales mediante sala LiveKit multiusuario.
 - [ ] Eventos firmados de LiveKit y revocación de membresía durante una transmisión.
 - [ ] Paginación, límites, observabilidad y revisión para despliegue real.
 
-No hay fechas comprometidas ni se presentan estas etapas como disponibles.
-Redis, coturn e infraestructura adicional se incorporarán solo cuando se utilicen.
+### Tickets de cierre cloud
 
-**Siguiente paso: fase 5.** La verificación automatizada local está cerrada; faltan
-pruebas con dispositivos físicos y acordar servidor, dominio y presupuesto antes
-del despliegue de prueba. No se han publicado servicios ni abierto puertos públicos.
-Ver [preparación y criterios de aceptación](docs/phase-5-readiness.md).
+| Ticket | Estado en `feat/despliegue-cloud` | Evidencia / siguiente aceptación |
+| --- | --- | --- |
+| NEXO-CLOUD-01 · Login/logout Microsoft | Parcial | Login institucional probado; documentar logout, expiración y rechazo. |
+| NEXO-CLOUD-02 · EC2 + API Gateway JWT | Parcial | EC2/RDS/HTTPS y JWT Spring operativos; API Gateway JWT Authorizer pendiente. |
+| NEXO-CLOUD-03 · WebSocket y presencia | Pendiente | La rama conserva polling HTTP; diseñar autenticación y persistencia. |
+| NEXO-CLOUD-04 · STUN/TURN y redes | Parcial | Infraestructura activa; completar matriz PC/móvil, Wi-Fi/datos y candidatos ICE. |
+| NEXO-CLOUD-05 · Grupos privados/adjuntos | Pendiente | No confundir con canales ni con la nueva llamada grupal de canal. |
+| NEXO-CLOUD-06 · LiveKit firmado/revocación | Pendiente | Tokens breves implementados; faltan webhooks firmados y expulsión inmediata. |
+| NEXO-CLOUD-07 · Operación real | Pendiente | Faltan paginación, rate limits, métricas, alertas y revisión de costos/seguridad. |
+
+La evidencia visual y el historial técnico se mantienen en la
+[bitácora cloud](docs/despliegue-cloud-bitacora.md), la
+[guía MSAL/JWT](docs/autenticacion-msal-jwt.md) y la
+[guía de servicios y transmisiones](docs/transmisiones-y-servicios.md).
+
+Los estados **parcial** y **pendiente** no se presentan como funcionalidad terminada.
+
+**Siguiente paso:** completar la aceptación manual de la sala grupal con tres cuentas,
+incluyendo PC y teléfono en redes distintas, y registrar audio bidireccional,
+reconexión, mute, salida y transmisión de pantalla. Ver
+[preparación y criterios de aceptación](docs/phase-5-readiness.md).
 
 <a id="documentacion"></a>
 
 ## Documentación y licencia
 
+- [RabbitMQ aplicado a Nexo: avisos, funcionamiento y demostración](docs/rabbitmq-en-nexo.md).
+- [RabbitMQ en Nexo: explicación y evidencia visual](docs/rabbitmq-explicacion-evidencia.md).
 - [Backend](backend/README.md) y [frontend](frontend/README.md).
 - [Git Pattern y GitHub](docs/git-workflow.md).
 - [ADR: monolito modular y repositorios separados](docs/architecture/ADR-001-modular-monolith-and-polyrepo.md).
+- [Arquitectura de RabbitMQ para avisos de mensajes](docs/architecture/rabbitmq-message-notifications.md).
 - [Matriz de cumplimiento cloud-native](docs/cloud-native-compliance-matrix.md).
 - [Contribución](CONTRIBUTING.md) y [seguridad](SECURITY.md).
 - [Verificación actual de fotos y voz](docs/photos-and-calls-verification.md).
 - [Verificación del estudio multimedia local](docs/multimedia-studio-verification.md).
 - [Transmisiones LiveKit: configuración, contratos y verificación](docs/broadcast-sfu-verification.md).
+- [Servicios actuales, flujo de pantalla y capturas multimedia](docs/transmisiones-y-servicios.md).
+- [Experiencia multimedia: diseño responsive, sonido compartido y fullscreen](docs/experiencia-multimedia.md).
 - [Fase 5: preparación, pruebas pendientes y reversión](docs/phase-5-readiness.md).
 - [Mockup interactivo de perfil, edición y transmisión](docs/nexo-profile-streaming-mockup.html).
 - [Plan de implementación de perfil y transmisiones](profile-streaming-implementation-plan.md).

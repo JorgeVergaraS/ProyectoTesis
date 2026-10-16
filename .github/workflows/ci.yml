@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feature/**', 'fix/**']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -41,6 +41,8 @@ jobs:
         run: npm run test:ci
       - name: Production build
         run: npm run build
+      - name: Gateway JWT tests
+        run: node --test ../infra/aws/authorizer.test.mjs
 
   backend:
     name: Backend
@@ -48,7 +50,7 @@ jobs:
     timeout-minutes: 20
     defaults:
       run:
-        working-directory: backend
+        working-directory: .
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -60,6 +62,6 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-          cache-dependency-path: backend/pom.xml
-      - name: Verify with PostgreSQL Testcontainers
+          cache-dependency-path: '**/pom.xml'
+      - name: Verify Java services with PostgreSQL and RabbitMQ
         run: ./mvnw --batch-mode --no-transfer-progress verify

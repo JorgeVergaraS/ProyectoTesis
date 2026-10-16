@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { BroadcastApiService } from '../../../../core/media/broadcast-api.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { DemoUser, Workspace } from '../../../../core/models/demo';
@@ -66,10 +66,23 @@ describe('HomeComponent', () => {
     messages: vi.fn(() => of([])),
     members: vi.fn(() => of([user])),
     send: vi.fn(() => of({ ...ownMessage, id: 'sent-id' })),
+    direct: vi.fn(() =>
+      of({
+        id: 'direct-id',
+        kind: 'DIRECT',
+        title: otherUser.displayName,
+        description: 'Conversación directa',
+        slug: null,
+        joined: true,
+        memberCount: 2,
+        peerId: otherUser.id,
+      }),
+    ),
     edit: vi.fn((_conversation: string, _message: string, body: string) =>
       of({ ...ownMessage, body }),
     ),
     deleteMessage: vi.fn(() => of(undefined)),
+    readNotification: vi.fn(() => of(undefined)),
   };
   const calls = { occupied: signal(false), start: vi.fn(), hangUp: vi.fn() };
   beforeEach(() => {
@@ -99,6 +112,35 @@ describe('HomeComponent', () => {
       ],
     });
   });
+  it('opens a notification and only removes it after the server accepts it', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(HomeComponent);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(0);
+    const component = fixture.componentInstance;
+    const notification = {
+      messageId: 'notice-id',
+      conversationId: 'development-id',
+      conversationTitle: 'desarrollo',
+      senderName: 'Jean',
+      sentAt: '2026-09-24T12:00:00Z',
+    };
+    component.workspace.set({ ...workspace, notifications: [notification] });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Notificaciones');
+    chat.readNotification.mockReturnValueOnce(throwError(() => new Error('offline')));
+    await component.openNotification(notification);
+    expect(component.notifications()).toHaveLength(1);
+    expect(component.actionError()).toContain('No pudimos marcar');
+    await component.openNotification(notification);
+    expect(component.activeId()).toBe('development-id');
+    expect(component.notifications()).toHaveLength(0);
+    expect(chat.readNotification).toHaveBeenCalledWith('development-id', 'notice-id');
+    expect(component.notificationBusy()).toBe(false);
+    fixture.destroy();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
   it('loads the real workspace for an authenticated Microsoft user', async () => {
     vi.useFakeTimers();
     const fixture = TestBed.createComponent(HomeComponent);
@@ -109,6 +151,8 @@ describe('HomeComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Jorge');
     expect(fixture.nativeElement.textContent).toContain('Microsoft Entra ID');
     expect(fixture.nativeElement.textContent).toContain('general');
+    expect(fixture.nativeElement.textContent).toContain('Los mensajes se almacenan en Nexo');
+    expect(fixture.nativeElement.textContent).not.toContain('espacio de prueba local');
     fixture.destroy();
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -128,8 +172,9 @@ describe('HomeComponent', () => {
     expect(callButton.textContent).toContain('Llamar');
 
     callButton.click();
+    await vi.waitFor(() => expect(calls.start).toHaveBeenCalled());
 
-    expect(calls.start).toHaveBeenCalledWith(otherUser);
+    expect(calls.start).toHaveBeenCalledWith(otherUser, 'direct-id');
     fixture.destroy();
     vi.clearAllTimers();
     vi.useRealTimers();

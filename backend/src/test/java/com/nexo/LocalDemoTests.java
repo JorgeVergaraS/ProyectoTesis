@@ -2,6 +2,7 @@ package com.nexo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -21,9 +22,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = "spring.config.import=")
+@SpringBootTest(properties = {
+        "spring.config.import=",
+        "NEXO_TURN_URL=turn:turn.example.test:3478?transport=udp,turn:turn.example.test:3478?transport=tcp",
+        "NEXO_TURN_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef"
+})
 @AutoConfigureMockMvc
-@ActiveProfiles("local-demo")
+@ActiveProfiles({"local-demo", "test"})
 @Testcontainers
 class LocalDemoTests {
     static final String JORGE = "10000000-0000-0000-0000-000000000001";
@@ -68,6 +73,25 @@ class LocalDemoTests {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.displayName").value("Jean"));
         assertThat(jdbc.queryForList("SELECT token_hash FROM nexo.demo_sessions", String.class))
                 .doesNotContain(first, second).allMatch(value -> value.length() == 64);
+    }
+
+    @Test
+    void demoIceConfigRequiresSessionAndReturnsTemporaryTurnCredentials() throws Exception {
+        String token = login(JORGE);
+        mvc.perform(get("/api/demo/calls/ice-config"))
+                .andExpect(status().isUnauthorized());
+        JsonNode config = json.readTree(mvc.perform(get("/api/demo/calls/ice-config")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(config.get("iceServers").size()).isEqualTo(1);
+        assertThat(config.at("/iceServers/0/urls/0").asText())
+                .isEqualTo("turn:turn.example.test:3478?transport=udp");
+        assertThat(config.at("/iceServers/0/urls/1").asText())
+                .isEqualTo("turn:turn.example.test:3478?transport=tcp");
+        assertThat(config.at("/iceServers/0/username").asText()).contains(JORGE);
+        assertThat(config.at("/iceServers/0/credential").asText()).isNotBlank();
+        assertThat(config.get("expiresAt").asLong()).isGreaterThan(Instant.now().getEpochSecond());
     }
 
     @Test
@@ -214,7 +238,7 @@ class LocalDemoTests {
     }
 
     @Test
-    void callsCanBeRejectedAndDoNotAcceptVideoOrSelfCalls() throws Exception {
+    void callsCanBeRejectedAndVideoRequiresExplicitNegotiation() throws Exception {
         String jorge = login(JORGE), jean = login(JEAN);
         String sdp = "v=0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n";
         for (var request : java.util.List.of(
@@ -229,6 +253,16 @@ class LocalDemoTests {
                 .content(json.writeValueAsString(Map.of("id", id, "calleeId", JEAN, "offer", sdp)))).andExpect(status().isOk());
         mvc.perform(post("/api/demo/calls/" + id + "/reject").header("Authorization", "Bearer " + jean))
                 .andExpect(jsonPath("$.reason").value("REJECTED"));
+
+        UUID videoId = UUID.randomUUID();
+        String videoSdp = sdp + "m=video 9 UDP/TLS/RTP/SAVPF 96\r\n";
+        mvc.perform(post("/api/demo/calls").header("Authorization", "Bearer " + jorge)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("id", videoId, "calleeId", JEAN,
+                        "offer", videoSdp, "video", true))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.video").value(true));
+        mvc.perform(post("/api/demo/calls/" + videoId + "/reject").header("Authorization", "Bearer " + jean))
+                .andExpect(status().isOk());
     }
 
     @Test

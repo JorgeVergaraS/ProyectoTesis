@@ -1,7 +1,9 @@
 # Nexo backend
 
 Una aplicación Spring Boot 3.5.16, Java 21 y PostgreSQL, organizada por dominio.
-No hay microservicios. Conviven tres modos de identidad separados: demo local,
+Este módulo contiene el API de negocio. Los procesos independientes `event-worker`
+y `rabbit-admin` completan la plataforma descrita en la [matriz EP3/EP4](../docs/ep3-ep4-implementation.md).
+Conviven tres modos de identidad separados: demo local,
 JWT local y Microsoft Entra ID.
 
 ## Arranque
@@ -13,10 +15,12 @@ un secreto predeterminado para ejecución normal; el perfil de tests utiliza un
 valor aislado que no sirve fuera de la suite.
 
 ```powershell
-.\mvnw.cmd spring-boot:run
+# Desde la raíz del repositorio:
+.\mvnw.cmd -pl backend -am install -DskipTests
+.\mvnw.cmd -pl backend spring-boot:run
 ```
 
-Linux/macOS: `./mvnw spring-boot:run`. Activar `SPRING_PROFILES_ACTIVE=local-demo`
+Linux/macOS: usar `./mvnw` con los mismos argumentos. Activar `SPRING_PROFILES_ACTIVE=local-demo`
 para usar los tres perfiles. Sin ese perfil, la demo no queda habilitada.
 
 ## Dominios
@@ -29,7 +33,7 @@ para usar los tres perfiles. Sin ese perfil, la demo no queda habilitada.
 | realtime | Señalización HTTP y estado temporal de llamadas |
 | common | CORS, errores, health y OpenAPI |
 
-Flyway aplica V0–V9. V3 reside en `db/demo` y se carga solo bajo `local-demo`;
+Flyway aplica V0–V12. V3 reside en `db/demo` y se carga solo bajo `local-demo`;
 V8 crea el canal `general` para cualquier ambiente y matricula a los usuarios
 activos existentes. V9 separa la disponibilidad visible del estado administrativo,
 protege las personalizaciones de perfil y garantiza la unicidad de `username` sin
@@ -40,6 +44,7 @@ y las tablas de dominio en `nexo`.
 ## Pruebas
 
 ```powershell
+# Desde la raíz; incluye los tres servicios y la biblioteca de eventos.
 .\mvnw.cmd verify
 ```
 

@@ -81,8 +81,6 @@ export class ConversationBroadcastsComponent {
       )
       .subscribe((items) => {
         if (items === null) {
-          this.selected.set(null);
-          this.broadcasts.set([]);
           this.notice.set('No se pudo consultar las transmisiones. Reintentando…');
           return;
         }

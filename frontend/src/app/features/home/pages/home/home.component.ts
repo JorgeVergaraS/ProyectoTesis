@@ -24,11 +24,18 @@ import {
 } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { ChatService } from '../../../../core/services/chat.service';
-import { Conversation, DemoUser, Message, Workspace } from '../../../../core/models/demo';
+import {
+  Conversation,
+  DemoUser,
+  Message,
+  MessageNotification,
+  Workspace,
+} from '../../../../core/models/demo';
 import { AvatarComponent } from '../../../../shared/components/avatar.component';
 import { IconComponent } from '../../../../shared/components/icon.component';
 import { MessageTextComponent } from '../../../../shared/components/message-text.component';
 import { VoiceCallService } from '../../../../core/realtime/voice-call.service';
+import { GroupCallService } from '../../../../core/realtime/group-call.service';
 import {
   WorkspaceNavigationComponent,
   WorkspaceView,
@@ -40,6 +47,8 @@ import {
 import { ProfilePanelComponent } from '../../components/profile-panel.component';
 import { SettingsPanelComponent } from '../../components/settings-panel.component';
 import { ConversationBroadcastsComponent } from '../../components/conversation-broadcasts.component';
+import { CommunityHeroComponent } from '../../components/community-hero.component';
+import { MessageNotificationsComponent } from '../../components/message-notifications.component';
 
 type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
 
@@ -56,6 +65,8 @@ type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
     ProfilePanelComponent,
     SettingsPanelComponent,
     ConversationBroadcastsComponent,
+    CommunityHeroComponent,
+    MessageNotificationsComponent,
     RouterLink,
   ],
   templateUrl: './home.component.html',
@@ -64,11 +75,14 @@ type ComposerContext = { kind: 'edit' | 'reply'; message: Message };
 export class HomeComponent {
   readonly auth = inject(AuthService);
   readonly calls = inject(VoiceCallService);
+  readonly groupCalls = inject(GroupCallService);
   private readonly chat = inject(ChatService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   readonly workspace = signal<Workspace>({ channels: [], directs: [], people: [] });
+  readonly notifications = computed(() => this.workspace().notifications ?? []);
+  readonly notificationBusy = signal(false);
   readonly providerLabel = computed(() => {
     switch (this.auth.session.kind()) {
       case 'demo':
@@ -102,6 +116,7 @@ export class HomeComponent {
   readonly actionError = signal('');
   readonly actionBusy = signal(false);
   readonly profileOpen = signal(false);
+  readonly viewedProfile = signal<DemoUser | null>(null);
   readonly settingsOpen = signal(false);
   readonly sending = signal(false);
   readonly messageActionBusy = signal('');
@@ -252,12 +267,25 @@ export class HomeComponent {
     this.actionError.set('');
   }
   openOwnProfile(): void {
+    this.viewedProfile.set(null);
     this.settingsOpen.set(false);
     if (window.matchMedia('(max-width: 760px)').matches) {
       void this.router.navigate(['/profile']);
       return;
     }
     this.profileOpen.set(true);
+  }
+  openUserProfile(userId: string): void {
+    const user =
+      this.members().find((person) => person.id === userId) ??
+      this.workspace().people.find((person) => person.id === userId);
+    if (!user || user.id === this.auth.session.user()?.id) return;
+    this.profileOpen.set(false);
+    this.settingsOpen.set(false);
+    this.viewedProfile.set(user);
+  }
+  closeViewedProfile(): void {
+    this.viewedProfile.set(null);
   }
   openSettings(): void {
     this.profileOpen.set(false);
@@ -291,6 +319,36 @@ export class HomeComponent {
     );
     this.refreshWorkspace.next();
     this.refreshMessages.next();
+  }
+  async openNotification(notification: MessageNotification): Promise<void> {
+    if (this.notificationBusy()) return;
+    const conversation = [...this.workspace().channels, ...this.workspace().directs].find(
+      (item) => item.id === notification.conversationId && item.joined,
+    );
+    if (!conversation) {
+      this.actionError.set('Esta conversación ya no está disponible.');
+      this.refreshWorkspace.next();
+      return;
+    }
+    this.select(conversation);
+    this.notificationBusy.set(true);
+    this.actionError.set('');
+    try {
+      await firstValueFrom(
+        this.chat.readNotification(notification.conversationId, notification.messageId),
+      );
+      this.workspace.update((workspace) => ({
+        ...workspace,
+        notifications: workspace.notifications?.filter(
+          (item) => item.messageId !== notification.messageId,
+        ),
+      }));
+      this.refreshWorkspace.next();
+    } catch {
+      this.actionError.set('No pudimos marcar el aviso como leído. Vuelve a intentarlo.');
+    } finally {
+      this.notificationBusy.set(false);
+    }
   }
   async membership(conversation: Conversation, join: boolean): Promise<void> {
     if (this.actionBusy()) return;
@@ -326,6 +384,25 @@ export class HomeComponent {
       this.actionError.set('No pudimos abrir la conversación. Inténtalo de nuevo.');
     } finally {
       this.actionBusy.set(false);
+    }
+  }
+  async startCall(person: DemoUser): Promise<void> {
+    const conversation = this.workspace().directs.find((item) => item.peerId === person.id);
+    if (conversation) {
+      await this.calls.start(person, conversation.id);
+      return;
+    }
+    try {
+      const created = await firstValueFrom(this.chat.direct(person.id));
+      this.workspace.update((workspace) => ({
+        ...workspace,
+        directs: workspace.directs.some((item) => item.id === created.id)
+          ? workspace.directs
+          : [...workspace.directs, created],
+      }));
+      await this.calls.start(person, created.id);
+    } catch {
+      this.actionError.set('No pudimos preparar la conversación para la llamada.');
     }
   }
   async send(): Promise<void> {

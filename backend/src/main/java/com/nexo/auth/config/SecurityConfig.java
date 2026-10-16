@@ -151,15 +151,11 @@ public class SecurityConfig {
         local.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                 JwtValidators.createDefaultWithIssuer(LOCAL_ISSUER), audience(LOCAL_AUDIENCE)));
 
-        String issuer = environment.getRequiredProperty("nexo.azure.issuer");
-        String legacyIssuer = environment.getProperty(
-                "nexo.azure.legacy-issuer",
-                "https://sts.windows.net/21a4bbb2-fc48-4053-a98e-b805aa2306cc/");
         String audience = environment.getRequiredProperty("nexo.azure.audience");
         String jwkSetUri = environment.getRequiredProperty("nexo.azure.jwk-set-uri");
         NimbusJwtDecoder entra = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
         entra.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
-                issuer(issuer, legacyIssuer), audience(audience)));
+                tenantIndependentIssuer(), audience(audience)));
 
         return authentication -> {
             try {
@@ -188,15 +184,27 @@ public class SecurityConfig {
                         new OAuth2Error("invalid_token", "Invalid audience", null));
     }
 
-    static OAuth2TokenValidator<Jwt> issuer(String expected, String legacy) {
+    static OAuth2TokenValidator<Jwt> tenantIndependentIssuer() {
         OAuth2TokenValidator<Jwt> timestamps = JwtValidators.createDefault();
         return token -> {
             String actual = token.getIssuer() == null ? "" : token.getIssuer().toString();
-            return expected.equals(actual) || legacy.equals(actual)
-                    ? timestamps.validate(token)
-                    : OAuth2TokenValidatorResult.failure(
-                            new OAuth2Error("invalid_token", "Invalid issuer", null));
+            String tenantId = token.getClaimAsString("tid");
+            if (tenantId == null) return invalidIssuer();
+            try {
+                tenantId = java.util.UUID.fromString(tenantId).toString();
+            } catch (IllegalArgumentException invalidTenant) {
+                return invalidIssuer();
+            }
+            String v2Issuer = "https://login.microsoftonline.com/" + tenantId + "/v2.0";
+            String v1Issuer = "https://sts.windows.net/" + tenantId + "/";
+            return v2Issuer.equals(actual) || v1Issuer.equals(actual)
+                    ? timestamps.validate(token) : invalidIssuer();
         };
+    }
+
+    private static OAuth2TokenValidatorResult invalidIssuer() {
+        return OAuth2TokenValidatorResult.failure(
+                new OAuth2Error("invalid_token", "Invalid tenant issuer", null));
     }
 
     static Collection<GrantedAuthority> authorities(Jwt jwt) {

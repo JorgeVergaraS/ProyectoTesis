@@ -19,6 +19,9 @@ describe('BroadcastStudioComponent', () => {
     selectedAudioId: signal('mic-1'),
     selectedVideoId: signal('cam-1'),
     microphoneMuted: signal(false),
+    systemAudioMuted: signal(false),
+    systemAudioTrackIds: signal<string[]>([]),
+    toggleSystemAudio: vi.fn(),
     audioLevel: signal(35),
     stopReason: signal(null),
     cameraSupported: true,
@@ -43,6 +46,9 @@ describe('BroadcastStudioComponent', () => {
     occupied.set(false);
     source.set(null);
     media.start.mockClear();
+    media.systemAudioTrackIds.set([]);
+    media.microphoneMuted.set(false);
+    media.toggleMicrophone.mockClear();
     media.stop.mockClear();
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
     TestBed.configureTestingModule({
@@ -71,9 +77,33 @@ describe('BroadcastStudioComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(media.start).toHaveBeenCalledWith('camera');
+    expect(media.start).toHaveBeenCalledWith('camera', '', '', 30, true, true);
     expect(fixture.componentInstance.state()).toBe('PREVIEWING');
     expect(fixture.nativeElement.textContent).toContain('Nada se está transmitiendo');
+  });
+
+  it('does not capture the microphone again when sharing media inside a call', async () => {
+    const fixture = TestBed.createComponent(BroadcastStudioComponent);
+    fixture.componentRef.setInput('inCall', true);
+    fixture.detectChanges();
+
+    await fixture.componentInstance.prepare();
+
+    expect(media.start).toHaveBeenCalledWith('camera', '', '', 30, false, false);
+  });
+
+  it('hides the private preview as soon as the broadcast goes live', async () => {
+    const fixture = TestBed.createComponent(BroadcastStudioComponent);
+    fixture.detectChanges();
+    await fixture.componentInstance.prepare();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.preview-shell')).toBeTruthy();
+
+    fixture.componentInstance.broadcast.state.set('LIVE');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.preview-shell')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('En vivo');
   });
 
   it('blocks media preparation while a voice call is active', async () => {
@@ -116,5 +146,24 @@ describe('BroadcastStudioComponent', () => {
     confirmation.mockReturnValue(true);
     expect(fixture.componentInstance.confirmClose()).toBe(true);
     expect(media.stop).toHaveBeenCalledWith('user');
+  });
+
+  it('explains missing screen audio instead of claiming that it is shared', async () => {
+    const fixture = TestBed.createComponent(BroadcastStudioComponent);
+    fixture.componentInstance.selectSource('screen');
+    await fixture.componentInstance.prepare();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('No se recibió audio');
+    media.systemAudioTrackIds.set(['system']);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Audio de pantalla activo');
+  });
+
+  it('does not request any audio input when audio is unchecked', async () => {
+    const fixture = TestBed.createComponent(BroadcastStudioComponent);
+    fixture.componentInstance.audioEnabled.set(false);
+    await fixture.componentInstance.prepare();
+    expect(media.start).toHaveBeenCalledWith('camera', '', '', 30, false, false);
+    expect(media.toggleMicrophone).not.toHaveBeenCalled();
   });
 });

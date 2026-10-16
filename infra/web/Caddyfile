@@ -1,0 +1,43 @@
+{$FRONTEND_HOST:localhost} {
+    encode gzip zstd
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        Permissions-Policy "camera=(self), microphone=(self), display-capture=(self)"
+    }
+    handle /api/* {
+        reverse_proxy {$API_UPSTREAM:backend:8080} {
+            header_up Host {upstream_hostport}
+        }
+    }
+    handle /runtime-config.js {
+        header Cache-Control "no-store"
+        root * /srv/nexo
+        file_server
+    }
+    handle {
+        root * /srv/nexo
+        try_files {path} /index.html
+        file_server
+    }
+}
+
+# The API Gateway injects this private integration header. Direct origin calls are rejected.
+{$BACKEND_HOST:localhost:9080} {
+    @gateway header X-Nexo-Origin {$GATEWAY_ORIGIN_SECRET:local-unconfigured-origin}
+    handle @gateway {
+        handle /api/admin/rabbit/* {
+            reverse_proxy rabbit-admin:8082
+        }
+        handle {
+            reverse_proxy backend:8080
+        }
+    }
+    handle {
+        respond "Forbidden" 403
+    }
+}
+
+{$MEDIA_HOST:localhost:9081} {
+    reverse_proxy livekit:7880
+}

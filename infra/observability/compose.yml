@@ -1,0 +1,135 @@
+name: nexo-observability
+services:
+  kafka:
+    image: apache/kafka:4.2.2
+    restart: unless-stopped
+    mem_limit: 3072m
+    environment:
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID:?Set KAFKA_CLUSTER_ID}
+      KAFKA_NODE_ID: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${KAFKA_ADVERTISED_HOST:?Set KAFKA_ADVERTISED_HOST}:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_MS: 1209600000
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
+      KAFKA_HEAP_OPTS: -Xms1G -Xmx1G
+    ports: ["0.0.0.0:9092:9092"]
+    volumes: [kafka_data:/var/lib/kafka/data]
+    healthcheck:
+      test: [CMD, /opt/kafka/bin/kafka-broker-api-versions.sh, --bootstrap-server, localhost:9092]
+      interval: 15s
+      timeout: 10s
+      retries: 18
+      start_period: 60s
+
+  kafka-topic-init:
+    image: apache/kafka:4.2.2
+    restart: "no"
+    entrypoint: [/bin/bash, -ec]
+    command: [/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic nexo.messages.v1 --partitions 3 --replication-factor 1]
+    depends_on:
+      kafka: {condition: service_healthy}
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0
+    restart: unless-stopped
+    mem_limit: 768m
+    environment:
+      KAFKA_CLUSTERS_0_NAME: Nexo
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      SERVER_SERVLET_CONTEXT_PATH: /
+      DYNAMIC_CONFIG_ENABLED: "false"
+    depends_on:
+      kafka: {condition: service_healthy}
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.9.0
+    restart: unless-stopped
+    mem_limit: 128m
+    command: ["--kafka.server=kafka:9092", "--kafka.version=4.2.2", "--kafka.labels=nexo"]
+    depends_on:
+      kafka: {condition: service_healthy}
+
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    restart: unless-stopped
+    mem_limit: 768m
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on: [kafka-exporter]
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    restart: unless-stopped
+    mem_limit: 96m
+    network_mode: host
+    pid: host
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host/root
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro,rslave
+
+  grafana:
+    image: grafana/grafana:13.2.2
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      GF_SECURITY_ADMIN_USER: ${OBS_USERNAME:?Set OBS_USERNAME}
+      GF_SECURITY_ADMIN_PASSWORD: ${OBS_PASSWORD:?Set OBS_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_DOMAIN: grafana.${OBS_DOMAIN}
+      GF_SERVER_ROOT_URL: https://grafana.${OBS_DOMAIN}/
+      GF_SERVER_ENFORCE_DOMAIN: "true"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/nexo-messaging.json
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [prometheus]
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    mem_limit: 128m
+    environment:
+      OBS_DOMAIN: ${OBS_DOMAIN:?Set OBS_DOMAIN}
+      OBS_USERNAME: ${OBS_USERNAME:?Set OBS_USERNAME}
+      OBS_PASSWORD_HASH: ${OBS_PASSWORD_HASH:?Set OBS_PASSWORD_HASH}
+      APP_PRIVATE_IP: ${APP_PRIVATE_IP:?Set APP_PRIVATE_IP}
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [kafka-ui, grafana]
+
+volumes:
+  kafka_data:
+  prometheus_data:
+  grafana_data:
+  caddy_data:
+  caddy_config:

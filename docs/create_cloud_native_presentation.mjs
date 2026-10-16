@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { Presentation, PresentationFile } from "file:///C:/Users/Boryot/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/@oai/artifact-tool/dist/artifact_tool.mjs";
 
 const ROOT = "D:/DESCARGAS U/cloudnativer/Nexo";
-const OUT = `${ROOT}/docs/Nexo-Cloud-Native-Presentacion.pptx`;
+const OUT = `${ROOT}/docs/Nexo-Cloud-Native-Presentacion-Actualizada.pptx`;
 const QA = `${ROOT}/tmp/pptx-qa`;
 const W = 1280;
 const H = 720;
@@ -161,8 +161,8 @@ const deck = Presentation.create({ slideSize: { width: W, height: H } });
   title(slide, "Las pruebas locales ya cubren la matriz 401 / 403 / 200", 6);
   textbox(slide, "evidence-explainer", "Resultados repetibles sin exponer tokens completos. Falta repetirlos con un token Microsoft real y después en API Gateway.", { left: 55, top: 135, width: 1140, height: 72 }, 23, { color: MUTED });
   const metrics = [
-    ["30/30", "Frontend", "Build correcto"],
-    ["24/24", "Backend", "Testcontainers + JWT"],
+    ["76/76", "Frontend", "22 archivos aprobados"],
+    ["42/42", "Backend", "Testcontainers + JWT"],
     ["401·403·200", "Seguridad", "Casos automatizados"],
   ];
   metrics.forEach(([stat, head, body], i) => {
@@ -182,8 +182,8 @@ const deck = Presentation.create({ slideSize: { width: W, height: H } });
   const phases = [
     ["Diagnóstico", "Listo", GREEN],
     ["MSAL / Spring", "Listo", GREEN],
-    ["Login real", "Pendiente", AMBER],
-    ["EC2", "Pendiente", AMBER],
+    ["Login real", "Listo", GREEN],
+    ["EC2", "Listo", GREEN],
     ["API Gateway", "Pendiente", AMBER],
   ];
   phases.forEach(([name, status, color], i) => {
@@ -193,10 +193,25 @@ const deck = Presentation.create({ slideSize: { width: W, height: H } });
     panel(slide, `phase-status-${i}`, { left: x, top: 290, width: 210, height: 105 }, "#F7F7F8", color);
     textbox(slide, `phase-status-text-${i}`, status, { left: x + 16, top: 325, width: 178, height: 38 }, 23, { bold: true, color, alignment: "center" });
   });
-  textbox(slide, "timeline-next", "Siguiente decisión: confirmar cuenta/región AWS y habilitar Brave. Solo entonces se generan capturas nuevas y la matriz de Gateway.", { left: 120, top: 500, width: 1040, height: 100 }, 28, { bold: true, alignment: "center" });
+  textbox(slide, "timeline-next", "Siguiente decisión: completar HTTP API Gateway y repetir la matriz 401 / 403 / 200 en la nube.", { left: 120, top: 500, width: 1040, height: 100 }, 28, { bold: true, alignment: "center" });
 }
 
-// 8 — closing with concrete next actions.
+// 8 — evidence gallery for the live demonstration.
+{
+  const slide = deck.slides.add();
+  slide.background.fill = "#FFFFFF";
+  title(slide, "Evidencia visual para la rúbrica", 8);
+  label(slide, "Capturas preparadas para la demo", 54, 130);
+  await addImage(slide, "Azure App Registration", `${ROOT}/docs/images/cloud/02-entra-aplicaciones.png`, { left: 55, top: 185, width: 350, height: 185 }, "contain");
+  await addImage(slide, "MSAL Microsoft login", `${ROOT}/docs/evidence/08-msal-microsoft-login-20260910.png`, { left: 465, top: 185, width: 350, height: 185 }, "contain");
+  await addImage(slide, "Nexo publicado en EC2", `${ROOT}/docs/images/cloud/11-nexo-cloud-https.png`, { left: 875, top: 185, width: 350, height: 185 }, "contain");
+  await addImage(slide, "RDS PostgreSQL", `${ROOT}/docs/images/cloud/09-rds-creacion-sencilla.png`, { left: 55, top: 430, width: 350, height: 120 }, "contain");
+  await addImage(slide, "Permisos API y scope", `${ROOT}/docs/images/cloud/04-entra-permisos-spa.png`, { left: 465, top: 430, width: 350, height: 120 }, "contain");
+  await addImage(slide, "Transmisión Nexo", `${ROOT}/docs/images/broadcast/05-transmision-en-vivo.png`, { left: 875, top: 430, width: 350, height: 120 }, "contain");
+  textbox(slide, "evidence-captions", "Azure · MSAL · EC2/RDS · permisos JWT · transmisión", { left: 220, top: 610, width: 840, height: 35 }, 20, { color: MUTED, alignment: "center" });
+}
+
+// 9 — closing with concrete next actions.
 {
   const slide = deck.slides.add();
   slide.background.fill = "#FFFFFF";

@@ -1,0 +1,215 @@
+name: nexo-platform
+x-rabbit: &rabbit
+  image: rabbitmq:4.2-management-alpine
+  restart: unless-stopped
+  mem_limit: 512m
+  volumes:
+    - ./infra/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+  healthcheck:
+    test: [CMD, rabbitmq-diagnostics, -q, ping]
+    interval: 10s
+    timeout: 5s
+    retries: 18
+x-database: &database
+  SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/nexo}
+  SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-nexo}
+  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+x-amqp: &amqp
+  RABBITMQ_ADDRESSES: rabbitmq1:5672,rabbitmq2:5672
+  RABBITMQ_USER: ${RABBITMQ_USER:-nexo}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD}
+services:
+  web:
+    profiles: [web]
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    mem_limit: 192m
+    environment:
+      FRONTEND_HOST: ${FRONTEND_HOST:-localhost}
+      BACKEND_HOST: ${BACKEND_HOST:-localhost:9080}
+      MEDIA_HOST: ${MEDIA_HOST:-localhost:9081}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost}
+      API_UPSTREAM: ${API_UPSTREAM:-backend:8080}
+      GATEWAY_ORIGIN_SECRET: ${GATEWAY_ORIGIN_SECRET:?Set origin integration secret}
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes: [platform_caddy:/data, platform_caddy_config:/config]
+    depends_on:
+      backend: {condition: service_healthy}
+  livekit:
+    profiles: [media]
+    image: livekit/livekit-server:v1.13.6
+    restart: unless-stopped
+    mem_limit: 384m
+    command: ["--config", "/etc/livekit.yaml", "--node-ip", "${PUBLIC_IP:-127.0.0.1}"]
+    environment:
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:-}: ${LIVEKIT_API_SECRET:-}"
+    volumes: ["./infra/livekit-cloud.yaml:/etc/livekit.yaml:ro"]
+    ports: ["7881:7881", "7882:7882/udp"]
+  coturn:
+    profiles: [media]
+    image: coturn/coturn:4.18.0-r0-alpine
+    restart: unless-stopped
+    mem_limit: 128m
+    network_mode: host
+    command:
+      - -n
+      - --log-file=stdout
+      - --no-tls
+      - --fingerprint
+      - --use-auth-secret
+      - --static-auth-secret=${NEXO_TURN_SECRET:-}
+      - --realm=nexo
+      - --listening-ip=${TURN_PRIVATE_IP:?Set TURN_PRIVATE_IP}
+      - --relay-ip=${TURN_PRIVATE_IP:?Set TURN_PRIVATE_IP}
+      - --external-ip=${PUBLIC_IP:-127.0.0.1}/${TURN_PRIVATE_IP:?Set TURN_PRIVATE_IP}
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+      - --no-multicast-peers
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+      - --denied-peer-ip=169.254.0.0-169.254.255.255
+      - --denied-peer-ip=127.0.0.0-127.255.255.255
+      - --user-quota=8
+      - --total-quota=100
+  postgres:
+    profiles: [local-db]
+    image: postgres:17.10-alpine
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      POSTGRES_DB: nexo
+      POSTGRES_USER: nexo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes: [platform_postgres:/var/lib/postgresql/data]
+    ports: ["127.0.0.1:55432:5432"]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U nexo -d nexo]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+  rabbitmq1:
+    <<: *rabbit
+    hostname: nexo-rabbit1
+    environment:
+      RABBITMQ_NODENAME: rabbit@nexo-rabbit1
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Set cluster cookie}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-nexo}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD}
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '+S 2:2'
+    ports: ["127.0.0.1:5672:5672", "0.0.0.0:15672:15672", "0.0.0.0:15692:15692"]
+    volumes:
+      - ./infra/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./infra/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+      - platform_rabbit1:/var/lib/rabbitmq
+  rabbitmq2:
+    <<: *rabbit
+    hostname: nexo-rabbit2
+    environment:
+      RABBITMQ_NODENAME: rabbit@nexo-rabbit2
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Set cluster cookie}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-nexo}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD}
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '+S 2:2'
+    depends_on:
+      rabbitmq1: {condition: service_healthy}
+    ports: ["0.0.0.0:15693:15692"]
+    volumes:
+      - ./infra/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./infra/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+      - platform_rabbit2:/var/lib/rabbitmq
+  backend:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args: {MODULE: backend}
+    restart: unless-stopped
+    mem_limit: 768m
+    environment:
+      <<: [*database, *amqp]
+      SERVER_ADDRESS: 0.0.0.0
+      NEXO_JWT_SECRET: ${NEXO_JWT_SECRET:?Set NEXO_JWT_SECRET}
+      NEXO_EVENTS_ENABLED: 'true'
+      NEXO_EVENTS_CONSUMER_ENABLED: 'false'
+      CORS_ALLOWED_ORIGINS: ${FRONTEND_ORIGIN:-http://localhost:4200}
+      NEXO_BROADCASTS_ENABLED: ${NEXO_BROADCASTS_ENABLED:-false}
+      LIVEKIT_INTERNAL_URL: http://livekit:7880
+      LIVEKIT_PUBLIC_URL: ${LIVEKIT_PUBLIC_URL:-ws://localhost:7880}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-}
+      NEXO_TURN_URL: ${NEXO_TURN_URL:-}
+      NEXO_TURN_SECRET: ${NEXO_TURN_SECRET:-}
+    ports: ["127.0.0.1:18080:8080"]
+    depends_on:
+      rabbitmq1: {condition: service_healthy}
+      rabbitmq2: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, wget, -q, --spider, 'http://127.0.0.1:8080/actuator/health/readiness']
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 60s
+  event-worker:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args: {MODULE: event-worker}
+    restart: unless-stopped
+    mem_limit: 384m
+    environment:
+      <<: [*database, *amqp]
+      SERVER_ADDRESS: 0.0.0.0
+    depends_on:
+      backend: {condition: service_healthy}
+    ports: ["127.0.0.1:18081:8081"]
+  rabbit-admin:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args: {MODULE: rabbit-admin}
+    restart: unless-stopped
+    mem_limit: 384m
+    environment:
+      <<: *amqp
+      SERVER_ADDRESS: 0.0.0.0
+      NEXO_ADMIN_OBJECT_IDS: ${NEXO_ADMIN_OBJECT_IDS:-}
+    depends_on:
+      rabbitmq2: {condition: service_healthy}
+    ports: ["127.0.0.1:18082:8082"]
+  event-bridge:
+    profiles: [kafka]
+    build:
+      context: infra/kafka-bridge
+    restart: unless-stopped
+    mem_limit: 128m
+    environment:
+      RABBITMQ_ADDRESSES: ${RABBITMQ_ADDRESSES:-rabbitmq1:5672,rabbitmq2:5672}
+      RABBITMQ_USER: ${RABBITMQ_USER:-nexo}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:?Set KAFKA_BOOTSTRAP_SERVERS}
+      KAFKA_TOPIC: nexo.messages.v1
+    depends_on:
+      rabbitmq1: {condition: service_healthy}
+      rabbitmq2: {condition: service_healthy}
+  analytics-consumer:
+    profiles: [kafka]
+    build:
+      context: infra/kafka-bridge
+    command: ["consume"]
+    restart: unless-stopped
+    mem_limit: 128m
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:?Set KAFKA_BOOTSTRAP_SERVERS}
+      KAFKA_TOPIC: nexo.messages.v1
+      KAFKA_CONSUMER_GROUP: nexo-analytics
+    depends_on:
+      event-bridge: {condition: service_started}
+volumes:
+  platform_postgres:
+  platform_rabbit1:
+  platform_rabbit2:
+  platform_caddy:
+  platform_caddy_config:

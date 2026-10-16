@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 @EnableScheduling
 public class BroadcastService {
     public record Access(String url, String token, String role) {}
+    public record GroupCallAccess(String url, String token, String roomName) {}
     private final BroadcastRepository broadcasts;
     private final ChatRepository chat;
     private final LiveKitGateway media;
@@ -23,6 +24,15 @@ public class BroadcastService {
         this.broadcasts = broadcasts; this.chat = chat; this.media = media;
     }
     public boolean enabled() { return media.enabled(); }
+    public GroupCallAccess groupCallAccess(UUID conversation, UUID user) {
+        media.requireEnabled();
+        if (!"CHANNEL".equals(chat.kind(conversation, false)))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La llamada grupal requiere un canal");
+        chat.requireMember(conversation, user);
+        String room = "group-" + conversation;
+        media.ensureRoom(room);
+        return new GroupCallAccess(media.publicUrl(), media.participantToken(room, user), room);
+    }
     public synchronized Broadcast create(UUID conversation, UUID user, String title, String source) {
         media.requireEnabled();
         chat.requireMember(conversation, user);
@@ -50,8 +60,8 @@ public class BroadcastService {
     public synchronized Broadcast start(UUID id, UUID user) {
         Broadcast b = authorized(id, user);
         requireHost(b, user); requireOpen(b);
-        if (!List.of("STARTING", "LIVE").contains(b.status()) || !media.publishing(b.roomName(), user))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Publica cámara o pantalla y micrófono primero");
+        if (!List.of("STARTING", "LIVE").contains(b.status()) || !media.hasVideoTrack(b.roomName(), user))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Publica cámara o pantalla primero");
         broadcasts.live(id);
         return broadcasts.get(id);
     }

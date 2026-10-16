@@ -56,7 +56,8 @@ class BroadcastIntegrationTests {
         mvc.perform(post(base + "/access").header("Authorization", "Bearer " + host)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("HOST")).andExpect(header().string("Cache-Control", "no-store"));
         mvc.perform(post(base + "/start").header("Authorization", "Bearer " + host)).andExpect(status().isConflict());
-        when(media.publishing(anyString(), eq(hostId))).thenReturn(true);
+        // In-call broadcasts intentionally publish video only; their audio stays on the call room.
+        when(media.hasVideoTrack(anyString(), eq(hostId))).thenReturn(true);
         for (int i=0;i<2;i++) mvc.perform(post(base + "/start").header("Authorization", "Bearer " + host))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("LIVE"));
         mvc.perform(post(base + "/access").header("Authorization", "Bearer " + viewer))
@@ -87,6 +88,32 @@ class BroadcastIntegrationTests {
                     .containsEntry("canSubscribe", true).containsEntry("canPublishData", false);
             assertThat(grants).doesNotContainKeys("roomAdmin", "roomCreate", "roomList");
         }
+        var groupJwt = com.nimbusds.jwt.SignedJWT.parse(gateway.participantToken("group-room", user));
+        assertThat(groupJwt.verify(new com.nimbusds.jose.crypto.MACVerifier("test-secret-with-at-least-32-characters"))).isTrue();
+        var groupGrants = groupJwt.getJWTClaimsSet().getJSONObjectClaim("video");
+        assertThat(groupGrants).containsEntry("room", "group-room").containsEntry("canPublish", true)
+                .containsEntry("canSubscribe", true).containsEntry("canPublishData", false);
+        assertThat(groupJwt.getJWTClaimsSet().getExpirationTime().getTime() - System.currentTimeMillis())
+                .isBetween(290_000L, 300_000L);
+    }
+
+    @Test void channelMembersCanJoinGroupCallsButFormerMembersCannot() throws Exception {
+        String member = register("GroupMember");
+        String channel = jdbc.queryForObject("SELECT id::text FROM nexo.conversations WHERE slug='general'", String.class);
+        UUID memberId = UUID.fromString(com.nimbusds.jwt.SignedJWT.parse(member).getJWTClaimsSet().getSubject());
+        when(media.publicUrl()).thenReturn("wss://livekit.example.test");
+        when(media.participantToken(anyString(), eq(memberId))).thenReturn("group-token");
+        mvc.perform(post("/api/conversations/" + channel + "/group-call/access")
+                .header("Authorization", "Bearer " + member))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(jsonPath("$.url").value("wss://livekit.example.test"))
+                .andExpect(jsonPath("$.token").value("group-token"))
+                .andExpect(jsonPath("$.roomName").value("group-" + channel));
+        verify(media).ensureRoom("group-" + channel);
+        mvc.perform(delete("/api/conversations/" + channel + "/membership")
+                .header("Authorization", "Bearer " + member)).andExpect(status().isNoContent());
+        mvc.perform(post("/api/conversations/" + channel + "/group-call/access")
+                .header("Authorization", "Bearer " + member)).andExpect(status().isForbidden());
     }
 
     @Test void abandonedHostLeaseExpiresAndReleasesTheSlot() throws Exception {

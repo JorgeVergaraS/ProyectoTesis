@@ -1,0 +1,20 @@
+rabbit.{$OBS_DOMAIN} {
+	# RabbitMQ's Management UI and /api/* use the same native HTTP Basic
+	# credentials. Do not add a second Basic Auth layer or overwrite this header:
+	# the browser must authenticate its XHR requests directly with RabbitMQ.
+	reverse_proxy {$APP_PRIVATE_IP}:15672
+}
+
+kafka.{$OBS_DOMAIN} {
+	basicauth {
+		{$OBS_USERNAME} {$OBS_PASSWORD_HASH}
+	}
+	reverse_proxy kafka-ui:8080
+}
+
+grafana.{$OBS_DOMAIN} {
+	basicauth {
+		{$OBS_USERNAME} {$OBS_PASSWORD_HASH}
+	}
+	reverse_proxy grafana:3000
+}

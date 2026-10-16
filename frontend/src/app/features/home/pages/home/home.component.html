@@ -35,6 +35,11 @@
       }
 
       <main class="workspace-main">
+        <nexo-message-notifications
+          [notifications]="notifications()"
+          [busy]="notificationBusy()"
+          (opened)="openNotification($event)"
+        />
         @if (connectionError()) {
           <div class="connection-banner" role="status">
             {{ connectionError() }}<button (click)="retry()">Reintentar</button>
@@ -113,12 +118,7 @@
           </section>
         } @else if (view() === 'discover') {
           <section class="explore-page">
-            <span class="eyebrow">ENCUENTRA TU LUGAR</span>
-            <h1>Una comunidad.<br /><span>Muchas conversaciones.</span></h1>
-            <p class="page-intro">
-              Desde tu próximo proyecto hasta los planes después de clases.<br />Hay un espacio para
-              lo que te mueve.
-            </p>
+            <nexo-community-hero (people)="navigate('people')" />
             <div class="community-stats">
               <span><nexo-icon name="users" />{{ workspace().channels.length }} canales</span
               ><span><nexo-icon name="users" />{{ workspace().people.length }} personas</span
@@ -198,8 +198,8 @@
                   </button>
                   <button
                     class="secondary-button call-person-button"
-                    [disabled]="calls.occupied()"
-                    (click)="calls.start(person)"
+                    [disabled]="calls.occupied() || groupCalls.occupied()"
+                    (click)="startCall(person)"
                   >
                     <nexo-icon name="phone" />Llamar
                   </button>
@@ -255,10 +255,19 @@
                 class="icon-button"
                 [attr.aria-label]="'Llamar a ' + person.displayName"
                 title="Llamada de voz"
-                [disabled]="calls.occupied()"
-                (click)="calls.start(person)"
+                [disabled]="calls.occupied() || groupCalls.occupied()"
+                (click)="calls.start(person, conversation.id)"
               >
                 <nexo-icon name="phone" />
+              </button>
+              <button
+                class="icon-button"
+                [attr.aria-label]="'Videollamar a ' + person.displayName"
+                title="Videollamada"
+                [disabled]="calls.occupied() || groupCalls.occupied()"
+                (click)="calls.start(person, conversation.id, true)"
+              >
+                <nexo-icon name="camera" />
               </button>
             }
           </header>
@@ -290,11 +299,17 @@
                   <nexo-conversation-broadcasts [conversationId]="conversation.id" />
                   <div class="conversation-notice">
                     <nexo-icon name="info" />
-                    <p>
-                      Este es tu espacio de prueba local. Los mensajes se guardan en tu equipo.<span
-                        >No compartas información sensible.</span
-                      >
-                    </p>
+                    @if (auth.session.kind() === 'demo') {
+                      <p>
+                        Estás usando una cuenta de demostración. Evita incluir datos personales o
+                        sensibles.
+                      </p>
+                    } @else {
+                      <p>
+                        Esta conversación solo está disponible para sus participantes. Los mensajes
+                        se almacenan en Nexo y no tienen cifrado de extremo a extremo.
+                      </p>
+                    }
                   </div>
                   @if (messagesLoading()) {
                     <p class="messages-loading" role="status">Cargando mensajes…</p>
@@ -311,20 +326,32 @@
                       [attr.aria-label]="'Mensaje de ' + message.senderName"
                     >
                       @if (message.senderId !== auth.session.user()?.id) {
-                        <nexo-avatar
-                          [src]="message.senderAvatarUrl"
-                          [name]="message.senderName"
-                          [color]="message.senderColor"
-                        />
+                        <button
+                          class="message-profile-trigger"
+                          type="button"
+                          [attr.aria-label]="'Ver perfil de ' + message.senderName"
+                          (click)="openUserProfile(message.senderId)"
+                        >
+                          <nexo-avatar
+                            [src]="message.senderAvatarUrl"
+                            [name]="message.senderName"
+                            [color]="message.senderColor"
+                          />
+                        </button>
                       }
                       <div class="message-bubble">
                         @if (
                           conversation.kind === 'CHANNEL' &&
                           message.senderId !== auth.session.user()?.id
                         ) {
-                          <strong class="sender-name" [style.color]="message.senderColor">{{
-                            message.senderName
-                          }}</strong>
+                          <button
+                            class="sender-name message-profile-trigger"
+                            type="button"
+                            [style.color]="message.senderColor"
+                            (click)="openUserProfile(message.senderId)"
+                          >
+                            {{ message.senderName }}
+                          </button>
                         }
                         <p><nexo-message-text [text]="message.body" /></p>
                         <div class="message-meta">
@@ -617,19 +644,40 @@
                 </section>
                 <section class="future-card">
                   <span class="future-icon"><nexo-icon name="phone" /></span
-                  ><span class="future-tag">LLAMADAS DE VOZ</span>
-                  <h3>De un mensaje<br />a una buena charla.</h3>
+                  ><span class="future-tag">LLAMADAS Y TRANSMISIONES</span>
+                  <h3>Hablen y compartan<br />lo que están creando.</h3>
                   <p>
-                    Llama a otra persona con el micrófono de tu equipo. En esta etapa, prueba entre
-                    pestañas en localhost. El video queda pendiente.
+                    @if (conversation.kind === 'CHANNEL') {
+                      Voz grupal en vivo y transmisión de cámara o pantalla para los miembros del
+                      canal.
+                    } @else {
+                      Llama con audio y abre una transmisión para compartir cámara o pantalla desde
+                      el panel de llamada. La captura de pantalla depende del navegador y puede no
+                      estar disponible en algunos móviles.
+                    }
                   </p>
-                  @if (peer(); as person) {
+                  @if (conversation.kind === 'CHANNEL' && conversation.joined) {
                     <button
                       class="primary-button call-person-button"
-                      [disabled]="calls.occupied()"
-                      (click)="calls.start(person)"
+                      [disabled]="calls.occupied() || groupCalls.occupied()"
+                      (click)="groupCalls.join(conversation.id, conversation.title)"
                     >
-                      Iniciar llamada
+                      Unirse a llamada grupal
+                    </button>
+                  } @else if (peer(); as person) {
+                    <button
+                      class="primary-button call-person-button"
+                      [disabled]="calls.occupied() || groupCalls.occupied()"
+                      (click)="calls.start(person, conversation.id)"
+                    >
+                      Iniciar llamada de voz
+                    </button>
+                    <button
+                      class="secondary-button call-person-button"
+                      [disabled]="calls.occupied() || groupCalls.occupied()"
+                      (click)="calls.start(person, conversation.id, true)"
+                    >
+                      <nexo-icon name="camera" /> Iniciar videollamada
                     </button>
                   }
                 </section>
@@ -637,8 +685,8 @@
                   <nexo-icon name="info" />
                   <p>
                     Sesión protegida con {{ providerLabel() }}. Los mensajes no tienen cifrado de
-                    extremo a extremo. Las llamadas WebRTC son de voz, no se graban y en esta etapa
-                    están pensadas para pruebas en el mismo equipo.
+                    extremo a extremo. Las llamadas de voz y video son WebRTC en vivo y no se
+                    graban. La cámara se activa solo al elegir videollamada y conceder permiso.
                   </p>
                 </div>
               </aside>
@@ -662,6 +710,17 @@
           (userChange)="profileUpdated($event)"
           (closed)="profileOpen.set(false)"
           (signOut)="logout()"
+        />
+      </div>
+    </div>
+  }
+  @if (viewedProfile(); as publicProfile) {
+    <div class="profile-backdrop" (click)="closeViewedProfile()">
+      <div class="profile-drawer" (click)="$event.stopPropagation()">
+        <nexo-profile-panel
+          [user]="publicProfile"
+          [readonlyView]="true"
+          (closed)="closeViewedProfile()"
         />
       </div>
     </div>

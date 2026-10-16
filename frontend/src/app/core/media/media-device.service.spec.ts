@@ -15,6 +15,7 @@ class FakeStream {
 function fakeTrack(kind: 'audio' | 'video', deviceId: string): FakeTrack {
   return {
     kind,
+    id: deviceId,
     enabled: true,
     onended: null,
     stop: vi.fn(),
@@ -74,7 +75,10 @@ describe('MediaDeviceService', () => {
     expect(getUserMedia).not.toHaveBeenCalled();
     await service.start('camera');
 
-    expect(getUserMedia).toHaveBeenCalledWith({ audio: true, video: true });
+    expect(getUserMedia).toHaveBeenCalledWith({
+      audio: true,
+      video: { frameRate: { ideal: 30, max: 30 } },
+    });
     expect(service.source()).toBe('camera');
     expect(service.audioInputs()).toHaveLength(2);
     service.toggleMicrophone();
@@ -87,33 +91,67 @@ describe('MediaDeviceService', () => {
     expect(service.stream()).toBeNull();
   });
 
-  it('combines a shared screen with the microphone and stops when sharing ends', async () => {
-    const screen = fakeTrack('video', 'screen');
-    const microphone = fakeTrack('audio', 'mic-1');
-    getDisplayMedia.mockResolvedValue(new FakeStream([screen]));
-    getUserMedia.mockResolvedValue(new FakeStream([microphone]));
+  it('does not reopen the microphone when a camera feed is added to an active WebRTC call', async () => {
+    const camera = fakeTrack('video', 'camera-only');
+    getUserMedia.mockResolvedValue(new FakeStream([camera]));
 
+    await service.start('camera', '', '', 30, false);
+
+    expect(getUserMedia).toHaveBeenCalledWith({
+      audio: false,
+      video: { frameRate: { ideal: 30, max: 30 } },
+    });
+    expect(service.stream()?.getAudioTracks()).toEqual([]);
+  });
+
+  it('uses shared system audio instead of mixing it with the microphone', async () => {
+    const screen = fakeTrack('video', 'screen');
+    const systemAudio = fakeTrack('audio', 'system');
+    getDisplayMedia.mockResolvedValue(new FakeStream([screen, systemAudio]));
     await service.start('screen');
 
-    expect(getDisplayMedia).toHaveBeenCalledWith({ video: true, audio: false });
-    expect(service.stream()?.getTracks()).toHaveLength(2);
+    expect(getDisplayMedia).toHaveBeenCalledWith({
+      video: { frameRate: { ideal: 30, max: 30 } },
+      audio: true,
+      systemAudio: 'include',
+      surfaceSwitching: 'include',
+    });
+    expect(getUserMedia).not.toHaveBeenCalled();
+    expect(service.stream()?.getTracks()).toEqual([screen, systemAudio]);
+    expect(service.microphoneMuted()).toBe(true);
     screen.onended?.call(screen, new Event('ended'));
     expect(service.stopReason()).toBe('source-ended');
     expect(service.stream()).toBeNull();
     expect(screen.stop).toHaveBeenCalledOnce();
-    expect(microphone.stop).toHaveBeenCalledOnce();
+    expect(systemAudio.stop).toHaveBeenCalledOnce();
+  });
+
+  it('disables screen audio and microphone while screen sharing in-call', async () => {
+    const screen = fakeTrack('video', 'screen');
+    const systemAudio = fakeTrack('audio', 'system');
+    getDisplayMedia.mockResolvedValue(new FakeStream([screen, systemAudio]));
+
+    await service.start('screen', '', '', 30, false, false);
+
+    expect(getDisplayMedia).toHaveBeenCalledWith({
+      video: { frameRate: { ideal: 30, max: 30 } },
+      audio: false,
+      systemAudio: 'exclude',
+      surfaceSwitching: 'include',
+    });
+    expect(getUserMedia).not.toHaveBeenCalled();
+    expect(service.stream()?.getTracks()).toEqual([screen]);
+    expect(systemAudio.stop).toHaveBeenCalledOnce();
+    expect(service.systemAudioTrackIds()).toEqual([]);
   });
 
   it('changes microphones without requesting the screen picker again', async () => {
     const screen = fakeTrack('video', 'screen');
-    const firstMicrophone = fakeTrack('audio', 'mic-1');
+    const systemAudio = fakeTrack('audio', 'system');
     const secondMicrophone = fakeTrack('audio', 'mic-2');
-    getDisplayMedia.mockResolvedValue(new FakeStream([screen]));
-    getUserMedia
-      .mockResolvedValueOnce(new FakeStream([firstMicrophone]))
-      .mockResolvedValueOnce(new FakeStream([secondMicrophone]));
+    getDisplayMedia.mockResolvedValue(new FakeStream([screen, systemAudio]));
+    getUserMedia.mockResolvedValue(new FakeStream([secondMicrophone]));
     await service.start('screen');
-    service.toggleMicrophone();
 
     await service.changeMicrophone('mic-2');
 
@@ -122,11 +160,29 @@ describe('MediaDeviceService', () => {
       audio: { deviceId: { exact: 'mic-2' } },
       video: false,
     });
-    expect(firstMicrophone.stop).toHaveBeenCalledOnce();
+    expect(getUserMedia).toHaveBeenCalledOnce();
     expect(screen.stop).not.toHaveBeenCalled();
     expect(service.selectedAudioId()).toBe('mic-2');
     expect(secondMicrophone.enabled).toBe(false);
     expect(service.microphoneMuted()).toBe(true);
+    expect(systemAudio.stop).not.toHaveBeenCalled();
+    expect(systemAudio.enabled).toBe(true);
+    expect(service.systemAudioTrackIds()).toEqual(['system']);
+    expect(service.stream()?.getAudioTracks()).toEqual([systemAudio, secondMicrophone]);
+  });
+
+  it('falls back to the microphone when no shared screen audio is captured', async () => {
+    const screen = fakeTrack('video', 'screen');
+    const mic = fakeTrack('audio', 'mic-1');
+    getDisplayMedia.mockResolvedValue(new FakeStream([screen]));
+    getUserMedia.mockResolvedValue(new FakeStream([mic]));
+    await service.start('screen');
+    expect(service.selectedAudioId()).toBe('mic-1');
+    service.toggleMicrophone();
+    expect(mic.enabled).toBe(false);
+    expect(service.systemAudioTrackIds()).toEqual([]);
+    service.stop();
+    expect(service.systemAudioMuted()).toBe(false);
   });
 
   it('releases a late stream when navigation cancels a pending permission request', async () => {

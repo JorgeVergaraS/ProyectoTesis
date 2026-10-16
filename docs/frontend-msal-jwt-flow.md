@@ -40,7 +40,7 @@ Las vistas de Comunidades, Mensajes y Personas están preparadas para la siguien
 
 ## Configuración sin secretos
 
-Los identificadores públicos se leen desde `src/environments/environment.ts`. Nunca se deben agregar client secrets, contraseñas ni tokens al repositorio. Para otro tenant se reemplazan `clientId`, `tenantId`, `apiClientId`, `apiScope` y `redirectUri` con valores entregados por el administrador de Entra ID.
+Los identificadores públicos se leen desde `src/environments/environment.ts`. Nunca se deben agregar client secrets, contraseñas ni tokens al repositorio. El flujo compartido usa la autoridad `/common` para cuentas organizacionales y personales. Ambas aplicaciones de Entra (Nexo Frontend y Nexo Web API) deben admitir cualquier directorio de Entra y cuentas personales; el API debe emitir access tokens v2. El backend y el authorizer validan firma, audience, scope y que `iss` corresponda al `tid` firmado. Ver [autenticación con cuentas Microsoft](autenticacion-cuentas-microsoft.md) para configurar Entra y sus requisitos de consentimiento.
 
 ## Comprobación local
 

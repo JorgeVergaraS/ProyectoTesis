@@ -5,10 +5,11 @@ import { DemoSessionStore } from './core/auth/demo-session.store';
 import { AuthService } from './core/auth/auth.service';
 import { ThemeService } from './core/services/theme.service';
 import { VoiceCallPanelComponent } from './shared/components/voice-call-panel.component';
+import { GroupCallPanelComponent } from './shared/components/group-call-panel.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, VoiceCallPanelComponent],
+  imports: [RouterOutlet, VoiceCallPanelComponent, GroupCallPanelComponent],
   templateUrl: './app.component.html',
 })
 export class App {

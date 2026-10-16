@@ -133,16 +133,12 @@ export class AuthService {
       const details = error as {
         status?: number;
         name?: string;
-        message?: string;
-        error?: unknown;
       };
       console.error(
         'Microsoft profile sync failed',
         JSON.stringify({
           status: details?.status,
           name: details?.name,
-          message: details?.message,
-          error: details?.error,
         }),
       );
       this.session.user.set(null);

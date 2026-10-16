@@ -2,6 +2,7 @@ package com.nexo.broadcast;
 
 import io.livekit.server.*;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,22 @@ public class LiveKitGateway {
                 new CanSubscribe(true), new CanPublishData(false));
         return token.toJwt();
     }
+    public String participantToken(String room, UUID user) {
+        requireEnabled();
+        AccessToken token = new AccessToken(key, secret);
+        token.setIdentity(user.toString());
+        token.setTtl(300_000);
+        token.addGrants(new RoomJoin(true), new RoomName(room), new CanPublish(true),
+                new CanSubscribe(true), new CanPublishData(false));
+        return token.toJwt();
+    }
+    public void ensureRoom(String room) {
+        try {
+            var response = client().createRoom(room, 90, 25).execute();
+            if (!response.isSuccessful() && response.code() != 400 && response.code() != 409)
+                throw unavailable();
+        } catch (IOException ex) { throw unavailable(); }
+    }
     public void create(String room) {
         try {
             if (!client().createRoom(room, 90, 25).execute().isSuccessful()) throw unavailable();
@@ -51,15 +68,18 @@ public class LiveKitGateway {
             if (!response.isSuccessful() && response.code() != 404) throw unavailable();
         } catch (IOException ex) { throw unavailable(); }
     }
-    public boolean publishing(String room, UUID host) {
+    public boolean hasVideoTrack(String room, UUID host) {
         try {
             var response = client().getParticipant(room, host.toString()).execute();
             if (response.code() == 404) return false;
             if (!response.isSuccessful() || response.body() == null) throw unavailable();
-            var tracks = response.body().getTracksList();
-            return tracks.stream().anyMatch(t -> t.getType() == livekit.LivekitModels.TrackType.VIDEO)
-                    && tracks.stream().anyMatch(t -> t.getType() == livekit.LivekitModels.TrackType.AUDIO);
+            return hasVideoTrack(response.body().getTracksList());
         } catch (IOException ex) { throw unavailable(); }
+    }
+    static boolean hasVideoTrack(List<livekit.LivekitModels.TrackInfo> tracks) {
+        // Audio is optional: an in-call broadcast reuses the call's WebRTC audio room and
+        // intentionally publishes video only to avoid echo and doubled microphone audio.
+        return tracks.stream().anyMatch(t -> t.getType() == livekit.LivekitModels.TrackType.VIDEO);
     }
     private ResponseStatusException unavailable() {
         return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Servidor multimedia no disponible");

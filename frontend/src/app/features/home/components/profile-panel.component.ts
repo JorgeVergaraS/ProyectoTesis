@@ -29,6 +29,7 @@ import { ProfileEditFormComponent } from './profile-edit-form.component';
 export class ProfilePanelComponent implements AfterViewInit {
   readonly user = input.required<DemoUser>();
   readonly sessionKind = input<AuthSessionKind | null>(null);
+  readonly readonlyView = input(false);
   readonly variant = input<'drawer' | 'page'>('drawer');
   readonly closed = output<void>();
   readonly userChange = output<DemoUser>();
@@ -46,6 +47,7 @@ export class ProfilePanelComponent implements AfterViewInit {
   readonly editButton = viewChild<ElementRef<HTMLButtonElement>>('editButton');
   readonly studioButton = viewChild<ElementRef<HTMLButtonElement>>('studioButton');
   readonly panelTitle = computed(() => {
+    if (this.readonlyView()) return 'Perfil';
     if (this.mode() === 'edit') return 'Editar perfil';
     if (this.mode() === 'studio') return 'Estudio multimedia';
     return 'Mi perfil';
@@ -65,6 +67,7 @@ export class ProfilePanelComponent implements AfterViewInit {
     return username.includes('@') ? username : `@${username}`;
   });
   readonly providerLabel = computed(() => {
+    if (this.readonlyView()) return 'Miembro de Nexo';
     switch (this.sessionKind()) {
       case 'demo':
         return 'Demostración local';
@@ -102,6 +105,7 @@ export class ProfilePanelComponent implements AfterViewInit {
   }
 
   openEdit(): void {
+    if (this.readonlyView()) return;
     if (this.uploading() || this.removing()) return;
     this.avatarError.set('');
     this.savedMessage.set('');
@@ -109,6 +113,7 @@ export class ProfilePanelComponent implements AfterViewInit {
   }
 
   openStudio(): void {
+    if (this.readonlyView()) return;
     if (this.uploading() || this.removing()) return;
     this.avatarError.set('');
     this.savedMessage.set('');

@@ -150,6 +150,22 @@
   font-weight: 550;
   margin-bottom: 6px;
 }
+.message-profile-trigger {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.message-profile-trigger:hover {
+  filter: brightness(1.2);
+}
+.message-profile-trigger:focus-visible {
+  outline: 2px solid #a4e8ff;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
 .message-bubble p {
   font-size: 13px;
   line-height: 1.8;
@@ -406,29 +422,39 @@
   height: 14px;
 }
 .future-card {
-  border: 1px solid #342747;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #4b3c67;
   border-radius: 13px;
-  background: radial-gradient(ellipse at 100% 0, #522c8133, transparent 70%), #0f0d1b;
-  padding: 18px;
+  background:
+    radial-gradient(ellipse at 100% 0, #7543ba42, transparent 65%),
+    linear-gradient(145deg, #151328, #0c111d 78%);
+  box-shadow:
+    inset 0 1px 0 #ffffff0d,
+    0 14px 32px #05030d45;
+  padding: 19px;
   margin-top: 14px;
 }
 .future-icon {
-  color: #b699e3;
+  color: #d4b6ff;
   display: inline-flex;
   margin-right: 9px;
   vertical-align: middle;
+  filter: drop-shadow(0 0 9px #a577e980);
 }
 .future-tag {
-  color: #9a86b8;
-  font-size: 8px;
-  letter-spacing: 1px;
+  color: #c4a6ed;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 1.15px;
 }
 .future-card h3 {
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.65;
-  margin: 15px 0 8px;
-  color: #d1c3e5;
+  font-size: 18px;
+  font-weight: 560;
+  line-height: 1.45;
+  letter-spacing: -0.35px;
+  margin: 17px 0 9px;
+  color: #eee6ff;
 }
 .future-card p,
 .local-note p {
@@ -436,6 +462,9 @@
   line-height: 1.8;
   color: #9a94ae;
   margin: 0;
+}
+.future-card p {
+  color: #b2acc4;
 }
 .local-note {
   display: flex;
@@ -598,12 +627,12 @@
   display: flex;
   flex-direction: column;
   padding: 24px;
-  border: 1px solid #27293b;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #101522, #0b101c);
+  border: 1px solid #284357;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #112234, #091520);
 }
 .channel-card:hover {
-  border-color: #5a4379;
+  border-color: #67acba;
 }
 .channel-card-top,
 .channel-card-bottom {
@@ -611,6 +640,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+.channel-card-bottom {
+  flex-wrap: wrap;
 }
 .channel-card-icon {
   width: 41px;

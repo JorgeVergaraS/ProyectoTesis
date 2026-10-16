@@ -3,6 +3,21 @@
 Fecha: 27 de agosto de 2026. Aplicación ejecutada en localhost con el perfil
 `local-demo`, PostgreSQL en Docker y Angular mediante `ng serve`.
 
+## Actualización: señalización progresiva (15 de octubre de 2026)
+
+La llamada ya no espera a que el navegador termine de reunir todos los candidatos ICE
+antes de enviar la invitación u oferta. Cada extremo publica en lotes pequeños sus
+candidatos a `POST /api/calls/{id}/candidates`; la otra sesión los recoge junto con el
+estado de llamada cada 1,5 segundos y los añade al `RTCPeerConnection` cuando su oferta
+o respuesta remota ya está aplicada. Los candidatos y SDP siguen siendo efímeros y solo
+se comparten con los dos participantes autorizados. La rama también limita la negociación
+si una operación WebRTC deja de responder.
+
+Desde la estación de desarrollo se verificó que la API está saludable, Coturn responde
+una solicitud STUN UDP en 3478 y aceptan TCP los puertos 3478, 7881 y 443. Esta prueba de
+red no confirma el audio entre equipos: se necesita ejecutar la llamada con dos sesiones
+reales y comprobar que ambas reciben audio en redes distintas.
+
 ## Actualización del 3 de septiembre de 2026
 
 La señalización dejó de ser exclusiva del modo demo. Ahora `/api/calls` deriva al usuario del

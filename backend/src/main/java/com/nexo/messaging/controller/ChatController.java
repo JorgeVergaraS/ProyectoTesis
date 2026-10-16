@@ -30,6 +30,12 @@ public class ChatController {
     @GetMapping("/workspace")
     public ChatService.Workspace workspace(@AuthenticationPrincipal DemoPrincipal me) { return chat.workspace(me.userId()); }
 
+    @PostMapping("/conversations/{id}/notifications/{messageId}/read")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void readNotification(@AuthenticationPrincipal DemoPrincipal me, @PathVariable UUID id, @PathVariable UUID messageId) {
+        chat.readNotification(id, messageId, me.userId());
+    }
+
     @PostMapping("/directs")
     public ConversationView direct(@AuthenticationPrincipal DemoPrincipal me, @Valid @RequestBody DirectRequest request) {
         return chat.direct(me.userId(), request.userId());

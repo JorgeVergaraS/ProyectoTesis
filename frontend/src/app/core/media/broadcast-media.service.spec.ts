@@ -5,7 +5,14 @@ import { BroadcastMediaService } from './broadcast-media.service';
 
 const sdk = vi.hoisted(() => ({ rooms: [] as any[] }));
 vi.mock('livekit-client', () => ({
-  Track: { Source: { Microphone: 'microphone', Camera: 'camera', ScreenShare: 'screen_share' } },
+  Track: {
+    Source: {
+      Microphone: 'microphone',
+      Camera: 'camera',
+      ScreenShare: 'screen_share',
+      ScreenShareAudio: 'screen_share_audio',
+    },
+  },
   RoomEvent: {
     Reconnecting: 'reconnecting',
     Reconnected: 'reconnected',
@@ -88,6 +95,20 @@ describe('BroadcastMediaService', () => {
     expect(service.state()).toBe('ERROR');
     expect(sdk.rooms).toHaveLength(0);
   });
+  it('cancels an immediate watch before it connects', async () => {
+    const pending = service.watch(broadcast);
+    await service.stop();
+    await pending;
+    expect(api.access).not.toHaveBeenCalled();
+    expect(sdk.rooms).toHaveLength(0);
+    expect(service.state()).toBe('IDLE');
+  });
+  it('only connects the latest of two concurrent watch requests', async () => {
+    await Promise.all([service.watch(broadcast), service.watch({ ...broadcast, id: 'latest' })]);
+    expect(api.access).toHaveBeenCalledOnce();
+    expect(api.access).toHaveBeenCalledWith('latest');
+    expect(sdk.rooms).toHaveLength(1);
+  });
   it('does not connect after the viewer closes while access is pending', async () => {
     const access = new Subject<BroadcastAccess>();
     api.access.mockReturnValue(access);
@@ -102,18 +123,30 @@ describe('BroadcastMediaService', () => {
   });
   it('publishes separate screen and microphone tracks and ends the server room', async () => {
     api.access.mockReturnValue(of({ url: 'ws://localhost:7880', token: 'test', role: 'HOST' }));
-    const audio = { kind: 'audio', readyState: 'live' },
-      video = { kind: 'video', readyState: 'live' };
-    await service.publish('channel', 'Test', 'SCREEN', {
-      getTracks: () => [video, audio],
-    } as unknown as MediaStream);
+    const systemAudio = { id: 'system-audio', kind: 'audio', readyState: 'live' },
+      microphone = { id: 'microphone', kind: 'audio', readyState: 'live' },
+      video = { id: 'video', kind: 'video', readyState: 'live' };
+    await service.publish(
+      'channel',
+      'Test',
+      'SCREEN',
+      {
+        getTracks: () => [video, systemAudio, microphone],
+        getAudioTracks: () => [systemAudio, microphone],
+      } as unknown as MediaStream,
+      { screenAudioTrackIds: [systemAudio.id] },
+    );
     const room = sdk.rooms[0];
     expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
       video,
       expect.objectContaining({ source: 'screen_share' }),
     );
     expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
-      audio,
+      systemAudio,
+      expect.objectContaining({ source: 'screen_share_audio' }),
+    );
+    expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
+      microphone,
       expect.objectContaining({ source: 'microphone' }),
     );
     expect(service.state()).toBe('LIVE');
@@ -121,6 +154,35 @@ describe('BroadcastMediaService', () => {
     await service.stop();
     expect(room.disconnect).toHaveBeenCalled();
     expect(api.end).toHaveBeenCalledWith('b');
+  });
+  it('starts a video-only broadcast during a call without publishing duplicate audio', async () => {
+    api.access.mockReturnValue(of({ url: 'ws://localhost:7880', token: 'test', role: 'HOST' }));
+    const video = { id: 'video', kind: 'video', readyState: 'live' };
+    const stream = {
+      getTracks: () => [video],
+      getAudioTracks: () => [],
+    } as unknown as MediaStream;
+
+    await service.publish('channel', 'In-call share', 'CAMERA', stream, { audioEnabled: true });
+
+    const room = sdk.rooms[0];
+    expect(room.localParticipant.publishTrack).toHaveBeenCalledOnce();
+    expect(room.localParticipant.publishTrack).toHaveBeenCalledWith(
+      video,
+      expect.objectContaining({ source: 'camera' }),
+    );
+    expect(service.state()).toBe('LIVE');
+    expect(api.start).toHaveBeenCalledWith('b');
+  });
+  it('keeps every subscribed audio track for screen sound and microphone', async () => {
+    await service.watch(broadcast);
+    const screenAudio = { kind: 'audio', detach: vi.fn() };
+    const microphone = { kind: 'audio', detach: vi.fn() };
+    sdk.rooms[0].handlers.subscribed(screenAudio);
+    sdk.rooms[0].handlers.subscribed(microphone);
+    expect(service.audioTracks()).toEqual([screenAudio, microphone]);
+    sdk.rooms[0].handlers.unsubscribed(screenAudio);
+    expect(service.audioTracks()).toEqual([microphone]);
   });
   it('clears attached media when the server ends the room', async () => {
     await service.watch(broadcast);

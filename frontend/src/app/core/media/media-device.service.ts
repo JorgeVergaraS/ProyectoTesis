@@ -1,6 +1,7 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 
 export type StudioSource = 'camera' | 'screen';
+export type BroadcastFrameRate = 15 | 30 | 60;
 export type MediaStopReason = 'user' | 'navigation' | 'source-ended' | 'device-lost';
 
 export interface MediaInputDevice {
@@ -16,7 +17,10 @@ export class MediaDeviceService {
   readonly videoInputs = signal<MediaInputDevice[]>([]);
   readonly selectedAudioId = signal('');
   readonly selectedVideoId = signal('');
+  readonly frameRate = signal<BroadcastFrameRate>(30);
   readonly microphoneMuted = signal(false);
+  readonly systemAudioMuted = signal(false);
+  readonly systemAudioTrackIds = signal<readonly string[]>([]);
   readonly audioLevel = signal(0);
   readonly stopReason = signal<MediaStopReason | null>(null);
   readonly cameraSupported: boolean;
@@ -40,7 +44,14 @@ export class MediaDeviceService {
     });
   }
 
-  async start(source: StudioSource, audioDeviceId = '', videoDeviceId = ''): Promise<MediaStream> {
+  async start(
+    source: StudioSource,
+    audioDeviceId = '',
+    videoDeviceId = '',
+    frameRate: BroadcastFrameRate = 30,
+    includeMicrophone = true,
+    includeSystemAudio = true,
+  ): Promise<MediaStream> {
     if (source === 'camera' && !this.cameraSupported) throw new Error('camera-unsupported');
     if (source === 'screen' && !this.screenSupported) throw new Error('screen-unsupported');
 
@@ -50,35 +61,57 @@ export class MediaDeviceService {
     this.source.set(null);
     this.selectedAudioId.set('');
     this.selectedVideoId.set('');
+    this.frameRate.set(frameRate);
     this.stopReason.set(null);
     this.microphoneMuted.set(false);
+    this.systemAudioMuted.set(false);
+    this.systemAudioTrackIds.set([]);
     const acquired: MediaStream[] = [];
 
     try {
       let stream: MediaStream;
+      let screenAudioIds: string[] = [];
       if (source === 'camera') {
         stream = await this.mediaDevices!.getUserMedia({
-          audio: this.deviceConstraint(audioDeviceId),
-          video: this.deviceConstraint(videoDeviceId),
+          audio: includeMicrophone ? this.deviceConstraint(audioDeviceId) : false,
+          video: this.videoConstraint(videoDeviceId, frameRate),
         });
         acquired.push(stream);
       } else {
-        const display = await this.mediaDevices!.getDisplayMedia({ video: true, audio: false });
+        const display = await this.mediaDevices!.getDisplayMedia({
+          video: this.videoConstraint('', frameRate),
+          audio: includeSystemAudio,
+          systemAudio: includeSystemAudio ? 'include' : 'exclude',
+          surfaceSwitching: 'include',
+        } as DisplayMediaStreamOptions);
         acquired.push(display);
+        if (version !== this.requestVersion) throw new Error('request-cancelled');
+        const displayAudioTracks = includeSystemAudio ? display.getAudioTracks() : [];
+        if (!includeSystemAudio) display.getAudioTracks().forEach((track) => track.stop());
+        screenAudioIds = displayAudioTracks.map((track) => track.id);
         if (!display.getVideoTracks().length) throw new Error('screen-unavailable');
-        display.getAudioTracks().forEach((track) => track.stop());
-        const microphone = await this.mediaDevices!.getUserMedia({
-          audio: this.deviceConstraint(audioDeviceId),
-          video: false,
-        });
-        acquired.push(microphone);
-        stream = new MediaStream([...display.getVideoTracks(), ...microphone.getAudioTracks()]);
+        // A tab/system track often already contains the presenter's voice. Do not
+        // mix it with the local mic by default: that creates audible doubling/echo.
+        const microphone =
+          includeMicrophone && screenAudioIds.length === 0
+            ? await this.mediaDevices!.getUserMedia({
+                audio: this.deviceConstraint(audioDeviceId),
+                video: false,
+              })
+            : null;
+        if (microphone) acquired.push(microphone);
+        stream = new MediaStream([
+          ...display.getVideoTracks(),
+          ...displayAudioTracks,
+          ...(microphone?.getAudioTracks() ?? []),
+        ]);
       }
 
       if (version !== this.requestVersion) {
         throw new Error('request-cancelled');
       }
 
+      this.systemAudioTrackIds.set(screenAudioIds);
       this.activate(stream, source, audioDeviceId, videoDeviceId);
       await this.refreshDevices();
       return stream;
@@ -87,6 +120,7 @@ export class MediaDeviceService {
       if (version === this.requestVersion) {
         this.stream.set(null);
         this.source.set(null);
+        this.systemAudioTrackIds.set([]);
         this.resetMeter();
       }
       throw error;
@@ -107,9 +141,18 @@ export class MediaDeviceService {
       return;
     }
 
-    const oldAudio = current.getAudioTracks();
+    const sharedAudio = current
+      .getAudioTracks()
+      .filter((track) => this.systemAudioTrackIds().includes(track.id));
+    const oldAudio = current
+      .getAudioTracks()
+      .filter((track) => !this.systemAudioTrackIds().includes(track.id));
     oldAudio.forEach((track) => (track.onended = null));
-    const next = new MediaStream([...current.getVideoTracks(), ...replacement.getAudioTracks()]);
+    const next = new MediaStream([
+      ...current.getVideoTracks(),
+      ...sharedAudio,
+      ...replacement.getAudioTracks(),
+    ]);
     oldAudio.forEach((track) => track.stop());
     this.activate(next, this.source()!, deviceId, this.selectedVideoId());
     if (wasMuted) this.applyMicrophoneMute(true);
@@ -123,7 +166,7 @@ export class MediaDeviceService {
     const version = ++this.requestVersion;
     const replacement = await this.mediaDevices!.getUserMedia({
       audio: false,
-      video: this.deviceConstraint(deviceId),
+      video: this.videoConstraint(deviceId, this.frameRate()),
     });
     if (version !== this.requestVersion || this.stream() !== current) {
       this.stopStreams([replacement]);
@@ -146,6 +189,15 @@ export class MediaDeviceService {
     this.applyMicrophoneMute(muted);
   }
 
+  toggleSystemAudio(): void {
+    const muted = !this.systemAudioMuted();
+    this.stream()
+      ?.getAudioTracks()
+      .filter((track) => this.systemAudioTrackIds().includes(track.id))
+      .forEach((track) => (track.enabled = !muted));
+    this.systemAudioMuted.set(muted);
+  }
+
   stop(reason: MediaStopReason = 'user'): void {
     this.requestVersion++;
     this.releaseActiveTracks();
@@ -154,7 +206,9 @@ export class MediaDeviceService {
     this.selectedAudioId.set('');
     this.selectedVideoId.set('');
     this.microphoneMuted.set(false);
+    this.systemAudioTrackIds.set([]);
     this.stopReason.set(reason);
+    this.systemAudioMuted.set(false);
   }
 
   async refreshDevices(): Promise<void> {
@@ -184,16 +238,26 @@ export class MediaDeviceService {
     this.stream.set(stream);
     this.source.set(source);
     this.stopReason.set(null);
-    this.microphoneMuted.set(false);
+    const hasMicrophone = stream
+      .getAudioTracks()
+      .some((track) => !this.systemAudioTrackIds().includes(track.id));
+    this.microphoneMuted.set(!hasMicrophone);
     this.selectedAudioId.set(
-      stream.getAudioTracks()[0]?.getSettings?.().deviceId ?? requestedAudioId,
+      stream
+        .getAudioTracks()
+        .find((track) => !this.systemAudioTrackIds().includes(track.id))
+        ?.getSettings?.().deviceId ?? requestedAudioId,
     );
     this.selectedVideoId.set(
       source === 'camera'
         ? (stream.getVideoTracks()[0]?.getSettings?.().deviceId ?? requestedVideoId)
         : '',
     );
-    this.startMeter(stream);
+    this.startMeter(
+      new MediaStream(
+        stream.getAudioTracks().filter((track) => !this.systemAudioTrackIds().includes(track.id)),
+      ),
+    );
   }
 
   private readonly onDeviceChange = (): void => {
@@ -279,9 +343,17 @@ export class MediaDeviceService {
     return deviceId ? { deviceId: { exact: deviceId } } : true;
   }
 
+  private videoConstraint(deviceId: string, frameRate: BroadcastFrameRate): MediaTrackConstraints {
+    return {
+      ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+      frameRate: { ideal: frameRate, max: frameRate },
+    };
+  }
+
   private applyMicrophoneMute(muted: boolean): void {
     this.stream()
       ?.getAudioTracks()
+      .filter((track) => !this.systemAudioTrackIds().includes(track.id))
       .forEach((track) => (track.enabled = !muted));
     this.microphoneMuted.set(muted);
     if (muted) this.audioLevel.set(0);

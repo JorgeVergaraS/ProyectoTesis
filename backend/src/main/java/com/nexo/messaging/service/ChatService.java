@@ -2,6 +2,7 @@ package com.nexo.messaging.service;
 
 import com.nexo.messaging.dto.ConversationView;
 import com.nexo.messaging.dto.MessageView;
+import com.nexo.messaging.dto.NotificationView;
 import com.nexo.messaging.repository.ChatRepository;
 import com.nexo.user.dto.UserView;
 import com.nexo.user.entity.UserEntity;
@@ -28,7 +29,8 @@ public class ChatService {
         this.demoUsers = demoUsers;
     }
 
-    public record Workspace(List<ConversationView> channels, List<ConversationView> directs, List<UserView> people) {}
+    public record Workspace(List<ConversationView> channels, List<ConversationView> directs,
+            List<UserView> people, List<NotificationView> notifications) {}
 
     public Workspace workspace(UUID user) {
         var all = chat.conversations(user);
@@ -37,7 +39,7 @@ public class ChatService {
                 all.stream().filter(c -> c.kind().equals("DIRECT")).toList(),
                 users.findByStatusOrderByDisplayName("ACTIVE").stream()
                         .map(person -> person.toPublicView(online.contains(person.getId())))
-                        .toList());
+                        .toList(), chat.notifications(user));
     }
 
     @Transactional
@@ -79,6 +81,12 @@ public class ChatService {
         chat.kind(conversation, true);
         chat.requireMember(conversation, user);
         return chat.send(conversation, user, clientId, body.strip());
+    }
+
+    @Transactional
+    public void readNotification(UUID conversation, UUID message, UUID user) {
+        chat.requireMember(conversation, user);
+        chat.readNotification(conversation, message, user);
     }
 
     @Transactional

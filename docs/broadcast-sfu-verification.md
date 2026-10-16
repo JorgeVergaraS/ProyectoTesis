@@ -100,10 +100,14 @@ Las pruebas manuales con dispositivos físicos y entre redes externas siguen pen
 La prueba WebRTC de navegador descrita arriba corresponde al 5 de septiembre; no se
 repitió durante la verificación automatizada del 7 de septiembre.
 
-`scripts/verify-broadcast.cjs` permite repetir la prueba con Playwright y Edge instalados;
-ejecuta `node scripts/verify-broadcast.cjs` desde la raíz con el proyecto en marcha. Crea
+`scripts/verify-broadcast.cjs` permite repetir la prueba con Playwright y Edge instalado o con
+otro navegador Chromium indicado mediante `NEXO_BROWSER_EXECUTABLE`; ejecuta
+`node scripts/verify-broadcast.cjs` desde la raíz con el proyecto en marcha. Crea
 cuentas de prueba `sfu-…@nexo.test` y conserva sus credenciales en `.tmp/` para reutilizarlas.
-Las capturas y cualquier diagnóstico también quedan en `.tmp/`, ignorado por Git.
+Las capturas quedan en `.tmp/` por defecto o en el directorio indicado por
+`NEXO_CAPTURE_DIR`. La ejecución del 8 de septiembre con Brave validó además 60 FPS como
+objetivo, ausencia de desbordamiento horizontal a 390 px y generó la evidencia versionada en
+`docs/images/broadcast/current/`.
 
 ## Siguiente fase
 

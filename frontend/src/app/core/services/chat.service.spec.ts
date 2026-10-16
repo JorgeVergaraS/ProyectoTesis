@@ -20,6 +20,20 @@ describe('ChatService', () => {
 
   afterEach(() => http.verify());
 
+  it('marks only the chosen notification through the active session route', () => {
+    for (const kind of ['local', 'microsoft', 'demo'] as const) {
+      session.kind.set(kind);
+      chat.readNotification('conversation-id', 'message-id').subscribe();
+      const prefix = kind === 'demo' ? '/api/demo' : '/api';
+      const request = http.expectOne(
+        prefix + '/conversations/conversation-id/notifications/message-id/read',
+      );
+      expect(request.request.method).toBe('POST');
+      expect(request.request.body).toEqual({});
+      request.flush(null);
+    }
+  });
+
   it('uses authenticated workspace routes for local and Microsoft sessions', () => {
     session.kind.set('local');
     chat.workspace().subscribe();

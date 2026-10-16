@@ -1,4 +1,24 @@
 spring:
+  rabbitmq:
+    addresses: ${RABBITMQ_ADDRESSES:${spring.rabbitmq.host}:${spring.rabbitmq.port}}
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:nexo}
+    password: ${RABBITMQ_PASSWORD:}
+    connection-timeout: 3s
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        prefetch: 10
+        default-requeue-rejected: false
+        retry:
+          enabled: false
+          max-attempts: 3
+          initial-interval: 1s
+          multiplier: 2
   servlet:
     multipart:
       max-file-size: 2MB
@@ -42,17 +62,22 @@ server:
     include-binding-errors: never
 
 nexo:
+  events:
+    enabled: ${NEXO_EVENTS_ENABLED:false}
+    consumer-enabled: ${NEXO_EVENTS_CONSUMER_ENABLED:true}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200}
   azure:
-    issuer: ${AZURE_ISSUER:https://login.microsoftonline.com/21a4bbb2-fc48-4053-a98e-b805aa2306cc/v2.0}
     audience: ${AZURE_AUDIENCE:0f2d7cee-cabb-4482-900d-64fb07f5f81d,api://0f2d7cee-cabb-4482-900d-64fb07f5f81d}
-    jwk-set-uri: ${AZURE_JWK_SET_URI:https://login.microsoftonline.com/21a4bbb2-fc48-4053-a98e-b805aa2306cc/discovery/v2.0/keys}
+    jwk-set-uri: ${AZURE_JWK_SET_URI:https://login.microsoftonline.com/common/discovery/v2.0/keys}
     required-scope: ${AZURE_REQUIRED_SCOPE:access_as_user}
   jwt:
     secret: ${NEXO_JWT_SECRET:}
 
 management:
+  health:
+    rabbit:
+      enabled: ${nexo.events.enabled}
   endpoints:
     web:
       exposure:
