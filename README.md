@@ -109,7 +109,7 @@ instalación nueva.
 | Llamadas   | Voz y videollamada directa P2P; mute de micrófono/cámara, salida y salas grupales LiveKit | Latencia y calidad dependen de red, dispositivo y ruta ICE/TURN; falta prueba física repetible en redes distintas |
 | Presencia  | Actividad reciente de sesiones                                                                              | Polling HTTP; no hay WebSocket                                                   |
 | Transmisiones | Cámara/pantalla, micrófono opcional y 15/30/60 FPS mediante LiveKit; visor en canal o llamada | 60 FPS es un objetivo dependiente del dispositivo/red; pendientes medios físicos y redes externas |
-| Operación  | EC2, RDS, Docker con reinicio automático, Caddy HTTPS, health, Actuator y Swagger; EC2 dedicada para RabbitMQ UI, Kafka y Grafana | Prueba integrada de extremo a extremo y capturas de consolas pendientes        |
+| Operación  | EC2, RDS, Docker con reinicio automático, Caddy HTTPS, health, Actuator y Swagger; EC2 dedicada para RabbitMQ UI, Kafka y Grafana | Alta disponibilidad de Kafka y una prueba integral de eventos en producción siguen fuera del alcance verificado |
 
 **Estado de llamadas en AWS (15-10-2026):** TURN está publicado por UDP y TCP en
 3478, con relay UDP 49160–49200; Coturn escucha en la interfaz privada de EC2 y
@@ -654,17 +654,17 @@ sign-in y las decisiones operativas/jurídicas que faltan para preparar el servi
 La [guía de consolas de RabbitMQ, Kafka y Grafana](docs/observability-stack.md)
 describe las URL, el flujo de eventos, la topología y el procedimiento de despliegue.
 El estado de AWS comprobado y los límites de la evidencia están en [docs/cloud-evidence.md](docs/cloud-evidence.md).
-Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). Las tres consolas solicitan autenticación básica de Caddy, guardada en SSM; para RabbitMQ, Caddy pasa la cuenta de monitoreo al broker en cada solicitud. Tras observar `401` en `/api/version` con autenticación directa del navegador, se restauró el acceso del proxy y se aplicó a Caddy. SSM verificó `401` sin credenciales y `200` en `/api/version` autenticado; recarga RabbitMQ en Chrome para comprobar el acceso visual. Tras el bucle anterior de Grafana, se configuró `GF_SERVER_DOMAIN`, se recreó el contenedor y SSM verificó que `/api/health` responde correctamente. La captura de Grafana de abajo es evidencia histórica del error anterior.
+Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). RabbitMQ usa autenticación nativa de Management para la UI y sus llamadas API; Kafka UI y Grafana usan Basic Auth en Caddy. Los secretos se guardan en SSM SecureString y no se documentan aquí. El acceso interno de Grafana se alineó con el usuario `nexo-viewer`; el login HTTPS y `/api/user` autenticados respondieron correctamente. Los detalles de operación y la evidencia consultada desde las pestañas abiertas están en [docs/observability-stack.md](docs/observability-stack.md) y [docs/cloud-evidence.md](docs/cloud-evidence.md).
 
 ### Evidencia visual de observabilidad
 
-Estas capturas reales fueron compartidas desde Chrome durante el diagnóstico. Kafka UI muestra el clúster **Nexo** en línea; la captura RabbitMQ documenta el desafío de autenticación anterior a la corrección y la captura Grafana registra el bucle anterior al cambio de dominio. No representan sesiones autenticadas ni el estado actual de los paneles.
+El dashboard de Grafana fue verificado en vivo después de corregir el scrape de RabbitMQ: los paneles de mensajes pendientes y entregados sin ACK muestran series por cola, y el total pendiente marca `0` durante la captura. La misma vista muestra el estado Kafka del laboratorio (3 particiones, lag `0`, 1 broker). Las imágenes PNG históricas bajo `docs/screenshots/observability/` corresponden a fallos anteriores y no se presentan como evidencia actual. La traza de prueba y los límites de esta validación están registrados en [docs/cloud-evidence.md](docs/cloud-evidence.md) y [docs/observability-stack.md](docs/observability-stack.md).
 
 | Servicio | Captura |
 | --- | --- |
-| Kafka UI (Kafbat) | ![Kafbat UI: clúster Nexo en línea](docs/screenshots/observability/kafbat-ui-kafka-online.png) |
-| RabbitMQ | ![RabbitMQ: desafío de autenticación del navegador](docs/screenshots/observability/rabbitmq-auth-challenge.png) |
-| Grafana | ![Grafana: error ERR_TOO_MANY_REDIRECTS](docs/screenshots/observability/grafana-redirect-loop.png) |
+| Kafka UI (Kafbat) | ![Kafbat UI: clúster Nexo en línea en la revisión anterior](docs/screenshots/observability/kafbat-ui-kafka-online.png) |
+| RabbitMQ | ![RabbitMQ: desafío de autenticación anterior a la corrección](docs/screenshots/observability/rabbitmq-auth-challenge.png) |
+| Grafana | ![Grafana: error ERR_TOO_MANY_REDIRECTS anterior a la corrección](docs/screenshots/observability/grafana-redirect-loop.png) |
 
 <a id="pruebas"></a>
 

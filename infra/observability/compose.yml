@@ -120,7 +120,6 @@ services:
       OBS_USERNAME: ${OBS_USERNAME:?Set OBS_USERNAME}
       OBS_PASSWORD_HASH: ${OBS_PASSWORD_HASH:?Set OBS_PASSWORD_HASH}
       APP_PRIVATE_IP: ${APP_PRIVATE_IP:?Set APP_PRIVATE_IP}
-      RABBITMQ_AUTH_B64: ${RABBITMQ_AUTH_B64:?Set RABBITMQ_AUTH_B64}
     ports: ["80:80", "443:443", "443:443/udp"]
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro

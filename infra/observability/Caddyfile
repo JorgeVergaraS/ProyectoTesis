@@ -1,11 +1,8 @@
 rabbit.{$OBS_DOMAIN} {
-	basicauth {
-		{$OBS_USERNAME} {$OBS_PASSWORD_HASH}
-	}
-	reverse_proxy {$APP_PRIVATE_IP}:15672 {
-		# Keep the public proxy login separate from RabbitMQ's read-only user.
-		header_up Authorization "Basic {$RABBITMQ_AUTH_B64}"
-	}
+	# RabbitMQ's Management UI and /api/* use the same native HTTP Basic
+	# credentials. Do not add a second Basic Auth layer or overwrite this header:
+	# the browser must authenticate its XHR requests directly with RabbitMQ.
+	reverse_proxy {$APP_PRIVATE_IP}:15672
 }
 
 kafka.{$OBS_DOMAIN} {

@@ -105,7 +105,7 @@ cluster=subprocess.check_output(['docker','run','--rm','apache/kafka:4.2.2','/op
 env={'KAFKA_CLUSTER_ID':cluster,'KAFKA_ADVERTISED_HOST':os.environ['OBS_PRIVATE_IP'],
      'OBS_DOMAIN':os.environ['PUBLIC_IP']+'.nip.io','OBS_USERNAME':auth['username'],
      'OBS_PASSWORD':auth['password'],'OBS_PASSWORD_HASH':hashed,'APP_PRIVATE_IP':os.environ['APP_PRIVATE_IP'],
-     'RABBITMQ_AUTH_B64':base64.b64encode((auth['username']+':'+auth['password']).encode()).decode()}
+     }
 with open('/opt/nexo-observability/.env','w') as f:
     for key,value in env.items():
         if '\n' in str(value) or '\r' in str(value): raise SystemExit('Invalid environment value')
