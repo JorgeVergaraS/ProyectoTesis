@@ -56,8 +56,8 @@
 
 Nexo organiza la experiencia alrededor de personas, conversaciones y comunidades
 universitarias. Usa navegación con nombres, bandeja de conversaciones, burbujas de
-mensajes y panel contextual. La identidad visual ofrece temas predeterminado, OLED y
-claro, combinables con botones Mate, Style SkayGlass o Y2K 2000. La interfaz admite
+mensajes y panel contextual. La identidad visual ofrece los temas oscuros Nexo nocturno
+y OLED, combinables con botones Mate, Style SkayGlass o Y2K 2000. La interfaz admite
 teclado, conserva las preferencias visuales y adapta su disposición a móvil.
 
 ### Mensajería
@@ -79,14 +79,13 @@ perfil puede consultar sus membresías, unirse y salir.
 
 ![Nexo: configuración de temas y estilos de botones](docs/images/nexo-settings.png)
 
-Los temas predeterminado, OLED y claro pueden combinarse con los acabados Mate,
+Los temas Nexo nocturno y OLED pueden combinarse con los acabados Mate,
 Style SkayGlass y Y2K 2000. La selección se aplica al instante y permanece en el
 navegador.
 
-En esta rama, el tema predeterminado se remodela como **Nexo Aurora**: fondos
-claros cálidos, tinta azul profunda, acento violeta y detalles menta. OLED y
-Claro siguen disponibles como temas independientes. La actualización se limita
-a la capa visual y conserva los estados y controles de la aplicación.
+El tema predeterminado ofrece **Nexo nocturno**: fondos azul profundo, acentos violeta
+y aqua, con contraste accesible para lectura. OLED presenta negro puro y brillo reducido.
+La preferencia anterior de modo claro se migra automáticamente a Nexo nocturno.
 
 <details>
 <summary><strong>Ver perfil y foto opcional</strong></summary>

@@ -926,34 +926,34 @@ html[data-button-style='y2k'] button:active:not(:disabled) {
     0 1px 0 var(--button-chrome-shadow);
 }
 
-/* Nexo Aurora: warm paper, deep ink, iris blue and fresh mint. */
+/* Nexo nocturno: azul profundo, violeta y aqua. Todas las opciones disponibles son oscuras. */
 html[data-theme='default'] {
-  color-scheme: light;
-  --theme-bg: #f4f3ef;
-  --theme-panel: #fffefa;
-  --theme-surface: #fffefa;
-  --theme-surface-muted: #f1f2f6;
-  --theme-surface-active: #eeecff;
-  --theme-text: #20283a;
-  --theme-muted: #697386;
-  --theme-border: #dedfe7;
-  --theme-border-strong: #b8bdd0;
-  --theme-accent: #5c51d8;
-  --theme-accent-soft: #efedff;
+  color-scheme: dark;
+  --theme-bg: #07111e;
+  --theme-panel: #0b1422;
+  --theme-surface: #111d2d;
+  --theme-surface-muted: #0c1725;
+  --theme-surface-active: #1b2440;
+  --theme-text: #e8edf8;
+  --theme-muted: #9aa8bf;
+  --theme-border: #26334a;
+  --theme-border-strong: #485775;
+  --theme-accent: #a78bfa;
+  --theme-accent-soft: #2a2142;
   --theme-accent-contrast: #fff;
-  --button-glass-top: #8e88ef;
-  --button-glass-mid: #6559db;
-  --button-glass-bottom: #4f48bf;
+  --button-glass-top: #b5adff;
+  --button-glass-mid: #7665df;
+  --button-glass-bottom: #493b9e;
   --button-glass-accent: #36a98c;
-  --button-glass-border: #6258dc;
-  --button-glass-glow: #6257d833;
+  --button-glass-border: #8173e8;
+  --button-glass-glow: #8b7af233;
   --button-on-accent: #fff;
 }
 html[data-theme='default'] body {
   background:
-    radial-gradient(circle at 5% 2%, #dedbff 0, transparent 27rem),
-    radial-gradient(circle at 98% 12%, #d8f1e8 0, transparent 25rem),
-    linear-gradient(145deg, #faf9f5, #f0f2f3 57%, #f8f6f1);
+    radial-gradient(circle at 5% 2%, #6b52ad24 0, transparent 27rem),
+    radial-gradient(circle at 98% 12%, #208d8a17 0, transparent 25rem),
+    linear-gradient(145deg, #07111e, #0b1220 57%, #091521);
   background-attachment: fixed;
   color: var(--theme-text);
 }
@@ -962,13 +962,13 @@ html[data-theme='default'] body::before {
   right: 5vw;
   width: 230px;
   height: 230px;
-  border-color: #6257d81b;
-  background: radial-gradient(circle at 35% 28%, #ffffffb8, #c9c4ff35 42%, transparent 72%);
-  box-shadow: inset 0 0 38px #fff8;
-  opacity: 0.7;
+  border-color: #a78bfa25;
+  background: radial-gradient(circle at 35% 28%, #bbaaff18, #6d58cf12 42%, transparent 72%);
+  box-shadow: inset 0 0 38px #9b8cff0a;
+  opacity: 0.55;
 }
 html[data-theme='default'] body::after {
-  background: radial-gradient(ellipse, #67cba53d, #49b4a312 60%, transparent 75%);
+  background: radial-gradient(ellipse, #35c6aa1c, #21899c0c 60%, transparent 75%);
 }
 html[data-theme='default'] button::after,
 html[data-theme='default'] a.primary-button::after,
@@ -977,7 +977,7 @@ html[data-theme='default'] a.secondary-button::after {
 }
 html[data-theme='default'] .workspace-shell,
 html[data-theme='default'] .authenticated-home {
-  background: #f5f4f0;
+  background: #080f1a;
   color: var(--theme-text);
 }
 html[data-theme='default'] .main-navigation,
@@ -985,12 +985,12 @@ html[data-theme='default'] .inbox,
 html[data-theme='default'] .conversation-details,
 html[data-theme='default'] .profile-panel,
 html[data-theme='default'] .login-card {
-  background: #fffefa;
+  background: #0b1422;
   color: var(--theme-text);
-  border-color: #e0e1e8;
+  border-color: #26334a;
 }
 html[data-theme='default'] .main-navigation {
-  box-shadow: 10px 0 35px #2522420a;
+  box-shadow: 10px 0 35px #0004;
 }
 html[data-theme='default'] .chat-pane,
 html[data-theme='default'] .explore-page {
@@ -1002,7 +1002,7 @@ html[data-theme='default'] .inbox,
 html[data-theme='default'] .conversation-details,
 html[data-theme='default'] .members-section,
 html[data-theme='default'] .inbox-footer {
-  border-color: #e2e3e9;
+  border-color: #26334a;
 }
 html[data-theme='default'] .navigation-caption,
 html[data-theme='default'] .brand-footer,
@@ -1023,7 +1023,7 @@ html[data-theme='default'] .conversation-notice,
 html[data-theme='default'] .welcome > p,
 html[data-theme='default'] .feature-chips span,
 html[data-theme='default'] .card-description {
-  color: #697386;
+  color: #9aa8bf;
 }
 html[data-theme='default'] .nav-item,
 html[data-theme='default'] .conversation-item,
@@ -1038,38 +1038,38 @@ html[data-theme='default'] .login-card h2,
 html[data-theme='default'] .welcome h1,
 html[data-theme='default'] .account-card,
 html[data-theme='default'] .authenticated-home .brand {
-  color: #20283a;
+  color: #e8edf8;
 }
 html[data-theme='default'] .nav-item:hover,
 html[data-theme='default'] .nav-item.selected,
 html[data-theme='default'] .dashboard-nav:hover,
 html[data-theme='default'] .dashboard-nav.active {
-  color: #463cb2;
-  background: #efedff;
-  border-color: #d4d0ff;
+  color: #d7c9ff;
+  background: #241d3a;
+  border-color: #58467f;
 }
 html[data-theme='default'] .nav-item.selected {
-  box-shadow: inset 3px 0 #5c51d8;
+  box-shadow: inset 3px 0 #a78bfa;
 }
 html[data-theme='default'] .nav-item.selected nexo-icon,
 html[data-theme='default'] .channel-card-icon,
 html[data-theme='default'] .community-stats nexo-icon,
 html[data-theme='default'] .channel-card-icon nexo-icon,
 html[data-theme='default'] .context-emblem {
-  color: #5c51d8;
+  color: #b7a2ff;
 }
 html[data-theme='default'] .campus-note {
-  border-color: #dad5ff;
+  border-color: #443765;
   background:
-    radial-gradient(ellipse at 100% 0, #d4ceff 0, transparent 68%),
-    linear-gradient(145deg, #f0edff, #e9f7f1);
+    radial-gradient(ellipse at 100% 0, #765ddc24 0, transparent 68%),
+    linear-gradient(145deg, #19152a, #102321);
 }
 html[data-theme='default'] .campus-note strong,
 html[data-theme='default'] .campus-note button {
-  color: #302d59;
+  color: #e3dcff;
 }
 html[data-theme='default'] .campus-note p {
-  color: #62647b;
+  color: #a9a3bd;
 }
 html[data-theme='default'] .inbox-search,
 html[data-theme='default'] .account-card,
@@ -1087,121 +1087,121 @@ html[data-theme='default'] .rules-card,
 html[data-theme='default'] .profile-card,
 html[data-theme='default'] .profile-facts > div,
 html[data-theme='default'] .authenticated-card {
-  background: #fffefa;
-  color: #20283a;
-  border-color: #e0e1e8;
-  box-shadow: 0 8px 24px #28314b0b;
+  background: #101a2a;
+  color: #e8edf8;
+  border-color: #2a364d;
+  box-shadow: 0 8px 24px #0004;
 }
 html[data-theme='default'] .conversation-item.active,
 html[data-theme='default'] .inbox-filters button.active {
-  background: #efedff;
-  border-color: #d3ceff;
-  color: #473db5;
-  box-shadow: inset 3px 0 #5c51d8;
+  background: #241d3a;
+  border-color: #58467f;
+  color: #d7c9ff;
+  box-shadow: inset 3px 0 #a78bfa;
 }
 html[data-theme='default'] .conversation-item:hover,
 html[data-theme='default'] .overview-channel:hover,
 html[data-theme='default'] .channel-card:hover,
 html[data-theme='default'] .person-card:hover {
-  background-color: #f7f6ff;
-  border-color: #c9c4fa;
+  background-color: #172139;
+  border-color: #514274;
 }
 html[data-theme='default'] .message-bubble {
-  background: #ffffff;
-  border-color: #e0e3ec;
-  box-shadow: 0 8px 22px #2c31500c;
+  background: #121d2d;
+  border-color: #2b394f;
+  box-shadow: 0 8px 22px #0004;
 }
 html[data-theme='default'] .own-message .message-bubble {
-  background: linear-gradient(145deg, #e7e5ff, #e5f6f1);
-  border-color: #cbc8f5;
+  background: linear-gradient(145deg, #28203d, #143039);
+  border-color: #655487;
 }
 html[data-theme='default'] .own-message .message-meta {
-  color: #554bb8;
+  color: #c4b5fd;
 }
 html[data-theme='default'] .composer-box {
-  background: #fffefa;
-  border-color: #d8dbe6;
+  background: #101a2a;
+  border-color: #2b394f;
 }
 html[data-theme='default'] .composer-box:focus-within,
 html[data-theme='default'] .inbox-search:focus-within {
-  border-color: #766be2;
-  box-shadow: 0 0 0 3px #7165e31c;
+  border-color: #9b82ed;
+  box-shadow: 0 0 0 3px #9b82ed28;
 }
 html[data-theme='default'] .inbox-search input,
 html[data-theme='default'] .composer-box textarea,
 html[data-theme='default'] input,
 html[data-theme='default'] textarea {
-  color: #20283a;
+  color: #e8edf8;
 }
 html[data-theme='default'] .inbox-search input::placeholder,
 html[data-theme='default'] .composer-box textarea::placeholder {
-  color: #7d8595;
+  color: #8390a7;
 }
 html[data-theme='default'] .conversation-item.active > nexo-icon,
 html[data-theme='default'] .text-link,
 html[data-theme='default'] .explore-link {
-  color: #5c51d8;
+  color: #b7a2ff;
 }
 html[data-theme='default'] .compose-button,
 html[data-theme='default'] .settings-button,
 html[data-theme='default'] .message-actions button,
 html[data-theme='default'] .icon-button {
-  background: #f1f0f9;
-  color: #5a5e72;
-  border-color: #dedfe9;
+  background: #172033;
+  color: #b8c3d8;
+  border-color: #303c53;
 }
 html[data-theme='default'] .compose-button:hover,
 html[data-theme='default'] .settings-button:hover,
 html[data-theme='default'] .icon-button:hover {
-  background: #ebe9ff;
-  color: #4e43c4;
+  background: #28213f;
+  color: #d5c9ff;
 }
 html[data-theme='default'] .channel-card-icon,
 html[data-theme='default'] .context-emblem,
 html[data-theme='default'] .preview-icon {
-  background: #efedff;
-  border-color: #d9d4ff;
+  background: #241d3a;
+  border-color: #514274;
 }
 html[data-theme='default'] .channel-state.joined {
-  background: #e9f6f0;
-  border-color: #b8e4d0;
-  color: #167b62;
+  background: #123229;
+  border-color: #28654e;
+  color: #80dfb6;
 }
 html[data-theme='default'] .login-card {
-  box-shadow: 0 26px 72px #29325a18;
+  box-shadow: 0 26px 72px #0006;
 }
 html[data-theme='default'] .art-core {
-  background: radial-gradient(circle at 28% 22%, #ffffff, #b8b2ff 26%, #695be0 60%, #326a73 100%);
-  box-shadow: 0 16px 45px #655adc35;
+  background: radial-gradient(circle at 28% 22%, #d9fff6, #8e7bff 26%, #5d45ca 60%, #153d4a 100%);
+  box-shadow: 0 16px 45px #655adc55;
 }
 html[data-theme='default'] .art-jorge {
-  background: #e9e6ff;
-  color: #4e43c4;
+  background: #292044;
+  color: #d1c4ff;
 }
 html[data-theme='default'] .art-jean {
-  background: #dcf2eb;
-  color: #14775e;
+  background: #153b3a;
+  color: #8ee7d2;
 }
 html[data-theme='default'] .art-fernando {
-  background: #ffeadf;
-  color: #a14f35;
+  background: #453126;
+  color: #ffc08d;
 }
 html[data-theme='default'] .art-message {
-  background: #fffefa;
-  border-color: #e1dfed;
-  color: #34374a;
-  box-shadow: 0 12px 30px #25264a12;
+  background: #111d2d;
+  border-color: #303951;
+  color: #e8edf8;
+  box-shadow: 0 12px 30px #0005;
 }
 html[data-theme='default'] .connection-banner {
-  background: #fff4d9;
-  color: #755116;
+  background: #342818;
+  color: #f2d18d;
 }
 html[data-theme='default'] .action-banner {
-  background: #ffebe8;
-  color: #9a403a;
+  background: #3a2029;
+  color: #ffb2bd;
 }
 html[data-theme='default'] :focus-visible {
-  outline-color: #5c51d8;
+  outline-color: #b7a2ff;
 }
 html[data-theme='default'] .channel-grid,
 html[data-theme='default'] .people-grid {
@@ -1222,7 +1222,7 @@ html[data-theme='default'] .people-grid {
   html[data-theme='default'] .person-card:hover,
   html[data-theme='default'] .overview-channel:hover {
     transform: translateY(-2px);
-    box-shadow: 0 16px 34px #31305a14;
+    box-shadow: 0 16px 34px #0006;
   }
 }
 

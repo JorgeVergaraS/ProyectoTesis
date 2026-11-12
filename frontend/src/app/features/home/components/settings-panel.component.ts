@@ -35,18 +35,13 @@ export class SettingsPanelComponent implements AfterViewInit {
   readonly options: readonly ThemeOption[] = [
     {
       id: 'default',
-      name: 'Predeterminado',
+      name: 'Nexo nocturno',
       description: 'Azul nocturno con acentos aqua y violeta.',
     },
     {
       id: 'oled',
       name: 'OLED',
       description: 'Negro puro, contraste alto y brillo reducido.',
-    },
-    {
-      id: 'light',
-      name: 'Modo claro',
-      description: 'Superficies luminosas con texto azul profundo.',
     },
   ];
   readonly buttonStyles: readonly ButtonStyleOption[] = [

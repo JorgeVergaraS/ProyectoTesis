@@ -1,12 +1,12 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, inject, signal } from '@angular/core';
 
-export type NexoTheme = 'default' | 'oled' | 'light';
+export type NexoTheme = 'default' | 'oled';
 export type NexoButtonStyle = 'matte' | 'sky-glass' | 'y2k';
 
 const THEME_STORAGE_KEY = 'nexo-theme';
 const BUTTON_STYLE_STORAGE_KEY = 'nexo-button-style';
-const THEMES: readonly NexoTheme[] = ['default', 'oled', 'light'];
+const THEMES: readonly NexoTheme[] = ['default', 'oled'];
 const BUTTON_STYLES: readonly NexoButtonStyle[] = ['matte', 'sky-glass', 'y2k'];
 
 @Injectable({ providedIn: 'root' })
@@ -42,7 +42,12 @@ export class ThemeService {
 
   private savedTheme(): NexoTheme {
     try {
-      const saved = this.document.defaultView?.localStorage.getItem(THEME_STORAGE_KEY);
+      const storage = this.document.defaultView?.localStorage;
+      const saved = storage?.getItem(THEME_STORAGE_KEY);
+      if (saved === 'light') {
+        storage?.setItem(THEME_STORAGE_KEY, 'default');
+        return 'default';
+      }
       return THEMES.includes(saved as NexoTheme) ? (saved as NexoTheme) : 'default';
     } catch {
       return 'default';
