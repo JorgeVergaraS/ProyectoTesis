@@ -24,6 +24,12 @@ política administrada de SSM ya está asociada a ese rol. Falta diagnosticar el
 agente SSM o su conectividad desde cada instancia. El estado `3/3` de EC2 solo
 comprueba la salud del host.
 
+El grupo `nexo-academic-app` conserva una regla de salida de todo el tráfico a
+`0.0.0.0/0`, por lo que el grupo no bloquea HTTPS saliente del agente. La AMI de
+`nexo-academic` es Amazon Linux 2023. No se pudo leer el servicio `amazon-ssm-agent`
+desde el sistema operativo; la hipótesis pendiente es que el agente no esté
+instalado/activo o no alcance los endpoints de SSM. No se cambió la regla de salida.
+
 ### Diferencia entre el Kafka vigente y el laboratorio EP5/EP6
 
 La evidencia del 15-10 registra un Kafka KRaft de un broker en la EC2 de
