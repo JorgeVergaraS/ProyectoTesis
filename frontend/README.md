@@ -42,11 +42,22 @@ Rutas: `/login`, `/home`, `/profile` y `/status`. Crear pestañas nuevas sin
 duplicarlas para usar perfiles locales independientes. MSAL delega el login
 Microsoft a Entra ID y solicita el scope público configurado para la API Nexo.
 
+Después del retorno OAuth, la identidad verificada de la cuenta Entra se usa para abrir el shell
+de Nexo sin esperar la consulta de perfil. `/api/users/me` hidrata los datos de Nexo en segundo
+plano; así el retraso de un arranque frío del backend no deja al usuario mirando la pantalla de
+acceso. La API mantiene la autorización de cada operación y los errores de sincronización se
+registran sin imprimir tokens ni claims.
+
 Los tres temas pueden combinarse con botones Mate, Style SkayGlass —inspirado en Frutiger
 Aero e iOS 4— o Y2K 2000. La interfaz usa una jerarquía tipográfica Gotham con alternativas
 geométricas del sistema. Ambas preferencias se conservan en el navegador.
 Para reproducir Gotham exactamente se deben aportar archivos de fuente con licencia;
 el repositorio no distribuye tipografías propietarias.
+
+La navegación, la bandeja y los controles se ajustan al ancho de tablet y móvil. El historial,
+el panel contextual y los avisos se ajustan al ancho disponible; los detalles y las
+notificaciones pasan a paneles superpuestos para no comprimir la conversación. Formularios,
+botones, pantallas de diagnóstico y perfil respetan áreas seguras del dispositivo y `prefers-reduced-motion`.
 
 ## Pruebas y build
 

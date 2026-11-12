@@ -77,28 +77,85 @@ import { CallNotificationService } from '../../../core/realtime/call-notificatio
   `,
   styles: `
     :host {
-      display: contents;
+      position: relative;
+      z-index: 35;
+      display: block;
+      flex: 0 0 auto;
+      min-width: 0;
     }
     .notification-inbox {
-      margin: 12px 20px;
-      padding: 12px 16px;
-      border: 1px solid var(--border, #64748b);
-      border-radius: 12px;
+      position: relative;
+      margin: 12px 20px 4px;
+      padding: 0;
+      border: 1px solid var(--theme-border-strong, #64748b);
+      border-radius: 15px;
       color: inherit;
-      flex-shrink: 0;
+      background: color-mix(in srgb, var(--theme-panel, #111827) 94%, transparent);
+      box-shadow: 0 8px 26px #00000012;
     }
     .notification-inbox summary {
+      display: flex;
+      align-items: center;
+      min-height: 48px;
+      padding: 0 16px;
       cursor: pointer;
       font-weight: 600;
+      font-size: 13px;
+      list-style-position: inside;
+      user-select: none;
+    }
+    .notification-inbox[open] {
+      position: fixed;
+      top: 18px;
+      right: 24px;
+      width: min(440px, calc(100vw - 48px));
+      max-height: calc(100dvh - 36px);
+      overflow: auto;
+      border-color: var(--theme-accent, #8b5cf6);
+      background: var(--theme-panel, #111827);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent, #8b5cf6) 12%, transparent), 0 24px 64px #00000038;
+    }
+    .notification-inbox[open] summary {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      background: var(--theme-panel, #111827);
+      border-radius: 15px 15px 0 0;
+    }
+    .notification-inbox[open] {
+      border-color: var(--theme-accent, #8b5cf6);
+    }
+    .notification-inbox > section,
+    .notification-inbox > ul {
+      position: static;
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+      margin: 0;
+      border: 0;
+      border-top: 1px solid var(--theme-border, #64748b);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .notification-inbox > section {
+      display: grid;
+      gap: 12px;
+      padding: 17px;
+    }
+    .notification-inbox > ul {
+      padding: 8px;
+      max-height: min(36dvh, 300px);
+      overflow-y: auto;
     }
     .notification-settings {
       display: grid;
       gap: 10px;
-      margin-top: 12px;
-      padding: 12px;
-      border: 1px solid var(--border, #64748b);
-      border-radius: 10px;
-      background: rgb(128 128 128 / 7%);
+      margin-top: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
     }
     .notification-settings p,
     .notification-settings small {
@@ -132,10 +189,8 @@ import { CallNotificationService } from '../../../core/realtime/call-notificatio
     }
     .notification-inbox ul {
       list-style: none;
-      margin: 12px 0 0;
+      margin: 0;
       padding: 0;
-      max-height: 240px;
-      overflow-y: auto;
     }
     .notification-inbox button {
       display: flex;
@@ -161,6 +216,31 @@ import { CallNotificationService } from '../../../core/realtime/call-notificatio
     .notification-inbox button:disabled {
       opacity: 0.6;
       cursor: wait;
+    }
+    @media (max-width: 760px) {
+      .notification-inbox {
+        margin: 8px 12px 3px;
+        border-radius: 12px;
+      }
+      .notification-inbox summary {
+        min-height: 42px;
+        padding-inline: 12px;
+        font-size: 12px;
+      }
+      .notification-inbox > section,
+      .notification-inbox > ul {
+        width: 100%;
+      }
+      .notification-inbox[open] {
+        top: 12px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-height: calc(100dvh - 24px);
+      }
+      .notification-inbox > ul {
+        max-height: min(32dvh, 240px);
+      }
     }
   `,
 })

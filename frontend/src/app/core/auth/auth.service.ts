@@ -28,6 +28,7 @@ export class AuthService {
   readonly session = inject(DemoSessionStore);
   private initialization: Promise<void> | null = null;
   private pendingRestore: Promise<boolean> | null = null;
+  private readonly profileSyncs = new Map<string, Promise<void>>();
 
   get isConfigured(): boolean {
     return ![
@@ -125,25 +126,47 @@ export class AuthService {
     if (!this.isConfigured) return false;
     const account = await this.getActiveAccount();
     if (!account) return false;
-    try {
-      const user = await firstValueFrom(this.http.get<DemoUser>(environment.apiUrl + '/users/me'));
-      this.session.setMicrosoftUser(user);
-      return true;
-    } catch (error: unknown) {
-      const details = error as {
-        status?: number;
-        name?: string;
-      };
-      console.error(
-        'Microsoft profile sync failed',
-        JSON.stringify({
-          status: details?.status,
-          name: details?.name,
-        }),
-      );
-      this.session.user.set(null);
-      return false;
-    }
+    // Render from the verified Entra account first. Profile synchronization can be slow on
+    // cold starts, so let the authenticated shell appear while /users/me hydrates Nexo data.
+    this.session.setMicrosoftUser(this.userFromAccount(account));
+    void this.refreshMicrosoftProfile(account);
+    return true;
+  }
+
+  private userFromAccount(account: AccountInfo): DemoUser {
+    const claims = (account.idTokenClaims ?? {}) as Record<string, unknown>;
+    const claim = (key: string) => (typeof claims[key] === 'string' ? (claims[key] as string) : '');
+    const username = account.username || claim('preferred_username') || claim('email');
+    return {
+      id: account.localAccountId || account.homeAccountId,
+      username,
+      email: claim('email') || username,
+      displayName: account.name || claim('name') || username.split('@')[0] || 'Estudiante Nexo',
+      color: '#6958d8',
+      bio: '',
+      availability: 'AVAILABLE',
+      online: true,
+    };
+  }
+
+  private refreshMicrosoftProfile(account: AccountInfo): Promise<void> {
+    const existing = this.profileSyncs.get(account.homeAccountId);
+    if (existing) return existing;
+    const sync = firstValueFrom(this.http.get<DemoUser>(environment.apiUrl + '/users/me'))
+      .then((user) => {
+        const active = this.msal.instance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0];
+        if (active?.homeAccountId === account.homeAccountId) this.session.setMicrosoftUser(user);
+      })
+      .catch((error: unknown) => {
+        const details = error as { status?: number; name?: string };
+        console.error(
+          'Microsoft profile sync failed',
+          JSON.stringify({ status: details?.status, name: details?.name }),
+        );
+      })
+      .finally(() => this.profileSyncs.delete(account.homeAccountId));
+    this.profileSyncs.set(account.homeAccountId, sync);
+    return sync;
   }
 
   private initialize(): Promise<void> {

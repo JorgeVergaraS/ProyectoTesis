@@ -1225,3 +1225,79 @@ html[data-theme='default'] .people-grid {
     box-shadow: 0 16px 34px #31305a14;
   }
 }
+
+/* Shared interaction and layout foundations for desktop, tablet and touch devices. */
+html {
+  min-width: 320px;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+body {
+  min-width: 320px;
+  color: var(--theme-text);
+  background-color: var(--theme-bg);
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button,
+a,
+input,
+textarea,
+select,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--theme-accent) 76%, white);
+  outline-offset: 3px;
+}
+::selection {
+  color: var(--theme-accent-contrast);
+  background: color-mix(in srgb, var(--theme-accent) 72%, white);
+}
+app-status .page {
+  width: min(100%, 1280px);
+  padding: clamp(20px, 5vw, 64px);
+  color: var(--theme-text);
+}
+app-status .status-panel {
+  border-color: var(--theme-border-strong);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--theme-panel) 92%, transparent);
+  box-shadow: 0 20px 54px #00000012;
+  backdrop-filter: blur(18px);
+}
+app-status .service-row {
+  border-color: var(--theme-border);
+}
+app-status footer {
+  border-color: var(--theme-border);
+}
+@media (max-width: 600px) {
+  app-status .page {
+    padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+  }
+  app-status main {
+    margin: 42px auto 40px;
+  }
+  app-status .status-panel {
+    padding: 20px 16px;
+  }
+  app-status .panel-heading,
+  app-status .panel-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  app-status .service-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

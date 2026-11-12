@@ -53,9 +53,19 @@
           type="button"
           (click)="enter()"
           [disabled]="!configured || busy()"
+          [attr.aria-busy]="busy()"
         >
-          {{ busy() ? 'Conectando…' : 'Continuar con Microsoft' }}<nexo-icon name="arrow" />
+          @if (busy()) {
+            <span class="login-spinner" aria-hidden="true"></span>Abriendo Microsoft…
+          } @else {
+            Continuar con Microsoft<nexo-icon name="arrow" />
+          }
         </button>
+        @if (busy()) {
+          <p class="auth-progress" role="status">
+            Validando tu cuenta institucional. Tu espacio se prepara en cuanto Microsoft confirma el acceso.
+          </p>
+        }
       </div>
       <div class="local-divider"><span>o continúa con tu correo</span></div>
       <form class="local-form" [formGroup]="localForm" (ngSubmit)="submitLocal()">

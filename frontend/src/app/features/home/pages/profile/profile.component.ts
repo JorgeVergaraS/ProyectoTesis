@@ -35,13 +35,17 @@ import { ProfilePanelComponent } from '../../components/profile-panel.component'
   styles: `
     .profile-route {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(380px, 780px);
-      gap: 40px;
-      place-items: center;
+      grid-template-columns: minmax(260px, 0.75fr) minmax(360px, 780px);
+      gap: clamp(24px, 5vw, 72px);
+      align-items: center;
+      justify-content: center;
       min-height: 100dvh;
       box-sizing: border-box;
-      padding: clamp(24px, 5vw, 72px);
-      background: radial-gradient(circle at 20% 15%, #6d45c12e, transparent 32%), #090c13;
+      padding: clamp(24px, 6vw, 88px);
+      color: var(--theme-text, #edf0fa);
+      background:
+        radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--theme-accent, #6958d8) 13%, transparent), transparent 36rem),
+        var(--theme-bg, #090c13);
     }
     .profile-route > p {
       color: #9da7ba;
@@ -50,7 +54,7 @@ import { ProfilePanelComponent } from '../../components/profile-panel.component'
       max-width: 560px;
     }
     .profile-intro > span {
-      color: #5ee4b7;
+      color: var(--theme-accent, #5ee4b7);
       font-size: 11px;
       letter-spacing: 0.16em;
       font-weight: 700;
@@ -63,12 +67,12 @@ import { ProfilePanelComponent } from '../../components/profile-panel.component'
     }
     .profile-intro em {
       font-style: normal;
-      background: linear-gradient(100deg, #b098ff, #50ccd7);
+      background: linear-gradient(100deg, var(--theme-accent, #b098ff), #50ccd7);
       background-clip: text;
       color: transparent;
     }
     .profile-intro p {
-      color: #a4b5c9;
+      color: var(--theme-muted, #a4b5c9);
       line-height: 1.8;
       font-size: 14px;
     }
@@ -80,6 +84,22 @@ import { ProfilePanelComponent } from '../../components/profile-panel.component'
       .profile-intro {
         width: 100%;
         max-width: 780px;
+      }
+    }
+    @media (max-width: 760px) {
+      .profile-route {
+        min-height: 100dvh;
+        align-content: start;
+        gap: 18px;
+        padding: max(22px, env(safe-area-inset-top)) 14px max(22px, env(safe-area-inset-bottom));
+      }
+      .profile-intro h1 {
+        margin: 12px 0;
+        font-size: clamp(32px, 9vw, 48px);
+      }
+      .profile-intro p {
+        margin-bottom: 0;
+        font-size: 13px;
       }
     }
     @media (max-width: 600px) {

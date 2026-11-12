@@ -413,6 +413,116 @@ legend {
   font-size: 11px;
   cursor: pointer;
 }
+/* Aurora access flow: high contrast, clear focus and room for assistive touch targets. */
+.login-card {
+  border-color: color-mix(in srgb, var(--theme-accent, #8b5cf6) 25%, #284357);
+  box-shadow: 0 28px 86px #00000038;
+}
+.login-card input,
+.login-card button {
+  min-height: 46px;
+}
+.enter-button {
+  gap: 10px;
+  border-radius: 13px;
+}
+.auth-progress {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 10px 2px 0;
+  color: #aab8cf;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.login-spinner {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: nexo-login-spin 650ms linear infinite;
+}
+@keyframes nexo-login-spin {
+  to { transform: rotate(360deg); }
+}
+.login-card :focus-visible,
+.login-page a:focus-visible,
+.login-page button:focus-visible,
+.login-page input:focus-visible {
+  outline: 3px solid #6edfe6;
+  outline-offset: 3px;
+}
+.local-form input {
+  min-height: 46px;
+  border-radius: 11px;
+  font-size: 16px;
+}
+.secondary-button,
+.mode-link {
+  min-height: 44px;
+}
+@media (max-width: 760px) {
+  .login-page {
+    padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+  }
+  .login-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    margin: 30px 0 26px;
+  }
+  .welcome h1 {
+    margin: 14px 0;
+    font-size: clamp(36px, 11vw, 54px);
+    letter-spacing: -2.2px;
+  }
+  .welcome > p {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .feature-chips {
+    gap: 10px 14px;
+    margin-top: 18px;
+  }
+  .feature-chips span {
+    font-size: 11px;
+  }
+  .social-art {
+    display: none;
+  }
+  .welcome-footer {
+    margin-top: 18px;
+  }
+  .login-card {
+    width: min(100%, 520px);
+    margin-inline: auto;
+    padding: clamp(22px, 6vw, 30px);
+    border-radius: 22px;
+  }
+  .login-card h2 {
+    font-size: 28px;
+  }
+  .login-footer {
+    gap: 10px;
+    font-size: 9px;
+  }
+}
+@media (max-width: 380px) {
+  .login-header .demo-pill {
+    max-width: 145px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .login-card {
+    padding: 20px 17px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-spinner { animation-duration: 1.6s; }
+  .login-page *, .login-page *::before, .login-page *::after { scroll-behavior: auto; transition-duration: .01ms !important; }
+}
 @media (max-width: 1000px) {
   .login-page {
     padding: 28px;
@@ -464,4 +574,46 @@ legend {
   .login-card h2 br {
     display: none;
   }
+}
+@media (max-width: 760px) {
+  .login-page {
+    padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+  }
+  .login-grid {
+    gap: 20px;
+    margin: 30px 0 26px;
+  }
+  .welcome h1 {
+    margin: 14px 0;
+    font-size: clamp(36px, 11vw, 54px);
+    letter-spacing: -2.2px;
+  }
+  .welcome > p {
+    line-height: 1.65;
+  }
+  .feature-chips {
+    display: flex;
+    gap: 10px 14px;
+    margin-top: 18px;
+  }
+  .social-art {
+    display: none;
+  }
+  .welcome-footer {
+    display: flex;
+    margin-top: 18px;
+  }
+  .login-card {
+    max-width: 520px;
+    padding: clamp(22px, 6vw, 30px);
+    border-radius: 22px;
+  }
+  .login-footer {
+    gap: 10px;
+  }
+}
+@media (max-width: 380px) {
+  .login-page { padding-inline: 12px; }
+  .login-header .demo-pill { max-width: 145px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .login-card { padding: 20px 17px; }
 }
