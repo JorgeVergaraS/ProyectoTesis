@@ -18,9 +18,11 @@ sus capturas; no debe interpretarse como una nueva prueba realizada el 12-11.
 
 La página Run Command de Systems Manager no mostró instancias disponibles para
 selección manual. Por eso no se ejecutó ningún comando remoto y no se modificaron
-instancias, grupos de seguridad, RDS ni datos. Antes de usar SSM hay que comprobar
-que las instancias estén administradas y que su perfil de instancia permita
-Systems Manager; el estado `3/3` de EC2 solo comprueba la salud del host.
+instancias, grupos de seguridad, RDS ni datos. En el detalle de `nexo-academic`
+aparece `LabRole`; el rol contiene `AmazonSSMManagedInstanceCore`, así que la
+política administrada de SSM ya está asociada a ese rol. Falta diagnosticar el
+agente SSM o su conectividad desde cada instancia. El estado `3/3` de EC2 solo
+comprueba la salud del host.
 
 ### Diferencia entre el Kafka vigente y el laboratorio EP5/EP6
 
