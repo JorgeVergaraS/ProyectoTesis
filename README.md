@@ -18,11 +18,15 @@
 
 ![Nexo: acceso autenticado con cuenta institucional o local](docs/images/nexo-login.png)
 
-> **Rama de evaluación EP3/EP4:** incorpora tres servicios Spring Boot, clúster RabbitMQ
-> de dos nodos, tres colas con sus DLQ, ACK manual y administración REST protegida.
-> El laboratorio AWS anterior fue eliminado; no utilices sus direcciones como evidencia
-> de un despliegue vigente. Consulta la [implementación y matriz de rúbrica](docs/ep3-ep4-implementation.md)
-> y el [procedimiento de despliegue](docs/cloud-deployment.md) para el estado y validación nuevos.
+> **Estado de entrega EP3–EP6:** esta rama reúne la remodelación visual Nexo Aurora,
+> la implementación y documentación de streaming Kafka EP5/EP6 y la plataforma RabbitMQ.
+> La consola AWS observada el 12-11-2026 confirma `nexo-academic` (`t3.medium`) y
+> `nexo-observability` (`t3.large`) encendidas con 3/3 comprobaciones. Esa vista no
+> confirma el estado de los contenedores ni que este código ya esté desplegado. El clúster
+> de evaluación de tres ZooKeeper y tres brokers está preparado en Compose, pero no forma
+> parte del Kafka de un broker que ya opera en la nube. Revisa la [matriz EP3/EP4](docs/ep3-ep4-implementation.md),
+> la [guía Kafka EP5/EP6](docs/ep5-ep6-kafka.md) y el [estado de nube](docs/cloud-evidence.md)
+> antes de presentar; las capturas históricas conservan su fecha original.
 
 ## Índice
 
@@ -40,6 +44,9 @@
 - [Pruebas y CI](#pruebas)
 - [Git Pattern](#git-pattern)
 - [Operación y solución de problemas](#operacion)
+- [Kafka EP5/EP6](docs/ep5-ep6-kafka.md)
+- [Guion técnico EP5/EP6](docs/guion-charla-ep5-ep6.md)
+- [Guía de estudio EP5/EP6](docs/guia-estudio-EP5-EP6.docx)
 - [Próximas etapas](#roadmap)
 - [Documentación y licencia](#documentacion)
 
@@ -75,6 +82,11 @@ perfil puede consultar sus membresías, unirse y salir.
 Los temas predeterminado, OLED y claro pueden combinarse con los acabados Mate,
 Style SkayGlass y Y2K 2000. La selección se aplica al instante y permanece en el
 navegador.
+
+En esta rama, el tema predeterminado se remodela como **Nexo Aurora**: fondos
+claros cálidos, tinta azul profunda, acento violeta y detalles menta. OLED y
+Claro siguen disponibles como temas independientes. La actualización se limita
+a la capa visual y conserva los estados y controles de la aplicación.
 
 <details>
 <summary><strong>Ver perfil y foto opcional</strong></summary>
@@ -653,6 +665,14 @@ resume los datos persistidos que se observaron en el código, el alcance de Micr
 sign-in y las decisiones operativas/jurídicas que faltan para preparar el servicio.
 La [guía de consolas de RabbitMQ, Kafka y Grafana](docs/observability-stack.md)
 describe las URL, el flujo de eventos, la topología y el procedimiento de despliegue.
+El trabajo de evaluación actual está descrito en [Kafka EP5/EP6](docs/ep5-ep6-kafka.md),
+con una matriz de criterios, un Compose de laboratorio con tres ZooKeeper y tres
+brokers, administración de topics, grupos, offsets/lag y manejo de errores. Para
+la presentación de 5–10 minutos consulta el [guion técnico](docs/guion-charla-ep5-ep6.md);
+los conceptos, tarjetas de repaso y preguntas de práctica están en la [guía de
+estudio separada](docs/guia-estudio-EP5-EP6.docx). El laboratorio EP5/EP6 aún no
+se ha desplegado en AWS; el broker KRaft único documentado en AWS no acredita
+los tres brokers RF=3 que pide la presentación.
 El estado de AWS comprobado y los límites de la evidencia están en [docs/cloud-evidence.md](docs/cloud-evidence.md).
 Paneles activos: [RabbitMQ](https://rabbit.52.45.123.118.nip.io), [Kafka UI](https://kafka.52.45.123.118.nip.io) y [Grafana](https://grafana.52.45.123.118.nip.io). RabbitMQ usa autenticación nativa de Management para la UI y sus llamadas API; Kafka UI y Grafana usan Basic Auth en Caddy. Los secretos se guardan en SSM SecureString y no se documentan aquí. El acceso interno de Grafana se alineó con el usuario `nexo-viewer`; el login HTTPS y `/api/user` autenticados respondieron correctamente. Los detalles de operación y la evidencia consultada desde las pestañas abiertas están en [docs/observability-stack.md](docs/observability-stack.md) y [docs/cloud-evidence.md](docs/cloud-evidence.md).
 
@@ -822,6 +842,21 @@ remota vencerá, como máximo, en ocho horas.
 <a id="roadmap"></a>
 
 ## Próximas etapas
+
+### Streaming Kafka EP5/EP6 · `feature/ep6-nexo-remodel`
+
+- [x] Compose de laboratorio con 3 ZooKeeper, 3 brokers, Kafbat UI y dos topics
+  (3 particiones, RF=3, ISR=2 y retención configurable).
+- [x] Puente RabbitMQ→Kafka sin copiar el cuerpo del mensaje y ACK manual luego
+  de publicar a los dos topics.
+- [x] Consumidores Spring en grupos separados; retry acotado y `.failed` topics.
+- [x] Kafka Admin protegido por JWT, permisos ADMIN y cambios limitados a
+  `nexo.demo.*`.
+- [x] Tema Nexo Aurora para el tema predeterminado y documentación/guion EP5–EP6.
+- [ ] Ejecutar build/test Maven con Java 21 y una integración local completa.
+- [ ] Aceptar el diseño visual en navegador desktop y móvil.
+- [ ] Desplegar el laboratorio de tres brokers solo si se planifica infraestructura
+  y costo por separado; no confundirlo con el broker único KRaft de AWS.
 
 ### Incremento visual y multimedia · `feat/experiencia-multimedia`
 

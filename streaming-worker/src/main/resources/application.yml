@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: nexo-streaming-worker
+  rabbitmq:
+    addresses: ${RABBITMQ_ADDRESSES:localhost:5672}
+    username: ${RABBITMQ_USER:nexo}
+    password: ${RABBITMQ_PASSWORD:}
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 100
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      retries: 5
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
+server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  port: ${SERVER_PORT:8084}
+nexo:
+  events:
+    enabled: true
+  kafka:
+    enabled: ${NEXO_KAFKA_ENABLED:true}
+    messages-topic: ${KAFKA_MESSAGES_TOPIC:nexo.messages.v1}
+    activity-topic: ${KAFKA_ACTIVITY_TOPIC:nexo.activity.v1}
+    messages-group: ${KAFKA_MESSAGES_GROUP:nexo-message-audit}
+    activity-group: ${KAFKA_ACTIVITY_GROUP:nexo-analytics}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true

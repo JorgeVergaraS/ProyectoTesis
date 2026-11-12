@@ -1,5 +1,37 @@
 # Evidencia de reconstrucción del laboratorio
 
+## Inventario observado en consola EC2 (12 de noviembre de 2026)
+
+La consola AWS en `us-east-1` mostró dos instancias en ejecución y con 3/3
+comprobaciones aprobadas:
+
+| Nombre | Tipo | IP elástica visible | Grupo de seguridad |
+| --- | --- | --- | --- |
+| `nexo-academic` | `t3.medium` | `3.230.182.219` | `nexo-academic-app` |
+| `nexo-observability` | `t3.large` | `52.45.123.118` | `nexo-observability` |
+
+Esta comprobación fue únicamente de inventario EC2 en la consola. No consultó
+SSM, Docker, RDS, cuotas, balance de carga ni salud HTTP. Por ello no se usa como
+evidencia de que una nueva versión esté desplegada ni de que todos sus servicios
+respondan. El bloque siguiente conserva la evidencia obtenida el 15-10-2026 y
+sus capturas; no debe interpretarse como una nueva prueba realizada el 12-11.
+
+La página Run Command de Systems Manager no mostró instancias disponibles para
+selección manual. Por eso no se ejecutó ningún comando remoto y no se modificaron
+instancias, grupos de seguridad, RDS ni datos. Antes de usar SSM hay que comprobar
+que las instancias estén administradas y que su perfil de instancia permita
+Systems Manager; el estado `3/3` de EC2 solo comprueba la salud del host.
+
+### Diferencia entre el Kafka vigente y el laboratorio EP5/EP6
+
+La evidencia del 15-10 registra un Kafka KRaft de un broker en la EC2 de
+observabilidad. El Compose nuevo de `infra/kafka-ep5/` declara tres ZooKeeper y
+tres brokers con replicación 3, pero es todavía una configuración del repositorio,
+no un despliegue cloud verificado. No apuntar Grafana/Kafbat a ese Compose ni
+afirmar que AWS cumple RF=3 hasta hacer una migración y verificar el nuevo
+flujo. El procedimiento de red y capacidad pendiente está en
+[`ep5-ep6-kafka.md`](ep5-ep6-kafka.md).
+
 Fecha: 15 de octubre de 2026 (Santiago/UTC). El laboratorio anterior fue eliminado y se reconstruyó la infraestructura descrita abajo.
 
 | Elemento | Resultado verificado |

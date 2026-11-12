@@ -21,8 +21,10 @@ public class RabbitTopology {
     public static final String NOTIFICATIONS_DLQ = NOTIFICATIONS + ".failed";
     public static final String AUDIT_DLQ = AUDIT + ".failed";
     public static final String ACTIVITY_DLQ = ACTIVITY + ".failed";
-    public static final List<String> QUEUES = List.of(NOTIFICATIONS, AUDIT, ACTIVITY);
-    public static final List<String> DLQS = List.of(NOTIFICATIONS_DLQ, AUDIT_DLQ, ACTIVITY_DLQ);
+    public static final String KAFKA_BRIDGE = "nexo.kafka.bridge";
+    public static final String KAFKA_BRIDGE_DLQ = KAFKA_BRIDGE + ".failed";
+    public static final List<String> QUEUES = List.of(NOTIFICATIONS, AUDIT, ACTIVITY, KAFKA_BRIDGE);
+    public static final List<String> DLQS = List.of(NOTIFICATIONS_DLQ, AUDIT_DLQ, ACTIVITY_DLQ, KAFKA_BRIDGE_DLQ);
     public static final List<String> EXCHANGES = List.of(EVENTS, TASKS, DEAD_LETTERS);
 
     @Bean
@@ -36,15 +38,19 @@ public class RabbitTopology {
         Queue notificationsDlq = new Queue(NOTIFICATIONS_DLQ, true);
         Queue auditDlq = new Queue(AUDIT_DLQ, true);
         Queue activityDlq = new Queue(ACTIVITY_DLQ, true);
+        Queue kafkaBridge = workQueue(KAFKA_BRIDGE, KAFKA_BRIDGE_DLQ);
+        Queue kafkaBridgeDlq = new Queue(KAFKA_BRIDGE_DLQ, true);
         return new Declarables(events, tasks, failures,
-                notifications, audit, activity, notificationsDlq, auditDlq, activityDlq,
+                notifications, audit, activity, kafkaBridge, notificationsDlq, auditDlq, activityDlq, kafkaBridgeDlq,
                 BindingBuilder.bind(tasks).to(events).with(MESSAGE_CREATED),
                 BindingBuilder.bind(notifications).to(tasks).with(MESSAGE_CREATED),
                 BindingBuilder.bind(audit).to(events).with(MESSAGE_PATTERN),
                 BindingBuilder.bind(activity).to(events).with(MESSAGE_CREATED),
+                BindingBuilder.bind(kafkaBridge).to(events).with(MESSAGE_PATTERN),
                 BindingBuilder.bind(notificationsDlq).to(failures).with(NOTIFICATIONS_DLQ),
                 BindingBuilder.bind(auditDlq).to(failures).with(AUDIT_DLQ),
-                BindingBuilder.bind(activityDlq).to(failures).with(ACTIVITY_DLQ));
+                BindingBuilder.bind(activityDlq).to(failures).with(ACTIVITY_DLQ),
+                BindingBuilder.bind(kafkaBridgeDlq).to(failures).with(KAFKA_BRIDGE_DLQ));
     }
 
     private Queue workQueue(String name, String failureKey) {
